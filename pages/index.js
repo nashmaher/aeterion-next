@@ -937,46 +937,6 @@ function Card({ p, onOpen, onAdd, mob, inv }) {
   const isSoldOut = inv && (!inv.inStock || inv.stock === 0);
   const isLow     = inv && inv.inStock && inv.stock > 0 && inv.stock <= 5;
 
-  /* ════════════════════ HOMEPAGE SCHEMA ════════════════════ */
-  const homepageSchema = [
-    {
-      "@context": "https://schema.org",
-      "@type": "Organization",
-      "name": "Aeterion Labs",
-      "url": "https://aeterionpeptides.com",
-      "logo": "https://aeterionpeptides.com/apple-touch-icon.png",
-      "contactPoint": { "@type": "ContactPoint", "email": "info@aeterionpeptides.com", "contactType": "customer service" },
-      "description": "US-based supplier of research-grade peptides, GLP-1 compounds, SARMs, nootropics, and analytical compounds."
-    },
-    {
-      "@context": "https://schema.org",
-      "@type": "WebSite",
-      "name": "Aeterion Labs",
-      "url": "https://aeterionpeptides.com",
-      "potentialAction": { "@type": "SearchAction", "target": "https://aeterionpeptides.com/?q={search_term_string}", "query-input": "required name=search_term_string" }
-    },
-    {
-      "@context": "https://schema.org",
-      "@type": "ItemList",
-      "name": "Research Peptides Catalog",
-      "description": "Research-grade peptides, GLP-1 agonists, SARMs, and analytical compounds",
-      "url": "https://aeterionpeptides.com",
-      "numberOfItems": 79,
-      "itemListElement": [
-        { "@type": "ListItem", "position": 1, "name": "Semaglutide", "url": "https://aeterionpeptides.com/products/semaglutide" },
-        { "@type": "ListItem", "position": 2, "name": "Tirzepatide", "url": "https://aeterionpeptides.com/products/tirzepatide" },
-        { "@type": "ListItem", "position": 3, "name": "BPC-157", "url": "https://aeterionpeptides.com/products/bpc-157" },
-        { "@type": "ListItem", "position": 4, "name": "TB-500", "url": "https://aeterionpeptides.com/products/tb-500" },
-        { "@type": "ListItem", "position": 5, "name": "Retatrutide", "url": "https://aeterionpeptides.com/products/retatrutide" },
-        { "@type": "ListItem", "position": 6, "name": "MK-677", "url": "https://aeterionpeptides.com/products/mk-677" },
-        { "@type": "ListItem", "position": 7, "name": "CJC-1295", "url": "https://aeterionpeptides.com/products/cjc-1295-with-dac" },
-        { "@type": "ListItem", "position": 8, "name": "Ipamorelin", "url": "https://aeterionpeptides.com/products/ipamorelin" },
-        { "@type": "ListItem", "position": 9, "name": "NAD+", "url": "https://aeterionpeptides.com/products/nad" },
-        { "@type": "ListItem", "position": 10, "name": "Epithalon", "url": "https://aeterionpeptides.com/products/epithalon" }
-      ]
-    }
-  ];
-
   if (mob) return (
     <div style={{
       background: T.white, borderRadius: 14,
@@ -1094,6 +1054,46 @@ function Card({ p, onOpen, onAdd, mob, inv }) {
 
 
 /* ─── MAIN APP ─── */
+/* ══ HOMEPAGE STRUCTURED DATA (module-level so SSR always has access) ══ */
+const HOMEPAGE_SCHEMA = [
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Aeterion Labs",
+    "url": "https://aeterionpeptides.com",
+    "logo": "https://aeterionpeptides.com/apple-touch-icon.png",
+    "contactPoint": { "@type": "ContactPoint", "email": "info@aeterionpeptides.com", "contactType": "customer service" },
+    "description": "US-based supplier of research-grade peptides, GLP-1 compounds, SARMs, nootropics, and analytical compounds."
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Aeterion Labs",
+    "url": "https://aeterionpeptides.com",
+    "potentialAction": { "@type": "SearchAction", "target": "https://aeterionpeptides.com/?q={search_term_string}", "query-input": "required name=search_term_string" }
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "name": "Research Peptides Catalog",
+    "description": "Research-grade peptides, GLP-1 agonists, SARMs, and analytical compounds",
+    "url": "https://aeterionpeptides.com",
+    "numberOfItems": 79,
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Semaglutide", "url": "https://aeterionpeptides.com/products/semaglutide" },
+      { "@type": "ListItem", "position": 2, "name": "Tirzepatide", "url": "https://aeterionpeptides.com/products/tirzepatide" },
+      { "@type": "ListItem", "position": 3, "name": "BPC-157", "url": "https://aeterionpeptides.com/products/bpc-157" },
+      { "@type": "ListItem", "position": 4, "name": "TB-500", "url": "https://aeterionpeptides.com/products/tb-500" },
+      { "@type": "ListItem", "position": 5, "name": "Retatrutide", "url": "https://aeterionpeptides.com/products/retatrutide" },
+      { "@type": "ListItem", "position": 6, "name": "MK-677", "url": "https://aeterionpeptides.com/products/mk-677" },
+      { "@type": "ListItem", "position": 7, "name": "CJC-1295", "url": "https://aeterionpeptides.com/products/cjc-1295-with-dac" },
+      { "@type": "ListItem", "position": 8, "name": "Ipamorelin", "url": "https://aeterionpeptides.com/products/ipamorelin" },
+      { "@type": "ListItem", "position": 9, "name": "NAD+", "url": "https://aeterionpeptides.com/products/nad" },
+      { "@type": "ListItem", "position": 10, "name": "Epithalon", "url": "https://aeterionpeptides.com/products/epithalon" }
+    ]
+  }
+];
+
 export default function App() {
   const mob = useIsMobile();
   const tab = useIsTablet();
@@ -2349,7 +2349,7 @@ export default function App() {
         <title>Buy Research Peptides Online | Aeterion Labs — GLP-1, BPC-157, TB-500 & More</title>
         <meta name="description" content="Shop 79 research-grade peptides and compounds. GLP-1 agonists, BPC-157, TB-500, NAD+, cognitive peptides and more. COA with every order. USA shipping." />
         <link rel="canonical" href="https://aeterionpeptides.com" />
-        {homepageSchema.map((s, i) => <script key={i} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(s) }} />)}
+        {HOMEPAGE_SCHEMA.map((s, i) => <script key={i} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(s) }} />)}
       </Head>
       <div style={{ background: T.blue, padding: "8px 16px", fontSize: 11, color: "rgba(255,255,255,0.9)", textAlign: "center" }}>
         🚚 Free shipping $250+ · ✅ COA with every order · 📦 1-2 day processing
@@ -2485,7 +2485,7 @@ export default function App() {
         <title>Buy Research Peptides Online | Aeterion Labs — GLP-1, BPC-157, TB-500 & More</title>
         <meta name="description" content="Shop 79 research-grade peptides and compounds. GLP-1 agonists, BPC-157, TB-500, NAD+, cognitive peptides and more. COA with every order. USA shipping." />
         <link rel="canonical" href="https://aeterionpeptides.com" />
-        {homepageSchema.map((s, i) => <script key={i} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(s) }} />)}
+        {HOMEPAGE_SCHEMA.map((s, i) => <script key={i} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(s) }} />)}
       </Head>
       <div style={{ background: T.blue, padding: "9px 24px", fontSize: 11.5, color: "rgba(255,255,255,0.9)", textAlign: "center", fontWeight: 500 }}>
         🚚 Free shipping on orders over $250 &nbsp;·&nbsp; ✅ COA with every order &nbsp;·&nbsp; 🛡️ Third-party tested &nbsp;·&nbsp; 🇺🇸 Ships from USA
