@@ -937,6 +937,46 @@ function Card({ p, onOpen, onAdd, mob, inv }) {
   const isSoldOut = inv && (!inv.inStock || inv.stock === 0);
   const isLow     = inv && inv.inStock && inv.stock > 0 && inv.stock <= 5;
 
+  /* ════════════════════ HOMEPAGE SCHEMA ════════════════════ */
+  const homepageSchema = [
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Aeterion Labs",
+      "url": "https://aeterionpeptides.com",
+      "logo": "https://aeterionpeptides.com/apple-touch-icon.png",
+      "contactPoint": { "@type": "ContactPoint", "email": "info@aeterionpeptides.com", "contactType": "customer service" },
+      "description": "US-based supplier of research-grade peptides, GLP-1 compounds, SARMs, nootropics, and analytical compounds."
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Aeterion Labs",
+      "url": "https://aeterionpeptides.com",
+      "potentialAction": { "@type": "SearchAction", "target": "https://aeterionpeptides.com/?q={search_term_string}", "query-input": "required name=search_term_string" }
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      "name": "Research Peptides Catalog",
+      "description": "Research-grade peptides, GLP-1 agonists, SARMs, and analytical compounds",
+      "url": "https://aeterionpeptides.com",
+      "numberOfItems": 79,
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Semaglutide", "url": "https://aeterionpeptides.com/products/semaglutide" },
+        { "@type": "ListItem", "position": 2, "name": "Tirzepatide", "url": "https://aeterionpeptides.com/products/tirzepatide" },
+        { "@type": "ListItem", "position": 3, "name": "BPC-157", "url": "https://aeterionpeptides.com/products/bpc-157" },
+        { "@type": "ListItem", "position": 4, "name": "TB-500", "url": "https://aeterionpeptides.com/products/tb-500" },
+        { "@type": "ListItem", "position": 5, "name": "Retatrutide", "url": "https://aeterionpeptides.com/products/retatrutide" },
+        { "@type": "ListItem", "position": 6, "name": "MK-677", "url": "https://aeterionpeptides.com/products/mk-677" },
+        { "@type": "ListItem", "position": 7, "name": "CJC-1295", "url": "https://aeterionpeptides.com/products/cjc-1295-with-dac" },
+        { "@type": "ListItem", "position": 8, "name": "Ipamorelin", "url": "https://aeterionpeptides.com/products/ipamorelin" },
+        { "@type": "ListItem", "position": 9, "name": "NAD+", "url": "https://aeterionpeptides.com/products/nad" },
+        { "@type": "ListItem", "position": 10, "name": "Epithalon", "url": "https://aeterionpeptides.com/products/epithalon" }
+      ]
+    }
+  ];
+
   if (mob) return (
     <div style={{
       background: T.white, borderRadius: 14,
@@ -2064,7 +2104,7 @@ export default function App() {
         "Aeterion Peptides reserves the right to modify these terms at any time. Continued use of the website constitutes acceptance of the modified terms. We reserve the right to limit quantities per order at our discretion.",
       ]},
       { id: "shipping", title: "Shipping Policy", icon: "🚚", content: [
-        "We ship domestically within the USA only. Orders are processed within 48 hours of payment confirmation, Monday through Friday. Free shipping is offered on orders exceeding $250.00 USD before taxes.",
+        "We ship domestically within the USA only. Orders are processed within 1–2 business days of payment confirmation, Monday through Friday. Delivery typically takes 1–2 weeks. Free shipping is offered on orders exceeding $250.00 USD before taxes.",
         "Aeterion Peptides is not responsible for delays caused by carrier issues, weather events, or customs processing. Tracking information will be provided via email once your order ships. We do not ship to PO boxes.",
         "All peptide compounds are shipped with appropriate cold-packing to preserve integrity during transit. Lyophilized (freeze-dried) compounds are stable at room temperature for short transit periods but should be stored at -20°C upon receipt.",
       ]},
@@ -2169,7 +2209,7 @@ export default function App() {
         {[
           { icon: "🔬", title: "Who We Are", body: "Aeterion Labs is a US-based supplier of research-grade peptides, GLP-1 compounds, SARMs, nootropics, and analytical compounds. We serve independent researchers, university laboratory teams, and life science professionals who require consistent, verified-purity compounds for their work. Every product in our catalog has been independently tested by a third-party laboratory before being offered for sale." },
           { icon: "🧪", title: "Our Quality Standard", body: "Every batch undergoes HPLC purity testing to ≥98–99% and mass spectrometry identity confirmation before it reaches our inventory. We provide a batch-specific Certificate of Analysis (COA) with every order — not a generic product COA, but documentation tied to the exact lot you receive. We don't ship compounds that don't meet our purity threshold. Full stop." },
-          { icon: "❄️", title: "Cold-Chain Fulfillment", body: "Lyophilized peptides are temperature-sensitive. Our fulfillment process uses cold-pack shipping for all peptide orders to preserve compound integrity from our facility to your lab. Orders are dispatched within 48 hours of confirmed payment, with tracking provided automatically via email." },
+          { icon: "❄️", title: "Cold-Chain Fulfillment", body: "Lyophilized peptides are temperature-sensitive. Our fulfillment process uses cold-pack shipping for all peptide orders to preserve compound integrity from our facility to your lab. Orders are processed within 1–2 business days of confirmed payment, with tracking provided automatically via email. Delivery typically takes 1–2 weeks." },
           { icon: "📋", title: "Research Use Only", body: "All Aeterion Labs products are sold strictly for laboratory research purposes only. They are not intended for human consumption, medical treatment, or diagnostic use, and have not been evaluated by the FDA for these purposes. Our customers are researchers and scientists using these compounds to advance scientific understanding — not for personal use." },
           { icon: "📬", title: "Get in Touch", body: "Questions about a specific compound, wholesale pricing, bulk orders, or COA documentation? Our team responds within 24 hours. Email us at info@aeterionpeptides.com — or use the contact form on our site." },
         ].map(({ icon, title, body }) => (
@@ -2184,7 +2224,7 @@ export default function App() {
 
         <div style={{ background: "linear-gradient(135deg, #1B3A6B 0%, #2563eb 100%)", borderRadius: 20, padding: "36px 32px", textAlign: "center", marginTop: 16 }}>
           <h3 style={{ margin: "0 0 10px", fontSize: 22, fontWeight: 900, color: "#fff" }}>Ready to Order?</h3>
-          <p style={{ margin: "0 0 22px", fontSize: 14, color: "rgba(255,255,255,0.75)", lineHeight: 1.7 }}>Browse 79 research compounds with next-day dispatch and COA included.</p>
+          <p style={{ margin: "0 0 22px", fontSize: 14, color: "rgba(255,255,255,0.75)", lineHeight: 1.7 }}>Browse 79 research compounds with fast dispatch and COA included.</p>
           <button onClick={() => goTo("store")} style={{ ...btnPrimary({ padding: "13px 32px", fontSize: 15, borderRadius: 12, background: "#fff", color: "#1B3A6B" }) }}>Browse All Products →</button>
         </div>
       </div>
@@ -2201,13 +2241,13 @@ export default function App() {
     const faqs = [
       { q: "Are these products legal to purchase?", a: "Yes. Research peptides are legal to purchase in the United States for laboratory research purposes. They are sold strictly as research chemicals — not for human consumption or therapeutic use. FDA-approved compounds (like semaglutide and tirzepatide) are provided for research use only, consistent with the research chemical market. Always ensure your use complies with local regulations." },
       { q: "What purity level are your peptides?", a: "All Aeterion Labs compounds are independently HPLC-tested to ≥98–99% purity with mass spectrometry identity confirmation. A batch-specific Certificate of Analysis (COA) is included with every order, tied to the exact lot number you receive — not a generic product-level COA." },
-      { q: "How are peptides shipped?", a: "Lyophilized peptides are shipped cold-packed using insulated packaging to protect compound integrity during transit. All orders include full tracking. Orders are dispatched within 48 hours of confirmed payment. We ship domestically from within the USA." },
+      { q: "How are peptides shipped?", a: "Lyophilized peptides are shipped cold-packed using insulated packaging to protect compound integrity during transit. All orders include full tracking. Orders are processed within 1–2 business days. We ship domestically from within the USA." },
       { q: "What is your shipping cost?", a: "Standard shipping is $15 per order. Orders over $250 qualify for free shipping, applied automatically at checkout. We do not currently offer international shipping." },
       { q: "Do you offer bulk or wholesale pricing?", a: "Yes — bulk discounts are applied automatically at checkout. 5 vials of any product receives an 8% discount. 10 vials receives an 18% discount. These apply across mixed products in the same category. For larger institutional or wholesale orders, contact us at info@aeterionpeptides.com." },
       { q: "What is bacteriostatic water and do I need it?", a: "Bacteriostatic water (BW) is the standard diluent for reconstituting lyophilized peptides in a research setting. It contains 0.9% benzyl alcohol which inhibits bacterial growth in multi-dose vials. We carry bacteriostatic water in our Ancillaries category. It is required for reconstituting all lyophilized peptide compounds." },
       { q: "How should I store my peptides?", a: "Lyophilized (un-reconstituted) peptides should be stored at -20°C in a sealed vial away from light. Under these conditions, most compounds maintain stability for 12–24 months. After reconstitution with bacteriostatic water, store at 2–8°C (refrigerated) and use within 28 days. Do not freeze reconstituted peptides." },
       { q: "Can I return or exchange an order?", a: "Due to the nature of research chemicals and cold-chain shipping requirements, we do not accept returns on opened products. If your order arrives damaged, contains the wrong product, or has a purity issue supported by your own third-party testing, contact us within 7 days of delivery at info@aeterionpeptides.com and we will resolve it." },
-      { q: "How long does delivery take?", a: "Orders are dispatched within 48 hours of payment confirmation. Domestic delivery typically takes 3–5 business days via standard shipping. You will receive a tracking number by email as soon as your order ships." },
+      { q: "How long does delivery take?", a: "Orders are processed within 1–2 business days of payment confirmation. Delivery typically takes 1–2 weeks. You will receive a tracking number by email as soon as your order ships." },
       { q: "Do you have a Certificate of Analysis for every product?", a: "Yes — every product in our catalog has been independently tested, and a COA is included with your order. Your COA will match the batch number on your product vial. If you need a COA before ordering, email info@aeterionpeptides.com with the product name and we can provide it in advance." },
       { q: "What payment methods do you accept?", a: "We accept all major credit and debit cards through our secure Stripe-powered checkout. Payments are encrypted and processed securely. We do not store payment information." },
       { q: "Do you offer military or first responder discounts?", a: "We recognize the service of military personnel, veterans, and first responders. Contact us at info@aeterionpeptides.com with verification and we will apply a discount to your order." },
@@ -2305,8 +2345,14 @@ export default function App() {
   );
   if (mob) return (
     <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", background: T.bg, minHeight: "100vh", color: T.text, paddingBottom: 70 }}>
+      <Head>
+        <title>Buy Research Peptides Online | Aeterion Labs — GLP-1, BPC-157, TB-500 & More</title>
+        <meta name="description" content="Shop 79 research-grade peptides and compounds. GLP-1 agonists, BPC-157, TB-500, NAD+, cognitive peptides and more. COA with every order. USA shipping." />
+        <link rel="canonical" href="https://aeterionpeptides.com" />
+        {homepageSchema.map((s, i) => <script key={i} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(s) }} />)}
+      </Head>
       <div style={{ background: T.blue, padding: "8px 16px", fontSize: 11, color: "rgba(255,255,255,0.9)", textAlign: "center" }}>
-        🚚 Free shipping $250+ · ✅ COA with every order
+        🚚 Free shipping $250+ · ✅ COA with every order · 📦 1-2 day processing
       </div>
 
       <header style={{ background: T.white, borderBottom: `1px solid ${T.border}`, padding: "12px 16px", display: "flex", alignItems: "center", gap: 10, position: "sticky", top: 0, zIndex: 300, boxShadow: "0 1px 6px rgba(0,0,0,0.06)" }}>
@@ -2343,7 +2389,7 @@ export default function App() {
               <button onClick={() => setCat("metabolic")} style={{ background: "rgba(255,255,255,0.15)", color: "#fff", border: "1.5px solid rgba(255,255,255,0.4)", borderRadius: 24, padding: "12px 22px", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>GLP-1 →</button>
             </div>
             <div style={{ display: "flex", gap: 0, justifyContent: "center", background: "rgba(255,255,255,0.1)", borderRadius: 16, padding: "12px 0", border: "1px solid rgba(255,255,255,0.12)" }}>
-              {[["72","Products"],["≥99%","Purity"],["48hr","Dispatch"],["COA","Included"],["🇺🇸","USA Ships"]].map(([v,l], idx, arr) => (
+              {[["72","Products"],["≥99%","Purity"],["1-2d","Processing"],["COA","Included"],["🇺🇸","USA Ships"]].map(([v,l], idx, arr) => (
                 <div key={l} style={{ flex: 1, textAlign: "center", borderRight: idx < arr.length-1 ? "1px solid rgba(255,255,255,0.15)" : "none" }}>
                   <div style={{ fontSize: 17, fontWeight: 900, color: "#fff" }}>{v}</div>
                   <div style={{ fontSize: 9, color: "rgba(255,255,255,0.85)", letterSpacing: 1, textTransform: "uppercase", marginTop: 2 }}>{l}</div>
@@ -2435,6 +2481,12 @@ export default function App() {
   /* ════════════════════ DESKTOP RENDER ════════════════════ */
   return (
     <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", background: T.bg, minHeight: "100vh", color: T.text, width: "100%" }}>
+      <Head>
+        <title>Buy Research Peptides Online | Aeterion Labs — GLP-1, BPC-157, TB-500 & More</title>
+        <meta name="description" content="Shop 79 research-grade peptides and compounds. GLP-1 agonists, BPC-157, TB-500, NAD+, cognitive peptides and more. COA with every order. USA shipping." />
+        <link rel="canonical" href="https://aeterionpeptides.com" />
+        {homepageSchema.map((s, i) => <script key={i} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(s) }} />)}
+      </Head>
       <div style={{ background: T.blue, padding: "9px 24px", fontSize: 11.5, color: "rgba(255,255,255,0.9)", textAlign: "center", fontWeight: 500 }}>
         🚚 Free shipping on orders over $250 &nbsp;·&nbsp; ✅ COA with every order &nbsp;·&nbsp; 🛡️ Third-party tested &nbsp;·&nbsp; 🇺🇸 Ships from USA
       </div>
@@ -2494,7 +2546,7 @@ export default function App() {
               <a href="#cat-metabolic" onClick={e => { e.preventDefault(); setCat("metabolic"); window.scrollTo({top:0,behavior:"smooth"}); }} style={{ background: "transparent", color: "#fff", border: "2px solid rgba(255,255,255,0.45)", borderRadius: 12, padding: "14px 32px", fontSize: 15, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", textDecoration: "none", display: "inline-flex", alignItems: "center" }}>GLP-1 / Metabolic →</a>
             </div>
             <div style={{ display: "flex", gap: 48, justifyContent: "center", flexWrap: "wrap" }}>
-              {[["72","Compounds"],["≥99%","Avg Purity"],["48hr","Dispatch"],["COA","Every Order"],["8–18%","Bulk Savings"]].map(([v,l]) => (
+              {[["72","Compounds"],["≥99%","Avg Purity"],["1-2d","Processing"],["COA","Every Order"],["8–18%","Bulk Savings"]].map(([v,l]) => (
                 <div key={l} style={{ textAlign: "center" }}>
                   <div style={{ fontSize: 26, fontWeight: 900, color: "#fff" }}>{v}</div>
                   <div style={{ fontSize: 10, color: "rgba(255,255,255,0.85)", letterSpacing: 1.5, textTransform: "uppercase", marginTop: 3 }}>{l}</div>
@@ -2508,7 +2560,7 @@ export default function App() {
       {cat === "all" && !q && (
         <div style={{ background: T.white, borderBottom: `1px solid ${T.border}`, padding: "14px 24px" }}>
           <div style={{ maxWidth: 1400, margin: "0 auto", display: "flex", justifyContent: "space-around", flexWrap: "wrap", gap: 8 }}>
-            {[["🏆","Lowest Prices","Competitive research pricing"],["🚚","Free Shipping","Orders over $250"],["🛡️","3rd-Party Tested","Independent HPLC"],["🧾","COA Included","With every order"],["🇺🇸","Ships USA","48hr dispatch"],["💬","24/7 Support","Expert assistance"]].map(([ic,t,s]) => (
+            {[["🏆","Lowest Prices","Competitive research pricing"],["🚚","Free Shipping","Orders over $250"],["🛡️","3rd-Party Tested","Independent HPLC"],["🧾","COA Included","With every order"],["🇺🇸","Ships USA","1-2 day processing"],["💬","24/7 Support","Expert assistance"]].map(([ic,t,s]) => (
               <div key={t} style={{ display: "flex", alignItems: "center", gap: 10, padding: "6px 12px" }}>
                 <span style={{ fontSize: 20 }}>{ic}</span>
                 <div><div style={{ fontSize: 12, fontWeight: 700, color: T.text }}>{t}</div><div style={{ fontSize: 10, color: T.muted }}>{s}</div></div>
@@ -2579,7 +2631,7 @@ export default function App() {
               <p style={{ fontSize: 14, color: T.sub, maxWidth: 500, margin: "0 auto", lineHeight: 1.8 }}>Every batch independently tested. Every order ships with a Certificate of Analysis. No exceptions.</p>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(260px,1fr))", gap: 16 }}>
-              {[["🧪","Third-Party Lab Tested","Every compound undergoes independent HPLC testing before shipment."],["❄️","Cold-Chain Shipping","Lyophilized peptides shipped cold-packed to preserve integrity."],["🔬","≥98–99% Purity","No fillers, no underdosing. Every compound at stated concentration."],["🇺🇸","USA Domestic Shipping","All orders ship from within the USA within 48 hours."],["📋","COA with Every Order","Batch numbers and full COA documents with every shipment."],["💬","24/7 Research Support","Protocol questions? Our expert team is always available."]].map(([ic,t,b]) => (
+              {[["🧪","Third-Party Lab Tested","Every compound undergoes independent HPLC testing before shipment."],["❄️","Cold-Chain Shipping","Lyophilized peptides shipped cold-packed to preserve integrity."],["🔬","≥98–99% Purity","No fillers, no underdosing. Every compound at stated concentration."],["🇺🇸","USA Domestic Shipping","All orders ship from within the USA. Processing 1–2 business days."],["📋","COA with Every Order","Batch numbers and full COA documents with every shipment."],["💬","24/7 Research Support","Protocol questions? Our expert team is always available."]].map(([ic,t,b]) => (
                 <div key={t} style={{ background: T.bg, border: `1px solid ${T.border}`, borderRadius: 14, padding: "22px" }}>
                   <div style={{ fontSize: 28, marginBottom: 10 }}>{ic}</div>
                   <h3 style={{ margin: "0 0 6px", fontSize: 14, fontWeight: 700, color: T.text }}>{t}</h3>
