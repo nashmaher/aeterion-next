@@ -96,9 +96,7 @@ function clearSession() {
 /* ─── Fonts loaded via index.html ─── */
 
 function useIsMobile() {
-  const [mob, setMob] = useState(() =>
-    typeof window !== "undefined" ? window.matchMedia("(max-width: 767px)").matches : false
-  );
+  const [mob, setMob] = useState(false); // always false on SSR to prevent hydration mismatch
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 767px)");
     const handler = (e) => setMob(e.matches);
@@ -110,9 +108,7 @@ function useIsMobile() {
 }
 
 function useIsTablet() {
-  const [tab, setTab] = useState(() =>
-    typeof window !== "undefined" ? window.matchMedia("(max-width: 1023px)").matches : false
-  );
+  const [tab, setTab] = useState(false); // always false on SSR to prevent hydration mismatch
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 1023px)");
     const handler = (e) => setTab(e.matches);
@@ -192,7 +188,7 @@ function AeterionLogo({ size = 44, showText = true, textColor = "#1B3A6B", dark 
 }
 
 /* ─── PRODUCT IMAGES — swap these URLs once you generate in ChatGPT ─── */
-const VIAL = "https://res.cloudinary.com/djxfmxrfx/image/upload/image_Mar_5_2026_12_57_37_AM_wsipaw";
+const VIAL = "https://res.cloudinary.com/djxfmxrfx/image/upload/w_400,h_500,c_fill,f_auto,q_auto/image_Mar_5_2026_12_57_37_AM_wsipaw";
 const IMGS = {
   metabolic:   VIAL,
   growth:      VIAL,
