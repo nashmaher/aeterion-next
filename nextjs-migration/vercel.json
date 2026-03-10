@@ -1,7 +1,0 @@
-{
-  "framework": "nextjs",
-  "rootDirectory": "nextjs-migration",
-  "buildCommand": "next build",
-  "outputDirectory": ".next",
-  "installCommand": "npm install"
-}
