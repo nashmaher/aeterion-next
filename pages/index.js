@@ -2346,7 +2346,7 @@ export default function App() {
   if (mob) return (
     <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", background: T.bg, minHeight: "100vh", color: T.text, paddingBottom: 70 }}>
       <Head>
-        <title>Buy Research Peptides Online | Aeterion Labs — GLP-1, BPC-157, TB-500 & More</title>
+        <title>Buy Research Peptides Online | GLP-1, BPC-157, TB-500 & More | Aeterion Labs</title>
         <meta name="description" content="Shop 79 research-grade peptides and compounds. GLP-1 agonists, BPC-157, TB-500, NAD+, cognitive peptides and more. COA with every order. USA shipping." />
         <link rel="canonical" href="https://aeterionpeptides.com" />
         {HOMEPAGE_SCHEMA.map((s, i) => <script key={i} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(s) }} />)}
@@ -2382,7 +2382,7 @@ export default function App() {
           <div style={{ position: "absolute", bottom: -20, left: -20, width: 120, height: 120, borderRadius: "50%", background: "rgba(255,255,255,0.05)", pointerEvents: "none" }} />
           <div style={{ position: "relative" }}>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.16)", borderRadius: 24, padding: "5px 16px", fontSize: 10, color: "rgba(255,255,255,0.95)", fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 16, border: "1px solid rgba(255,255,255,0.2)" }}>✅ 72 Research Compounds · COA Included</div>
-            <h1 style={{ color: "#fff", fontSize: 30, fontWeight: 900, margin: "0 0 10px", lineHeight: 1.15, letterSpacing: -0.5 }}>Premium Research<br />Peptides You Can Trust</h1>
+            <h1 style={{ color: "#fff", fontSize: 30, fontWeight: 900, margin: "0 0 10px", lineHeight: 1.15, letterSpacing: -0.5 }}>Buy Research Peptides Online<br />GLP-1, BPC-157, TB-500 & More</h1>
             <p style={{ color: "rgba(255,255,255,0.82)", fontSize: 13, lineHeight: 1.75, margin: "0 0 22px" }}>GLP-1s · SARMs · Nootropics · Longevity<br />Every order ships with a Certificate of Analysis.</p>
             <div style={{ display: "flex", gap: 10, justifyContent: "center", marginBottom: 28 }}>
               <button onClick={() => document.getElementById("mob-cat")?.scrollIntoView({ behavior: "smooth" })} style={{ background: "#fff", color: T.blue, border: "none", borderRadius: 24, padding: "12px 26px", fontSize: 14, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", boxShadow: "0 4px 14px rgba(0,0,0,0.18)" }}>Shop Now</button>
@@ -2482,7 +2482,7 @@ export default function App() {
   return (
     <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", background: T.bg, minHeight: "100vh", color: T.text, width: "100%" }}>
       <Head>
-        <title>Buy Research Peptides Online | Aeterion Labs — GLP-1, BPC-157, TB-500 & More</title>
+        <title>Buy Research Peptides Online | GLP-1, BPC-157, TB-500 & More | Aeterion Labs</title>
         <meta name="description" content="Shop 79 research-grade peptides and compounds. GLP-1 agonists, BPC-157, TB-500, NAD+, cognitive peptides and more. COA with every order. USA shipping." />
         <link rel="canonical" href="https://aeterionpeptides.com" />
         {HOMEPAGE_SCHEMA.map((s, i) => <script key={i} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(s) }} />)}
@@ -2539,7 +2539,7 @@ export default function App() {
           <div style={{ position: "absolute", top: -100, right: -80, width: 400, height: 400, borderRadius: "50%", background: "rgba(255,255,255,0.05)" }} />
           <div style={{ maxWidth: 800, margin: "0 auto", textAlign: "center", position: "relative" }}>
             <div style={{ display: "inline-block", background: "rgba(255,255,255,0.18)", borderRadius: 24, padding: "6px 22px", fontSize: 11, color: "rgba(255,255,255,0.95)", fontWeight: 600, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 22 }}>72 Research Compounds · Third-Party Tested · COA Included</div>
-            <h1 style={{ fontSize: 52, fontWeight: 900, margin: "0 0 16px", lineHeight: 1.04, color: "#fff", letterSpacing: -1.5 }}>Premium Research Peptides<br /><span style={{ opacity: 0.85 }}>You Can Trust</span></h1>
+            <h1 style={{ fontSize: 52, fontWeight: 900, margin: "0 0 16px", lineHeight: 1.04, color: "#fff", letterSpacing: -1.5 }}>Buy Research Peptides Online<br /><span style={{ opacity: 0.85 }}>GLP-1, BPC-157, TB-500 & More</span></h1>
             <p style={{ fontSize: 16, color: "rgba(255,255,255,0.82)", lineHeight: 1.75, margin: "0 0 32px", maxWidth: 560, marginLeft: "auto", marginRight: "auto" }}>Aeterion supplies <strong style={{ color: "#fff" }}>research-grade peptides, GLP-1 agonists, SARMs, and analytical compounds</strong>. Every order ships with a Certificate of Analysis.</p>
             <div style={{ display: "flex", gap: 14, justifyContent: "center", marginBottom: 44 }}>
               <button onClick={() => document.getElementById("catalog")?.scrollIntoView({ behavior: "smooth" })} style={{ background: "#fff", color: T.blue, border: "none", borderRadius: 12, padding: "14px 32px", fontSize: 15, fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 18px rgba(0,0,0,0.15)", fontFamily: "inherit" }}>Shop All Products</button>
