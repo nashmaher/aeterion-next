@@ -8,6 +8,8 @@ export default function MyApp({ Component, pageProps }) {
         {/* Google Fonts – previously in index.html */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://kafwkhbzdtpsxkufmkmm.supabase.co" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://res.cloudinary.com" crossOrigin="anonymous" />
         <link
           href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;900&display=swap"
           rel="stylesheet"
