@@ -1,0 +1,111 @@
+// @ts-nocheck
+import Head from 'next/head'
+import Link from 'next/link'
+import { getAllPosts } from '../../lib/posts'
+
+const CATEGORY_COLORS = {
+  'Clinical Research': { bg: '#EBF5FE', color: '#1B3A6B' },
+  'Regulatory': { bg: '#FEF3C7', color: '#92400E' },
+  'Research Guide': { bg: '#F0FDF4', color: '#166534' },
+  'Research': { bg: '#F0FDF4', color: '#166534' },
+  'Protocol Guide': { bg: '#F5F3FF', color: '#5B21B6' },
+  'Quality & Standards': { bg: '#FFF1F2', color: '#9F1239' },
+}
+
+export default function BlogIndex({ posts }) {
+  return (
+    <>
+      <Head>
+        <title>Research Peptide News & Guides | Aeterion Labs Blog</title>
+        <meta name="description" content="Latest peptide research news, FDA regulatory updates, clinical trial results, and research guides. Stay current on GLP-1, BPC-157, TB-500, growth hormone peptides and more." />
+        <meta name="robots" content="index, follow" />
+        <link rel="canonical" href="https://aeterionpeptides.com/blog" />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Blog",
+          "name": "Aeterion Labs Research Blog",
+          "description": "Peptide research news, FDA updates, and laboratory guides",
+          "url": "https://aeterionpeptides.com/blog",
+          "publisher": { "@type": "Organization", "name": "Aeterion Labs" }
+        })}} />
+      </Head>
+
+      <div style={{ fontFamily: "'DM Sans', Arial, sans-serif", background: '#f8f9fb', minHeight: '100vh' }}>
+
+        {/* Header */}
+        <header style={{ background: '#fff', borderBottom: '1px solid #e5e7eb', padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <a href="/" style={{ textDecoration: 'none', color: '#1B3A6B', fontWeight: 900, fontSize: 20, letterSpacing: 1 }}>← AETERION LABS</a>
+          <a href="/" style={{ background: '#1B3A6B', color: '#fff', padding: '10px 20px', borderRadius: 8, textDecoration: 'none', fontWeight: 600, fontSize: 14 }}>Shop Products</a>
+        </header>
+
+        {/* Hero */}
+        <div style={{ background: 'linear-gradient(135deg, #1B3A6B 0%, #2B6CB0 100%)', color: '#fff', padding: '64px 24px', textAlign: 'center' }}>
+          <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 3, textTransform: 'uppercase', color: 'rgba(255,255,255,0.6)', marginBottom: 12 }}>AETERION LABS</div>
+          <h1 style={{ margin: '0 0 16px', fontSize: 40, fontWeight: 900, letterSpacing: -0.5 }}>Research & News</h1>
+          <p style={{ margin: 0, fontSize: 18, color: 'rgba(255,255,255,0.75)', maxWidth: 540, marginLeft: 'auto', marginRight: 'auto', lineHeight: 1.6 }}>
+            Latest clinical trial results, FDA regulatory updates, and research guides for the peptide science community.
+          </p>
+        </div>
+
+        {/* Posts Grid */}
+        <main style={{ maxWidth: 1100, margin: '0 auto', padding: '48px 24px 80px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 24 }}>
+            {posts.map(post => {
+              const cat = CATEGORY_COLORS[post.category] || { bg: '#EBF5FE', color: '#1B3A6B' }
+              return (
+                <Link key={post.slug} href={`/blog/${post.slug}`} style={{ textDecoration: 'none' }}>
+                  <article style={{
+                    background: '#fff',
+                    borderRadius: 16,
+                    border: '1px solid #e5e7eb',
+                    padding: '28px',
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    cursor: 'pointer',
+                    transition: 'box-shadow 0.2s, transform 0.2s',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 32px rgba(27,58,107,0.12)'; e.currentTarget.style.transform = 'translateY(-2px)' }}
+                  onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'none' }}
+                  >
+                    <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+                      <span style={{ background: cat.bg, color: cat.color, padding: '4px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                        {post.category}
+                      </span>
+                      <span style={{ color: '#9CA3AF', fontSize: 12, display: 'flex', alignItems: 'center' }}>{post.readTime}</span>
+                    </div>
+
+                    <h2 style={{ margin: '0 0 12px', fontSize: 18, fontWeight: 800, color: '#1B3A6B', lineHeight: 1.35, flex: 1 }}>
+                      {post.title}
+                    </h2>
+
+                    <p style={{ margin: '0 0 20px', fontSize: 14, color: '#6B7280', lineHeight: 1.7 }}>
+                      {post.excerpt}
+                    </p>
+
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid #F3F4F6', paddingTop: 16 }}>
+                      <span style={{ fontSize: 12, color: '#9CA3AF' }}>{post.date}</span>
+                      <span style={{ fontSize: 13, color: '#4A9FD4', fontWeight: 700 }}>Read more →</span>
+                    </div>
+                  </article>
+                </Link>
+              )
+            })}
+          </div>
+        </main>
+
+        <footer style={{ background: '#111827', color: 'rgba(255,255,255,0.5)', padding: '24px', textAlign: 'center', fontSize: 12 }}>
+          <p style={{ margin: '0 0 8px' }}>© 2025 Aeterion Peptides. All Rights Reserved.</p>
+          <p style={{ margin: 0 }}>All products for laboratory research purposes only. Not for human consumption. Must be 18+. Not FDA evaluated.</p>
+        </footer>
+      </div>
+    </>
+  )
+}
+
+export async function getStaticProps() {
+  const posts = getAllPosts().map(({ slug, title, date, category, readTime, excerpt }) => ({
+    slug, title, date, category, readTime, excerpt
+  }))
+  return { props: { posts } }
+}
