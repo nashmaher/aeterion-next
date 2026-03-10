@@ -878,7 +878,7 @@ const PRODUCTS = [
   // ── ANCILLARIES ──
   P(78,"ancillaries","Bacteriostatic Water",[{s:"3ml",p:12},{s:"10ml",p:18}],"Bacteriostatic Water is sterile water containing 0.9% benzyl alcohol, which prevents bacterial growth and allows multi-use withdrawal from a single vial. It is the standard and recommended reconstitution medium for all research peptides.",null,false,"liquid",["0.9% benzyl alcohol","Multi-use reconstitution","Bacteria inhibition","Research standard"]),
   P(79,"ancillaries","Acetic Acid 1%",[{s:"10ml",p:12}],"1% Acetic Acid solution is used as an alternative reconstitution medium for peptides with poor solubility in bacteriostatic water, including IGF-1 LR3 and some growth factors. It provides an acidic environment that improves solubility for certain peptide classes.",null,false,"liquid",["IGF-1 LR3 compatible","Improves solubility","Alternative reconstitution","Growth factor standard"]),
-  P(80,"ancillaries","Test Sample (Free)",[{s:"Sample",p:1}],"This is a free test item used for internal order testing only. Do not purchase.",null,false,"liquid",["Internal use only","Testing purposes","Not for sale","Admin only"]),
+
 ];
 
 const calcP = (u, v) => u * v * DISC[v];
@@ -1081,7 +1081,7 @@ export default function App() {
     if (sess) setUser(sess);
     // Restore page from hash
     const hash = window.location.hash.replace("#", "");
-    if (["contact","legal","admin","login","signup","account"].includes(hash)) setPage(hash);
+    if (["contact","legal","admin","login","signup","account","about","faq"].includes(hash)) setPage(hash);
     fetchInventory().then(inv => setInventory(inv));
     setAuthReady(true);
     const params = new URLSearchParams(window.location.search);
@@ -1402,7 +1402,7 @@ export default function App() {
               </button>
             ))}
             <div style={{ borderTop: `1px solid ${T.border}`, margin: "12px 0" }} />
-            {[["📬","Contact Us","contact"],["📋","Legal & Policies","legal"]].map(([ic,lb,pg]) => (
+            {[["📬","Contact Us","contact"],["📋","Legal & Policies","legal"],["ℹ️","About Us","about"],["❓","FAQ","faq"]].map(([ic,lb,pg]) => (
               <button key={pg} onClick={() => { goTo(pg); setMenuOpen(false); }} style={{ width: "100%", textAlign: "left", background: "none", border: "none", borderRadius: 10, padding: "11px 14px", cursor: "pointer", fontSize: 14, fontWeight: 600, color: T.text, fontFamily: "inherit", display: "flex", alignItems: "center", gap: 10, marginBottom: 2 }}>
                 {ic} {lb}
               </button>
@@ -2149,6 +2149,111 @@ export default function App() {
     );
   };
 
+
+  /* ════════════════════ ABOUT PAGE ════════════════════ */
+  const AboutPage = ({ goTo }) => (
+    <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", background: T.bg, minHeight: "100vh", color: T.text }}>
+      <header style={{ background: T.white, borderBottom: `1px solid ${T.border}`, position: "sticky", top: 0, zIndex: 300, boxShadow: "0 1px 8px rgba(0,0,0,0.05)" }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "14px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div onClick={() => goTo("store")} style={{ cursor: "pointer" }}><AeterionLogo size={36} showText={true} textColor={T.text}/></div>
+          <button onClick={() => goTo("store")} style={{ ...btnOutline({ padding: "8px 18px", fontSize: 13, borderRadius: 10 }) }}>← Back to Store</button>
+        </div>
+      </header>
+      <div style={{ maxWidth: 820, margin: "0 auto", padding: mob ? "32px 20px 60px" : "56px 40px 80px" }}>
+        <div style={{ textAlign: "center", marginBottom: 48 }}>
+          <div style={{ display: "inline-flex", background: T.blueSoft, borderRadius: 24, padding: "6px 20px", fontSize: 11, fontWeight: 700, color: T.blue, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 18 }}>About Aeterion Labs</div>
+          <h1 style={{ fontSize: mob ? 30 : 42, fontWeight: 900, margin: "0 0 16px", color: T.text, letterSpacing: -1 }}>Research-Grade Peptides.<br/>Uncompromising Standards.</h1>
+          <p style={{ fontSize: 16, color: T.sub, lineHeight: 1.8, margin: "0 auto", maxWidth: 600 }}>Aeterion Labs was founded with a single mission: give serious researchers access to the highest-purity peptides on the market — with full transparency, every time.</p>
+        </div>
+
+        {[
+          { icon: "🔬", title: "Who We Are", body: "Aeterion Labs is a US-based supplier of research-grade peptides, GLP-1 compounds, SARMs, nootropics, and analytical compounds. We serve independent researchers, university laboratory teams, and life science professionals who require consistent, verified-purity compounds for their work. Every product in our catalog has been independently tested by a third-party laboratory before being offered for sale." },
+          { icon: "🧪", title: "Our Quality Standard", body: "Every batch undergoes HPLC purity testing to ≥98–99% and mass spectrometry identity confirmation before it reaches our inventory. We provide a batch-specific Certificate of Analysis (COA) with every order — not a generic product COA, but documentation tied to the exact lot you receive. We don't ship compounds that don't meet our purity threshold. Full stop." },
+          { icon: "❄️", title: "Cold-Chain Fulfillment", body: "Lyophilized peptides are temperature-sensitive. Our fulfillment process uses cold-pack shipping for all peptide orders to preserve compound integrity from our facility to your lab. Orders are dispatched within 48 hours of confirmed payment, with tracking provided automatically via email." },
+          { icon: "📋", title: "Research Use Only", body: "All Aeterion Labs products are sold strictly for laboratory research purposes only. They are not intended for human consumption, medical treatment, or diagnostic use, and have not been evaluated by the FDA for these purposes. Our customers are researchers and scientists using these compounds to advance scientific understanding — not for personal use." },
+          { icon: "📬", title: "Get in Touch", body: "Questions about a specific compound, wholesale pricing, bulk orders, or COA documentation? Our team responds within 24 hours. Email us at info@aeterionpeptides.com — or use the contact form on our site." },
+        ].map(({ icon, title, body }) => (
+          <div key={title} style={{ background: T.white, border: `1px solid ${T.border}`, borderRadius: 16, padding: "28px 32px", marginBottom: 20 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
+              <div style={{ fontSize: 28 }}>{icon}</div>
+              <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: T.text }}>{title}</h2>
+            </div>
+            <p style={{ margin: 0, fontSize: 15, color: T.sub, lineHeight: 1.85 }}>{body}</p>
+          </div>
+        ))}
+
+        <div style={{ background: "linear-gradient(135deg, #1B3A6B 0%, #2563eb 100%)", borderRadius: 20, padding: "36px 32px", textAlign: "center", marginTop: 16 }}>
+          <h3 style={{ margin: "0 0 10px", fontSize: 22, fontWeight: 900, color: "#fff" }}>Ready to Order?</h3>
+          <p style={{ margin: "0 0 22px", fontSize: 14, color: "rgba(255,255,255,0.75)", lineHeight: 1.7 }}>Browse 79 research compounds with next-day dispatch and COA included.</p>
+          <button onClick={() => goTo("store")} style={{ ...btnPrimary({ padding: "13px 32px", fontSize: 15, borderRadius: 12, background: "#fff", color: "#1B3A6B" }) }}>Browse All Products →</button>
+        </div>
+      </div>
+      <footer style={{ background: "#111827", color: "rgba(255,255,255,0.5)", padding: "24px", textAlign: "center", fontSize: 12 }}>
+        <p style={{ margin: "0 0 6px" }}>© 2025 Aeterion Peptides. All Rights Reserved.</p>
+        <p style={{ margin: 0 }}>All products for laboratory research purposes only. Not for human consumption. Must be 18+.</p>
+      </footer>
+    </div>
+  );
+
+  /* ════════════════════ FAQ PAGE ════════════════════ */
+  const FAQPage = ({ goTo }) => {
+    const [open, setOpen] = useState(null);
+    const faqs = [
+      { q: "Are these products legal to purchase?", a: "Yes. Research peptides are legal to purchase in the United States for laboratory research purposes. They are sold strictly as research chemicals — not for human consumption or therapeutic use. FDA-approved compounds (like semaglutide and tirzepatide) are provided for research use only, consistent with the research chemical market. Always ensure your use complies with local regulations." },
+      { q: "What purity level are your peptides?", a: "All Aeterion Labs compounds are independently HPLC-tested to ≥98–99% purity with mass spectrometry identity confirmation. A batch-specific Certificate of Analysis (COA) is included with every order, tied to the exact lot number you receive — not a generic product-level COA." },
+      { q: "How are peptides shipped?", a: "Lyophilized peptides are shipped cold-packed using insulated packaging to protect compound integrity during transit. All orders include full tracking. Orders are dispatched within 48 hours of confirmed payment. We ship domestically from within the USA." },
+      { q: "What is your shipping cost?", a: "Standard shipping is $15 per order. Orders over $250 qualify for free shipping, applied automatically at checkout. We do not currently offer international shipping." },
+      { q: "Do you offer bulk or wholesale pricing?", a: "Yes — bulk discounts are applied automatically at checkout. 5 vials of any product receives an 8% discount. 10 vials receives an 18% discount. These apply across mixed products in the same category. For larger institutional or wholesale orders, contact us at info@aeterionpeptides.com." },
+      { q: "What is bacteriostatic water and do I need it?", a: "Bacteriostatic water (BW) is the standard diluent for reconstituting lyophilized peptides in a research setting. It contains 0.9% benzyl alcohol which inhibits bacterial growth in multi-dose vials. We carry bacteriostatic water in our Ancillaries category. It is required for reconstituting all lyophilized peptide compounds." },
+      { q: "How should I store my peptides?", a: "Lyophilized (un-reconstituted) peptides should be stored at -20°C in a sealed vial away from light. Under these conditions, most compounds maintain stability for 12–24 months. After reconstitution with bacteriostatic water, store at 2–8°C (refrigerated) and use within 28 days. Do not freeze reconstituted peptides." },
+      { q: "Can I return or exchange an order?", a: "Due to the nature of research chemicals and cold-chain shipping requirements, we do not accept returns on opened products. If your order arrives damaged, contains the wrong product, or has a purity issue supported by your own third-party testing, contact us within 7 days of delivery at info@aeterionpeptides.com and we will resolve it." },
+      { q: "How long does delivery take?", a: "Orders are dispatched within 48 hours of payment confirmation. Domestic delivery typically takes 3–5 business days via standard shipping. You will receive a tracking number by email as soon as your order ships." },
+      { q: "Do you have a Certificate of Analysis for every product?", a: "Yes — every product in our catalog has been independently tested, and a COA is included with your order. Your COA will match the batch number on your product vial. If you need a COA before ordering, email info@aeterionpeptides.com with the product name and we can provide it in advance." },
+      { q: "What payment methods do you accept?", a: "We accept all major credit and debit cards through our secure Stripe-powered checkout. Payments are encrypted and processed securely. We do not store payment information." },
+      { q: "Do you offer military or first responder discounts?", a: "We recognize the service of military personnel, veterans, and first responders. Contact us at info@aeterionpeptides.com with verification and we will apply a discount to your order." },
+    ];
+    return (
+      <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", background: T.bg, minHeight: "100vh", color: T.text }}>
+        <header style={{ background: T.white, borderBottom: `1px solid ${T.border}`, position: "sticky", top: 0, zIndex: 300, boxShadow: "0 1px 8px rgba(0,0,0,0.05)" }}>
+          <div style={{ maxWidth: 1100, margin: "0 auto", padding: "14px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div onClick={() => goTo("store")} style={{ cursor: "pointer" }}><AeterionLogo size={36} showText={true} textColor={T.text}/></div>
+            <button onClick={() => goTo("store")} style={{ ...btnOutline({ padding: "8px 18px", fontSize: 13, borderRadius: 10 }) }}>← Back to Store</button>
+          </div>
+        </header>
+        <div style={{ maxWidth: 760, margin: "0 auto", padding: mob ? "32px 20px 60px" : "56px 40px 80px" }}>
+          <div style={{ textAlign: "center", marginBottom: 44 }}>
+            <div style={{ display: "inline-flex", background: T.blueSoft, borderRadius: 24, padding: "6px 20px", fontSize: 11, fontWeight: 700, color: T.blue, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 18 }}>Help Center</div>
+            <h1 style={{ fontSize: mob ? 30 : 40, fontWeight: 900, margin: "0 0 14px", color: T.text, letterSpacing: -1 }}>Frequently Asked Questions</h1>
+            <p style={{ fontSize: 15, color: T.sub, lineHeight: 1.8, margin: "0 auto", maxWidth: 520 }}>Everything you need to know about ordering, shipping, storage, and our quality standards.</p>
+          </div>
+          {faqs.map(({ q, a }, i) => (
+            <div key={i} style={{ background: T.white, border: `1px solid ${open === i ? T.blue : T.border}`, borderRadius: 14, marginBottom: 12, overflow: "hidden", transition: "border-color 0.2s" }}>
+              <button onClick={() => setOpen(open === i ? null : i)} style={{ width: "100%", textAlign: "left", background: "none", border: "none", padding: "20px 24px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, fontFamily: "inherit" }}>
+                <span style={{ fontSize: 15, fontWeight: 700, color: T.text, lineHeight: 1.4 }}>{q}</span>
+                <span style={{ fontSize: 20, color: T.blue, flexShrink: 0, transition: "transform 0.2s", transform: open === i ? "rotate(45deg)" : "none" }}>+</span>
+              </button>
+              {open === i && (
+                <div style={{ padding: "0 24px 22px", fontSize: 14, color: T.sub, lineHeight: 1.9, borderTop: `1px solid ${T.border}`, paddingTop: 18 }}>
+                  {a}
+                </div>
+              )}
+            </div>
+          ))}
+          <div style={{ marginTop: 36, background: T.blueSoft, borderRadius: 16, padding: "28px 32px", textAlign: "center", border: `1px solid ${T.blue}22` }}>
+            <div style={{ fontSize: 22, marginBottom: 8 }}>💬</div>
+            <h3 style={{ margin: "0 0 8px", fontSize: 18, fontWeight: 800, color: T.text }}>Still have questions?</h3>
+            <p style={{ margin: "0 0 18px", fontSize: 14, color: T.sub }}>Our team responds within 24 hours.</p>
+            <button onClick={() => goTo("contact")} style={{ ...btnPrimary({ padding: "11px 28px", fontSize: 14, borderRadius: 10 }) }}>Contact Us →</button>
+          </div>
+        </div>
+        <footer style={{ background: "#111827", color: "rgba(255,255,255,0.5)", padding: "24px", textAlign: "center", fontSize: 12 }}>
+          <p style={{ margin: "0 0 6px" }}>© 2025 Aeterion Peptides. All Rights Reserved.</p>
+          <p style={{ margin: 0 }}>All products for laboratory research purposes only. Not for human consumption. Must be 18+.</p>
+        </footer>
+      </div>
+    );
+  };
+
   /* ════════════════════ PAGE ROUTING ════════════════════ */
   if (page === "contact") return <ContactPage />;
   if (page === "legal") return <LegalPage />;
@@ -2156,6 +2261,8 @@ export default function App() {
   if (page === "login") return <LoginPage />;
   if (page === "signup") return <SignupPage />;
   if (page === "account") return <AccountPage />;
+  if (page === "about") return <AboutPage goTo={goTo} />;
+  if (page === "faq") return <FAQPage goTo={goTo} />;
 
   /* ════════ THANK YOU PAGE ════════ */
   if (paymentMsg === "success") return (
@@ -2367,6 +2474,10 @@ export default function App() {
           {CATS.map(c => (
             <button key={c.id} onClick={() => { setCat(c.id); setQ(""); }} style={{ background: "none", border: "none", padding: "11px 16px", cursor: "pointer", fontSize: 12.5, fontWeight: 600, whiteSpace: "nowrap", fontFamily: "inherit", color: cat === c.id ? T.blue : T.sub, borderBottom: cat === c.id ? `2.5px solid ${T.blue}` : "2.5px solid transparent", display: "flex", alignItems: "center", gap: 5 }}>{c.icon} {c.label}</button>
           ))}
+          <div style={{ flex: 1 }} />
+          <a href="/blog" style={{ padding: "11px 16px", fontSize: 12.5, fontWeight: 700, color: T.blue, textDecoration: "none", whiteSpace: "nowrap", borderBottom: "2.5px solid transparent", display: "flex", alignItems: "center", gap: 5 }}>📝 Blog</a>
+          <button onClick={() => goTo("about")} style={{ background: "none", border: "none", padding: "11px 16px", cursor: "pointer", fontSize: 12.5, fontWeight: 600, whiteSpace: "nowrap", fontFamily: "inherit", color: T.sub, borderBottom: "2.5px solid transparent" }}>About</button>
+          <button onClick={() => goTo("faq")} style={{ background: "none", border: "none", padding: "11px 16px", cursor: "pointer", fontSize: 12.5, fontWeight: 600, whiteSpace: "nowrap", fontFamily: "inherit", color: T.sub, borderBottom: "2.5px solid transparent" }}>FAQ</button>
         </div>
       </header>
 
@@ -2498,7 +2609,7 @@ export default function App() {
               <div key={t}>
                 <div style={{ fontWeight: 700, fontSize: 10, letterSpacing: 2, textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 14 }}>{t}</div>
               {links.map(l => {
-                  const dest = l === "Contact" ? "contact" : (l === "Terms of Service" || l === "Privacy Policy" || l === "Return Policy" || l === "Disclaimer") ? "legal" : null;
+                  const dest = l === "Contact" ? "contact" : l === "About" ? "about" : l === "FAQ" ? "faq" : (l === "Terms of Service" || l === "Privacy Policy" || l === "Return Policy" || l === "Disclaimer") ? "legal" : null;
                   return dest
                     ? <a key={l} href={`#${dest}`} onClick={e => { e.preventDefault(); goTo(dest); }} style={{ display: "block", color: "rgba(255,255,255,0.5)", fontSize: 12, marginBottom: 9, textDecoration: "none" }} onMouseEnter={e=>e.currentTarget.style.color="#fff"} onMouseLeave={e=>e.currentTarget.style.color="rgba(255,255,255,0.5)"}>{l}</a>
                     : <div key={l} style={{ color: "rgba(255,255,255,0.5)", fontSize: 12, marginBottom: 9, cursor: "default" }}>{l}</div>;
