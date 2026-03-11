@@ -15,11 +15,55 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'aeterion2026';
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { admin_password, action, ambassador_id, promo_code, password, notes, commission_rate } = req.body;
+  const { admin_password, action, ambassador_id, promo_code, password, notes, commission_rate, name, email, instagram } = req.body;
 
   // Verify admin
   if (admin_password !== ADMIN_PASSWORD) {
     return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  // ── CREATE ambassador directly (no application needed) ─
+  if (action === 'create') {
+    if (!name || !email || !promo_code || !password) {
+      return res.status(400).json({ error: 'Name, email, promo code, and password are required.' });
+    }
+
+    // Check email not already used
+    const { data: existingEmail } = await supabase
+      .from('ambassadors')
+      .select('id')
+      .eq('email', email.toLowerCase().trim())
+      .single();
+
+    if (existingEmail) {
+      return res.status(409).json({ error: 'An ambassador with this email already exists.' });
+    }
+
+    // Check promo code not already used
+    const { data: existingCode } = await supabase
+      .from('ambassadors')
+      .select('id')
+      .eq('promo_code', promo_code.toUpperCase().trim())
+      .single();
+
+    if (existingCode) {
+      return res.status(409).json({ error: 'That promo code is already in use.' });
+    }
+
+    const password_hash = await bcrypt.hash(password, 12);
+
+    const { error } = await supabase.from('ambassadors').insert({
+      name: name.trim(),
+      email: email.toLowerCase().trim(),
+      instagram: instagram?.trim() || null,
+      promo_code: promo_code.toUpperCase().trim(),
+      password_hash,
+      commission_rate: commission_rate || 20,
+      status: 'approved',
+    });
+
+    if (error) return res.status(500).json({ error: error.message });
+    return res.status(200).json({ success: true });
   }
 
   // ── LIST all ambassadors ───────────────────────────────
@@ -75,6 +119,24 @@ export default async function handler(req, res) {
     const { error } = await supabase
       .from('ambassadors')
       .update({ status: 'suspended', notes: notes || 'Rejected' })
+      .eq('id', ambassador_id);
+
+    if (error) return res.status(500).json({ error: error.message });
+    return res.status(200).json({ success: true });
+  }
+
+  // ── UPDATE commission rate ─────────────────────────────
+  if (action === 'update_commission') {
+    if (!ambassador_id || commission_rate === undefined) {
+      return res.status(400).json({ error: 'ambassador_id and commission_rate required.' });
+    }
+    const rate = Number(commission_rate);
+    if (isNaN(rate) || rate < 1 || rate > 100) {
+      return res.status(400).json({ error: 'Commission rate must be between 1 and 100.' });
+    }
+    const { error } = await supabase
+      .from('ambassadors')
+      .update({ commission_rate: rate })
       .eq('id', ambassador_id);
 
     if (error) return res.status(500).json({ error: error.message });
