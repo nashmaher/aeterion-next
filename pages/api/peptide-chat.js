@@ -1,5 +1,5 @@
 // pages/api/peptide-chat.js
-// Streaming AI research assistant — routes through Vercel AI Gateway
+// Streaming AI research assistant — powered by Google Gemini (free tier)
 
 const CATALOG = `
 AETERION LABS — FULL PRODUCT CATALOG (for research guidance only)
@@ -126,10 +126,8 @@ export default async function handler(req, res) {
   const { messages } = req.body;
   if (!messages || !messages.length) return res.status(400).json({ error: "No messages provided" });
 
-  // Route through Vercel AI Gateway if API key is set, else fall back to direct Anthropic
-  const useGateway = !!process.env.AI_GATEWAY_API_KEY;
-  const baseURL = useGateway ? "https://ai-gateway.vercel.sh" : "https://api.anthropic.com";
-  const apiKey = useGateway ? process.env.AI_GATEWAY_API_KEY : process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) return res.status(500).json({ error: "GEMINI_API_KEY not set in environment variables" });
 
   try {
     res.setHeader("Content-Type", "text/event-stream");
@@ -137,57 +135,60 @@ export default async function handler(req, res) {
     res.setHeader("Connection", "keep-alive");
     res.setHeader("Access-Control-Allow-Origin", "*");
 
-    const anthropicRes = await fetch(`${baseURL}/v1/messages`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-        "anthropic-beta": "messages-2023-12-15",
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-6",
-        max_tokens: 1024,
-        stream: true,
-        system: SYSTEM_PROMPT,
-        messages: messages.slice(-10), // keep last 10 turns for context
-      }),
-    });
+    // Convert messages to Gemini format (uses "model" instead of "assistant")
+    const geminiContents = messages.slice(-10).map(m => ({
+      role: m.role === "assistant" ? "model" : "user",
+      parts: [{ text: m.content }],
+    }));
 
-    if (!anthropicRes.ok) {
-      const err = await anthropicRes.text();
-      return res.status(500).json({ error: err });
+    const body = {
+      system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
+      contents: geminiContents,
+      generationConfig: { maxOutputTokens: 1024, temperature: 0.7 },
+    };
+
+    const geminiRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:streamGenerateContent?alt=sse&key=${apiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      }
+    );
+
+    if (!geminiRes.ok) {
+      const err = await geminiRes.text();
+      console.error("Gemini error:", err);
+      return res.status(500).json({ error: "Gemini API error", detail: err });
     }
 
-    // Stream SSE events through to the client
-    const reader = anthropicRes.body.getReader();
+    const reader = geminiRes.body.getReader();
     const decoder = new TextDecoder();
+    let buffer = "";
 
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
 
-      const chunk = decoder.decode(value, { stream: true });
-      const lines = chunk.split("\n");
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop();
 
       for (const line of lines) {
-        if (line.startsWith("data: ")) {
-          const data = line.slice(6);
-          if (data === "[DONE]") { res.write("data: [DONE]\n\n"); continue; }
-          try {
-            const parsed = JSON.parse(data);
-            if (parsed.type === "content_block_delta" && parsed.delta?.type === "text_delta") {
-              res.write(`data: ${JSON.stringify({ text: parsed.delta.text })}\n\n`);
-            }
-            if (parsed.type === "message_stop") {
-              res.write("data: [DONE]\n\n");
-            }
-          } catch {}
-        }
+        if (!line.startsWith("data: ")) continue;
+        const data = line.slice(6).trim();
+        if (!data || data === "[DONE]") continue;
+        try {
+          const parsed = JSON.parse(data);
+          const text = parsed?.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (text) res.write(`data: ${JSON.stringify({ text })}\n\n`);
+        } catch {}
       }
     }
 
+    res.write("data: [DONE]\n\n");
     res.end();
+
   } catch (err) {
     console.error("Peptide chat error:", err);
     if (!res.headersSent) res.status(500).json({ error: err.message });
