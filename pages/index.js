@@ -1091,7 +1091,7 @@ export default function App() {
   const [quizResult, setQuizResult] = useState(null);
 
   // ── AI Research Assistant ──
-  const [chatOpen, setChatOpen] = useState(true);
+  const [chatOpen, setChatOpen] = useState(typeof window !== 'undefined' ? window.innerWidth >= 768 : false);
   const [chatMessages, setChatMessages] = useState([]);
   const [chatInput, setChatInput] = useState("");
   const [chatStreaming, setChatStreaming] = useState(false);
@@ -3338,6 +3338,23 @@ export default function App() {
               {chatOpen ? "✕" : "🔬"}
             </button>
 
+            {/* Speech bubble — mobile only, when closed */}
+            {mob && !chatOpen && (
+              <div style={{
+                position: "fixed", bottom: 148, right: 18, zIndex: 8001,
+                background: "#1a6ed8", color: "#fff",
+                fontSize: 12, fontWeight: 700, whiteSpace: "nowrap",
+                padding: "8px 14px", borderRadius: "14px 14px 4px 14px",
+                boxShadow: "0 4px 14px rgba(26,110,216,0.45)",
+                pointerEvents: "none",
+                animation: "bubble-bounce 2.5s ease-in-out infinite",
+              }}>
+                🔬 AI Research Assistant
+                <div style={{ position: "absolute", bottom: -6, right: 16, width: 0, height: 0, borderLeft: "6px solid transparent", borderRight: "6px solid transparent", borderTop: "6px solid #1a6ed8" }} />
+              </div>
+            )}
+            <style>{`@keyframes bubble-bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }`}</style>
+
             {/* Chat panel */}
             {chatOpen && (
               <div style={{
@@ -3801,6 +3818,23 @@ export default function App() {
             >
               {chatOpen ? "✕" : "🔬"}
             </button>
+
+            {/* Speech bubble — mobile only, when closed */}
+            {mob && !chatOpen && (
+              <div style={{
+                position: "fixed", bottom: 148, right: 18, zIndex: 8001,
+                background: "#1a6ed8", color: "#fff",
+                fontSize: 12, fontWeight: 700, whiteSpace: "nowrap",
+                padding: "8px 14px", borderRadius: "14px 14px 4px 14px",
+                boxShadow: "0 4px 14px rgba(26,110,216,0.45)",
+                pointerEvents: "none",
+                animation: "bubble-bounce 2.5s ease-in-out infinite",
+              }}>
+                🔬 AI Research Assistant
+                <div style={{ position: "absolute", bottom: -6, right: 16, width: 0, height: 0, borderLeft: "6px solid transparent", borderRight: "6px solid transparent", borderTop: "6px solid #1a6ed8" }} />
+              </div>
+            )}
+            <style>{`@keyframes bubble-bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }`}</style>
 
             {/* Chat panel */}
             {chatOpen && (
