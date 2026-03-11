@@ -1,100 +1,107 @@
-import Stripe from "stripe";
+// pages/api/create-checkout-session.js
+// UPDATED — supports ambassador promo codes (10% discount)
+
+import Stripe from 'stripe';
+import { createClient } from '@supabase/supabase-js';
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_KEY
+);
 
 export default async function handler(req, res) {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  if (req.method === "OPTIONS") return res.status(200).end();
-  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+  const { items, promoCode } = req.body;
 
-  const key = process.env.STRIPE_SECRET_KEY;
-  if (!key) {
-    return res.status(500).json({ error: "STRIPE_SECRET_KEY environment variable is not set" });
+  if (!items || items.length === 0) {
+    return res.status(400).json({ error: 'No items in cart.' });
   }
 
-  const stripe = new Stripe(key, { apiVersion: "2023-10-16" });
+  // Validate promo code if provided
+  let validatedPromo = null;
+  let stripeCouponId = null;
 
-  try {
-    const { items, user_id, user_email } = req.body;
+  if (promoCode) {
+    const { data: ambassador } = await supabase
+      .from('ambassadors')
+      .select('id, promo_code, commission_rate')
+      .eq('promo_code', promoCode.toUpperCase().trim())
+      .eq('status', 'approved')
+      .single();
 
-    if (!items || !items.length) {
-      return res.status(400).json({ error: "No items in cart" });
+    if (ambassador) {
+      validatedPromo = ambassador;
+
+      // Find or create a Stripe coupon for this ambassador code
+      const couponId = `AMB_${ambassador.promo_code}`;
+      try {
+        await stripe.coupons.retrieve(couponId);
+        stripeCouponId = couponId;
+      } catch {
+        // Coupon doesn't exist yet — create it
+        const coupon = await stripe.coupons.create({
+          id: couponId,
+          percent_off: 10,
+          duration: 'forever',
+          name: `Ambassador Code: ${ambassador.promo_code}`,
+        });
+        stripeCouponId = coupon.id;
+      }
     }
+  }
 
-    // Calculate subtotal to determine shipping
-    const subtotalCents = items.reduce((sum, item) => sum + Math.round((item.lt / item.qty) * 100) * item.qty, 0);
-    const freeShipping = subtotalCents >= 25000; // $250+
+  // Build Stripe line items
+  const lineItems = items.map((item) => ({
+    price_data: {
+      currency: 'usd',
+      product_data: {
+        name: item.name,
+        description: item.variant || undefined,
+      },
+      unit_amount: Math.round(item.price * 100), // cents
+    },
+    quantity: item.quantity,
+  }));
 
-    const line_items = items.map(item => ({
-      price_data: {
-        currency: "usd",
-        product_data: {
-          name: `${item.name} (${item.size})`,
-          description: item.qty > 1
-            ? `${item.qty} vials — ${item.qty === 5 ? "8% bulk discount applied" : "18% bulk discount applied"}`
-            : "1 vial — Research use only",
-          metadata: {
-            product_id: String(item.id),
-            qty_ordered: String(item.qty),
+  // Build session params
+  const sessionParams = {
+    payment_method_types: ['card'],
+    line_items: lineItems,
+    mode: 'payment',
+    success_url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://aeterionpeptides.com'}/?order=success`,
+    cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://aeterionpeptides.com'}/`,
+    shipping_address_collection: { allowed_countries: ['US', 'CA'] },
+    shipping_options: [
+      {
+        shipping_rate_data: {
+          type: 'fixed_amount',
+          fixed_amount: { amount: 1500, currency: 'usd' },
+          display_name: 'Standard Shipping',
+          delivery_estimate: {
+            minimum: { unit: 'business_day', value: 3 },
+            maximum: { unit: 'business_day', value: 7 },
           },
         },
-        unit_amount: Math.round((item.lt / item.qty) * 100),
       },
-      quantity: item.qty,
-    }));
+    ],
+    metadata: {
+      promo_code: validatedPromo?.promo_code || '',
+      ambassador_id: validatedPromo?.id || '',
+    },
+  };
 
-    const shippingOptions = freeShipping ? [
-      {
-        shipping_rate_data: {
-          type: "fixed_amount",
-          fixed_amount: { amount: 0, currency: "usd" },
-          display_name: "Free Shipping",
-          delivery_estimate: { minimum: { unit: "week", value: 1 }, maximum: { unit: "week", value: 2 } },
-        },
-      },
-    ] : [
-      {
-        shipping_rate_data: {
-          type: "fixed_amount",
-          fixed_amount: { amount: 1500, currency: "usd" },
-          display_name: "Standard Shipping",
-          delivery_estimate: { minimum: { unit: "week", value: 1 }, maximum: { unit: "week", value: 2 } },
-        },
-      },
-      {
-        shipping_rate_data: {
-          type: "fixed_amount",
-          fixed_amount: { amount: 0, currency: "usd" },
-          display_name: `Free Shipping (orders $250+) — Add $${((25000 - subtotalCents) / 100).toFixed(2)} more to qualify`,
-          delivery_estimate: { minimum: { unit: "week", value: 1 }, maximum: { unit: "week", value: 2 } },
-        },
-      },
-    ];
+  // Apply discount if valid promo code
+  if (stripeCouponId) {
+    sessionParams.discounts = [{ coupon: stripeCouponId }];
+  }
 
-    const sessionParams = {
-      payment_method_types: ["card"],
-      line_items,
-      mode: "payment",
-      success_url: "https://aeterionpeptides.com/?payment=success",
-      cancel_url:  "https://aeterionpeptides.com/?payment=cancelled",
-      shipping_address_collection: { allowed_countries: ["US"] },
-      shipping_options: shippingOptions,
-      billing_address_collection: "required",
-      phone_number_collection: { enabled: true },
-      metadata: {
-        user_id: user_id || "",
-      },
-    };
-
-    // Pre-fill email if user is signed in
-    if (user_email) sessionParams.customer_email = user_email;
-
+  try {
     const session = await stripe.checkout.sessions.create(sessionParams);
-    return res.status(200).json({ url: session.url });
-
+    return res.status(200).json({ sessionId: session.id, url: session.url });
   } catch (err) {
-    console.error("Stripe error:", err.message);
+    console.error('Stripe checkout error:', err);
     return res.status(500).json({ error: err.message });
   }
-};
+}
