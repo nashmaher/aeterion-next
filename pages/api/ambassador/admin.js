@@ -4,7 +4,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import bcrypt from 'bcryptjs';
-import { verifyAdminToken } from '../../admin/auth';
+import { verifyAdminToken } from '../admin/auth';
 
 async function sendAmbassadorWelcomeEmail({ name, email, promo_code, password, commission_rate }) {
   const html = `
