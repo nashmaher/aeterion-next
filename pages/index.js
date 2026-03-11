@@ -1100,6 +1100,9 @@ export default function App() {
   const [sort, setSort] = useState("default");
   const [cart, setCart] = useState([]);
   const [cartOpen, setCartOpen] = useState(false);
+  const [promoInput, setPromoInput] = useState("");
+  const [promoCode, setPromoCode] = useState(null);   // validated code
+  const [promoStatus, setPromoStatus] = useState(""); // "valid" | "invalid" | "checking" | ""
   const [modal, setModal] = useState(null);
   const [mSi, setMSi] = useState(0);
   const [mQty, setMQty] = useState(1);
@@ -1239,6 +1242,7 @@ export default function App() {
           })),
           user_id:    user?.id || null,
           user_email: user?.email || null,
+          promoCode:  promoCode || null,
         }),
       });
       const data = await res.json();
@@ -1406,6 +1410,39 @@ export default function App() {
             </div>
             <div style={{ padding: "16px 18px 20px", borderTop: `1px solid ${T.border}` }}>
               <div style={{ background: T.greenSoft, border: "1px solid #bbf7d0", borderRadius: 10, padding: "8px 12px", marginBottom: 12, fontSize: 12, color: "#15803d", fontWeight: 600 }}>💰 Bulk savings applied automatically</div>
+
+              {/* Promo Code Input */}
+              <div style={{ marginBottom: 12 }}>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <input
+                    type="text"
+                    value={promoInput}
+                    onChange={e => { setPromoInput(e.target.value.toUpperCase()); if (promoStatus) { setPromoStatus(""); setPromoCode(null); } }}
+                    placeholder="Promo code"
+                    maxLength={20}
+                    style={{ flex: 1, padding: "9px 12px", borderRadius: 9, border: `1.5px solid ${promoStatus === "valid" ? "#16a34a" : promoStatus === "invalid" ? "#dc2626" : T.border}`, fontSize: 13, fontFamily: "inherit", outline: "none", background: T.white, color: T.text }}
+                  />
+                  <button
+                    onClick={async () => {
+                      if (!promoInput.trim()) return;
+                      if (promoStatus === "valid") { setPromoCode(null); setPromoStatus(""); setPromoInput(""); return; }
+                      setPromoStatus("checking");
+                      try {
+                        const r = await fetch("/api/validate-promo", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: promoInput.trim() }) });
+                        const d = await r.json();
+                        if (d.valid) { setPromoCode(d.code); setPromoStatus("valid"); }
+                        else { setPromoCode(null); setPromoStatus("invalid"); }
+                      } catch { setPromoCode(null); setPromoStatus("invalid"); }
+                    }}
+                    style={{ padding: "9px 14px", borderRadius: 9, border: "none", background: promoStatus === "valid" ? "#dc2626" : T.blue, color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
+                  >
+                    {promoStatus === "checking" ? "…" : promoStatus === "valid" ? "Remove" : "Apply"}
+                  </button>
+                </div>
+                {promoStatus === "valid" && <div style={{ fontSize: 12, color: "#15803d", fontWeight: 600, marginTop: 5 }}>✓ Code applied — 10% off at checkout!</div>}
+                {promoStatus === "invalid" && <div style={{ fontSize: 12, color: "#dc2626", fontWeight: 600, marginTop: 5 }}>✗ Invalid promo code.</div>}
+              </div>
+
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12, fontSize: 15, fontWeight: 700, color: T.text }}><span>Total</span><span>{fmt(total)}</span></div>
               {stripeMsg && <div style={{ fontSize: 11, color: T.sub, marginBottom: 10, background: "#fffbeb", borderRadius: 8, padding: "8px 10px", border: "1px solid #fde68a" }}>{stripeMsg}</div>}
               {paymentMsg === "cancelled" && (
