@@ -1911,7 +1911,7 @@ export default function App() {
           )}
 
           {/* ── ORDERS TAB ── */}
-          {adminTab === "orders" && (<>
+          {adminTab === "orders" && (<div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 14, marginBottom: 24 }}>
             {[
               ["📦", "Total Orders", orders.length],
@@ -2046,7 +2046,7 @@ export default function App() {
             );
           })}
         </div>
-        </>)}
+        </div>)}
         </div>
       </div>
     );
