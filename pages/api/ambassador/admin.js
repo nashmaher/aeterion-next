@@ -5,6 +5,96 @@
 import { createClient } from '@supabase/supabase-js';
 import bcrypt from 'bcryptjs';
 
+async function sendAmbassadorWelcomeEmail({ name, email, promo_code, password, commission_rate }) {
+  const html = `
+  <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0f172a;margin:0;padding:0;">
+    <div style="max-width:560px;margin:0 auto;padding:40px 24px;">
+
+      <!-- Header -->
+      <div style="text-align:center;margin-bottom:32px;">
+        <div style="font-size:22px;font-weight:900;color:#f8fafc;letter-spacing:2px;">AETERION LABS</div>
+        <div style="font-size:12px;color:#64748b;letter-spacing:4px;margin-top:4px;">AMBASSADOR PROGRAM</div>
+      </div>
+
+      <!-- Main card -->
+      <div style="background:#1e293b;border-radius:16px;padding:32px;margin-bottom:24px;">
+        <div style="font-size:24px;font-weight:800;color:#f8fafc;margin-bottom:8px;">Welcome, ${name}! 🎉</div>
+        <div style="font-size:15px;color:#94a3b8;line-height:1.6;margin-bottom:28px;">
+          Your Aeterion ambassador account is ready. Here's everything you need to get started.
+        </div>
+
+        <!-- Login details -->
+        <div style="background:#0f172a;border-radius:12px;padding:20px;margin-bottom:20px;">
+          <div style="font-size:11px;font-weight:700;color:#64748b;letter-spacing:1px;text-transform:uppercase;margin-bottom:14px;">Your Login Details</div>
+          <div style="margin-bottom:10px;">
+            <span style="font-size:12px;color:#64748b;">Portal URL</span><br>
+            <a href="https://aeterionpeptides.com/ambassador" style="font-size:14px;color:#60a5fa;font-weight:600;text-decoration:none;">aeterionpeptides.com/ambassador</a>
+          </div>
+          <div style="margin-bottom:10px;">
+            <span style="font-size:12px;color:#64748b;">Email</span><br>
+            <span style="font-size:14px;color:#f8fafc;font-weight:600;">${email}</span>
+          </div>
+          <div>
+            <span style="font-size:12px;color:#64748b;">Temporary Password</span><br>
+            <span style="font-size:14px;color:#f8fafc;font-weight:600;font-family:monospace;background:#1e293b;padding:4px 10px;border-radius:6px;">${password}</span>
+          </div>
+        </div>
+
+        <!-- Promo code -->
+        <div style="background:#0f172a;border-radius:12px;padding:20px;margin-bottom:20px;text-align:center;">
+          <div style="font-size:11px;font-weight:700;color:#64748b;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">Your Promo Code</div>
+          <div style="font-size:32px;font-weight:900;color:#60a5fa;letter-spacing:4px;">${promo_code}</div>
+          <div style="font-size:13px;color:#94a3b8;margin-top:8px;">Share this with your audience for <strong style="color:#4ade80;">10% off</strong> their order</div>
+        </div>
+
+        <!-- Commission -->
+        <div style="background:#0f172a;border-radius:12px;padding:20px;text-align:center;">
+          <div style="font-size:11px;font-weight:700;color:#64748b;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">Your Commission</div>
+          <div style="font-size:36px;font-weight:900;color:#4ade80;">${commission_rate}%</div>
+          <div style="font-size:13px;color:#94a3b8;margin-top:8px;">Earned on every order placed using your code</div>
+        </div>
+      </div>
+
+      <!-- How it works -->
+      <div style="background:#1e293b;border-radius:16px;padding:24px;margin-bottom:24px;">
+        <div style="font-size:14px;font-weight:700;color:#f8fafc;margin-bottom:16px;">How It Works</div>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div style="font-size:13px;color:#94a3b8;">📢 <strong style="color:#f8fafc;">Share your code</strong> — Post <span style="color:#60a5fa;font-weight:700;">${promo_code}</span> with your audience</div>
+          <div style="font-size:13px;color:#94a3b8;">🛒 <strong style="color:#f8fafc;">They save 10%</strong> — Applied automatically at checkout</div>
+          <div style="font-size:13px;color:#94a3b8;">💰 <strong style="color:#f8fafc;">You earn ${commission_rate}%</strong> — Tracked in your dashboard in real time</div>
+          <div style="font-size:13px;color:#94a3b8;">📊 <strong style="color:#f8fafc;">Track everything</strong> — Log into your portal anytime to see earnings</div>
+        </div>
+      </div>
+
+      <!-- CTA -->
+      <div style="text-align:center;margin-bottom:32px;">
+        <a href="https://aeterionpeptides.com/ambassador" style="display:inline-block;background:#1a6ed8;color:#fff;font-weight:700;font-size:15px;padding:14px 32px;border-radius:12px;text-decoration:none;letter-spacing:0.3px;">
+          Log Into Your Dashboard →
+        </a>
+      </div>
+
+      <div style="text-align:center;font-size:12px;color:#475569;">
+        Questions? Reply to this email or contact us at <a href="mailto:info@aeterionpeptides.com" style="color:#60a5fa;">info@aeterionpeptides.com</a>
+      </div>
+
+    </div>
+  </div>`;
+
+  await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      from: 'Aeterion Labs <info@notifications.aeterionpeptides.com>',
+      to: [email],
+      subject: `Welcome to the Aeterion Ambassador Program 🎉`,
+      html,
+    }),
+  });
+}
+
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_KEY
