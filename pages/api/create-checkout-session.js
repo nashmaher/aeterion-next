@@ -20,19 +20,16 @@ export default async function handler(req, res) {
   try {
     const { items, user_id, user_email, promoCode } = req.body;
 
-    // ── Validate ambassador promo code if provided ──
+    // ── Validate promo code if provided ──
     let validatedAmbassador = null;
     let stripeCouponId = null;
 
     if (promoCode) {
-      const sbKey = process.env.SUPABASE_SERVICE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-      const promoRes = await fetch(`${SB_URL}/rest/v1/ambassadors?promo_code=eq.${encodeURIComponent(promoCode.toUpperCase().trim())}&status=eq.approved&select=id,promo_code,commission_rate`, {
-        headers: { "apikey": sbKey, "Authorization": `Bearer ${sbKey}` }
-      });
-      const promoData = await promoRes.json();
-      if (promoData?.length) {
-        validatedAmbassador = promoData[0];
-        const couponId = `AMB_${validatedAmbassador.promo_code}`;
+      const normalized = promoCode.toUpperCase().trim();
+
+      // ── WELCOME10 — 10% off first order ──
+      if (normalized === "WELCOME10") {
+        const couponId = "WELCOME10";
         try {
           await stripe.coupons.retrieve(couponId);
           stripeCouponId = couponId;
@@ -40,10 +37,53 @@ export default async function handler(req, res) {
           const coupon = await stripe.coupons.create({
             id: couponId,
             percent_off: 10,
-            duration: "forever",
-            name: `Ambassador Code: ${validatedAmbassador.promo_code}`,
+            duration: "once",
+            name: "10% Off — First Order (WELCOME10)",
           });
           stripeCouponId = coupon.id;
+        }
+      }
+
+      // ── SAVE5 — 5% off cart abandonment recovery ──
+      else if (normalized === "SAVE5") {
+        const couponId = "SAVE5";
+        try {
+          await stripe.coupons.retrieve(couponId);
+          stripeCouponId = couponId;
+        } catch {
+          const coupon = await stripe.coupons.create({
+            id: couponId,
+            percent_off: 5,
+            duration: "once",
+            name: "5% Off — Recovery Discount (SAVE5)",
+          });
+          stripeCouponId = coupon.id;
+        }
+      }
+
+      // ── Ambassador codes ──
+      else {
+        const sbKey = process.env.SUPABASE_SERVICE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+        const promoRes = await fetch(`${SB_URL}/rest/v1/ambassadors?promo_code=eq.${encodeURIComponent(normalized)}&status=eq.approved&select=id,promo_code,commission_rate`, {
+          headers: { "apikey": sbKey, "Authorization": `Bearer ${sbKey}` }
+        });
+        const promoData = await promoRes.json();
+        if (promoData?.length) {
+          validatedAmbassador = promoData[0];
+          const couponId = `AMB_${validatedAmbassador.promo_code}`;
+          try {
+            await stripe.coupons.retrieve(couponId);
+            stripeCouponId = couponId;
+          } catch {
+            // Coupon doesn't exist yet — create it (handles new ambassadors automatically)
+            const coupon = await stripe.coupons.create({
+              id: couponId,
+              percent_off: 10,
+              duration: "once",
+              name: `Ambassador Code: ${validatedAmbassador.promo_code}`,
+            });
+            stripeCouponId = coupon.id;
+          }
         }
       }
     }
