@@ -233,6 +233,19 @@ export default async function handler(req, res) {
     return res.status(200).json({ success: true });
   }
 
+  // ── REACTIVATE ambassador ────────────────────────────────
+  if (action === 'reactivate') {
+    if (!ambassador_id) return res.status(400).json({ error: 'ambassador_id required.' });
+
+    const { error } = await supabase
+      .from('ambassadors')
+      .update({ status: 'approved' })
+      .eq('id', ambassador_id);
+
+    if (error) return res.status(500).json({ error: error.message });
+    return res.status(200).json({ success: true });
+  }
+
   // ── SUSPEND ambassador ─────────────────────────────────
   if (action === 'suspend') {
     if (!ambassador_id) return res.status(400).json({ error: 'ambassador_id required.' });
