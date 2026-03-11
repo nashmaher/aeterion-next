@@ -1341,39 +1341,6 @@ export default function App() {
             </div>
           </div>
 
-          {/* Long-form research section — shown below the two-column layout for products with research data */}
-          {RESEARCH[modal?.id] && (() => {
-            const r = RESEARCH[modal.id];
-            return (
-              <div style={{ borderTop: `1px solid ${T.border}`, padding: isFullscreen ? "20px 18px 32px" : "28px 32px 36px" }}>
-                <div style={{ fontSize: 11, fontWeight: 800, color: T.blue, letterSpacing: 2, textTransform: "uppercase", marginBottom: 20 }}>🔬 Detailed Research Profile</div>
-
-                {/* Specs table */}
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px,1fr))", gap: 8, marginBottom: 24 }}>
-                  {r.specs.map(([k,v]) => (
-                    <div key={k} style={{ background: T.bg, borderRadius: 10, padding: "10px 14px", border: `1px solid ${T.border}` }}>
-                      <div style={{ fontSize: 10, color: T.muted, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.8 }}>{k}</div>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: T.text, marginTop: 3, wordBreak: "break-word" }}>{v}</div>
-                    </div>
-                  ))}
-                </div>
-
-                {[["Mechanism of Action", r.mechanism], ["Pharmacology", r.pharmacology], ["Research Overview", r.research], ["Storage & Reconstitution", r.storage]].map(([title, content]) => (
-                  <div key={title} style={{ marginBottom: 18 }}>
-                    <div style={{ fontSize: 13, fontWeight: 800, color: T.text, marginBottom: 6 }}>{title}</div>
-                    <div style={{ fontSize: 13, color: T.sub, lineHeight: 1.85 }}>{content}</div>
-                  </div>
-                ))}
-
-                <div style={{ background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 10, padding: "12px 16px", marginTop: 8 }}>
-                  <div style={{ fontSize: 11, color: "#92400e", fontWeight: 600, lineHeight: 1.6 }}>
-                    All information provided is for educational and research purposes only. This compound has not been approved by the FDA for human or veterinary use. References to clinical studies are provided for scientific context and do not imply therapeutic claims.
-                  </div>
-                </div>
-              </div>
-            );
-          })()}
-
           {/* ── FREQUENTLY BOUGHT TOGETHER ── */}
           {(() => {
             const pid = modal?.id;
@@ -1416,6 +1383,39 @@ export default function App() {
                   style={{ marginTop:14, background: T.blueSoft, border:`1.5px solid ${T.blue}`, color:T.blue, fontWeight:700, fontSize:13, padding:"10px 20px", borderRadius:10, cursor:"pointer", fontFamily:"inherit" }}>
                   Add All {fbtProducts.length + 1} to Cart
                 </button>
+              </div>
+            );
+          })()}
+
+          {/* Long-form research section — shown below the two-column layout for products with research data */}
+          {RESEARCH[modal?.id] && (() => {
+            const r = RESEARCH[modal.id];
+            return (
+              <div style={{ borderTop: `1px solid ${T.border}`, padding: isFullscreen ? "20px 18px 32px" : "28px 32px 36px" }}>
+                <div style={{ fontSize: 11, fontWeight: 800, color: T.blue, letterSpacing: 2, textTransform: "uppercase", marginBottom: 20 }}>🔬 Detailed Research Profile</div>
+
+                {/* Specs table */}
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px,1fr))", gap: 8, marginBottom: 24 }}>
+                  {r.specs.map(([k,v]) => (
+                    <div key={k} style={{ background: T.bg, borderRadius: 10, padding: "10px 14px", border: `1px solid ${T.border}` }}>
+                      <div style={{ fontSize: 10, color: T.muted, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.8 }}>{k}</div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: T.text, marginTop: 3, wordBreak: "break-word" }}>{v}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {[["Mechanism of Action", r.mechanism], ["Pharmacology", r.pharmacology], ["Research Overview", r.research], ["Storage & Reconstitution", r.storage]].map(([title, content]) => (
+                  <div key={title} style={{ marginBottom: 18 }}>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: T.text, marginBottom: 6 }}>{title}</div>
+                    <div style={{ fontSize: 13, color: T.sub, lineHeight: 1.85 }}>{content}</div>
+                  </div>
+                ))}
+
+                <div style={{ background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 10, padding: "12px 16px", marginTop: 8 }}>
+                  <div style={{ fontSize: 11, color: "#92400e", fontWeight: 600, lineHeight: 1.6 }}>
+                    All information provided is for educational and research purposes only. This compound has not been approved by the FDA for human or veterinary use. References to clinical studies are provided for scientific context and do not imply therapeutic claims.
+                  </div>
+                </div>
               </div>
             );
           })()}
