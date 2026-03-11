@@ -1071,6 +1071,7 @@ export default function App() {
   const [cartOpen, setCartOpen] = useState(false);
   const [promoInput, setPromoInput] = useState("");
   const [promoCode, setPromoCode] = useState(null);   // validated code
+  const [promoDiscount, setPromoDiscount] = useState(0); // % off from promo
   const [promoStatus, setPromoStatus] = useState(""); // "valid" | "invalid" | "checking" | ""
   const [modal, setModal] = useState(null);
   const [mSi, setMSi] = useState(0);
@@ -1496,7 +1497,7 @@ export default function App() {
   };
 
   /* ── CART DRAWER ── */
-  const CartDrawer = () => (
+  const cartDrawerJSX = (
     <>
       {cartOpen && <div onClick={() => setCartOpen(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.35)", zIndex: 500 }} />}
       <div style={{ position: "fixed", top: 0, right: cartOpen ? 0 : (mob ? "-100%" : -420), width: mob ? "100%" : 400, height: "100%", background: T.white, zIndex: 510, display: "flex", flexDirection: "column", boxShadow: "-4px 0 32px rgba(0,0,0,0.12)", transition: "right .3s ease" }}>
@@ -1537,20 +1538,24 @@ export default function App() {
                   <input
                     type="text"
                     value={promoInput}
-                    onChange={e => { setPromoInput(e.target.value.toUpperCase()); if (promoStatus) { setPromoStatus(""); setPromoCode(null); } }}
+                    onChange={e => { setPromoInput(e.target.value.toUpperCase()); if (promoStatus) { setPromoStatus(""); setPromoCode(null); setPromoDiscount(0); } }}
                     placeholder="Promo code"
                     maxLength={20}
+                    autoComplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="characters"
+                    spellCheck={false}
                     style={{ flex: 1, padding: "9px 12px", borderRadius: 9, border: `1.5px solid ${promoStatus === "valid" ? "#16a34a" : promoStatus === "invalid" ? "#dc2626" : T.border}`, fontSize: 13, fontFamily: "inherit", outline: "none", background: T.white, color: T.text }}
                   />
                   <button
                     onClick={async () => {
                       if (!promoInput.trim()) return;
-                      if (promoStatus === "valid") { setPromoCode(null); setPromoStatus(""); setPromoInput(""); return; }
+                      if (promoStatus === "valid") { setPromoCode(null); setPromoDiscount(0); setPromoStatus(""); setPromoInput(""); return; }
                       setPromoStatus("checking");
                       try {
                         const r = await fetch("/api/validate-promo", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: promoInput.trim() }) });
                         const d = await r.json();
-                        if (d.valid) { setPromoCode(d.code); setPromoStatus("valid"); }
+                        if (d.valid) { setPromoCode(d.code); setPromoDiscount(d.discount || 10); setPromoStatus("valid"); }
                         else { setPromoCode(null); setPromoStatus("invalid"); }
                       } catch { setPromoCode(null); setPromoStatus("invalid"); }
                     }}
@@ -1559,11 +1564,40 @@ export default function App() {
                     {promoStatus === "checking" ? "…" : promoStatus === "valid" ? "Remove" : "Apply"}
                   </button>
                 </div>
-                {promoStatus === "valid" && <div style={{ fontSize: 12, color: "#15803d", fontWeight: 600, marginTop: 5 }}>✓ Code applied — 10% off at checkout!</div>}
+                {promoStatus === "valid" && <div style={{ fontSize: 12, color: "#15803d", fontWeight: 600, marginTop: 5 }}>✓ {promoCode} applied — {promoDiscount}% off at checkout!</div>}
                 {promoStatus === "invalid" && <div style={{ fontSize: 12, color: "#dc2626", fontWeight: 600, marginTop: 5 }}>✗ Invalid promo code.</div>}
               </div>
 
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12, fontSize: 15, fontWeight: 700, color: T.text }}><span>Total</span><span>{fmt(total)}</span></div>
+              {/* ── Order Summary Breakdown ── */}
+              {(() => {
+                const baseTotal = cart.reduce((s, i) => s + i.variants[0].p * i.qty, 0);
+                const bulkSavings = baseTotal - total;
+                const promoSavings = promoDiscount > 0 ? total * (promoDiscount / 100) : 0;
+                const finalTotal = total - promoSavings;
+                return (
+                  <div style={{ background: T.bg, borderRadius: 10, padding: "12px 14px", marginBottom: 14, fontSize: 13 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", color: T.sub, marginBottom: 6 }}>
+                      <span>Subtotal</span><span>{fmt(baseTotal)}</span>
+                    </div>
+                    {bulkSavings > 0 && (
+                      <div style={{ display: "flex", justifyContent: "space-between", color: "#15803d", fontWeight: 600, marginBottom: 6 }}>
+                        <span>💰 Bulk Discount</span><span>−{fmt(bulkSavings)}</span>
+                      </div>
+                    )}
+                    {promoSavings > 0 && (
+                      <div style={{ display: "flex", justifyContent: "space-between", color: "#15803d", fontWeight: 600, marginBottom: 6 }}>
+                        <span>🎟 {promoCode} ({promoDiscount}% off)</span><span>−{fmt(promoSavings)}</span>
+                      </div>
+                    )}
+                    <div style={{ borderTop: `1px solid ${T.border}`, marginTop: 8, paddingTop: 8, display: "flex", justifyContent: "space-between", fontWeight: 800, fontSize: 15, color: T.text }}>
+                      <span>Total</span><span>{fmt(finalTotal)}</span>
+                    </div>
+                    {total >= 250 && (
+                      <div style={{ marginTop: 8, fontSize: 11, color: "#15803d", fontWeight: 600 }}>🚚 Free shipping applied</div>
+                    )}
+                  </div>
+                );
+              })()}
               {stripeMsg && <div style={{ fontSize: 11, color: T.sub, marginBottom: 10, background: "#fffbeb", borderRadius: 8, padding: "8px 10px", border: "1px solid #fde68a" }}>{stripeMsg}</div>}
               {paymentMsg === "cancelled" && (
                 <div style={{ marginBottom: 10, background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 8, padding: "10px 14px", fontSize: 13, fontWeight: 600, color: "#854d0e" }}>
@@ -3200,7 +3234,7 @@ export default function App() {
         ))}
       </nav>
 
-      <MobileMenu /><ProductModal /><CartDrawer />
+      <MobileMenu /><ProductModal />{cartDrawerJSX}
 
       {/* ══════════ EMAIL CAPTURE POPUP (mobile) ══════════ */}
       {emailPopup && !emailPopupDone && (
@@ -3503,7 +3537,7 @@ export default function App() {
 
       </main>
 
-      <ProductModal /><CartDrawer />
+      <ProductModal />{cartDrawerJSX}
 
       <footer style={{ background: "#111827", color: "rgba(255,255,255,0.6)", padding: "48px 24px 28px", marginTop: 60 }}>
         <div style={{ maxWidth: 1400, margin: "0 auto" }}>
