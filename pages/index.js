@@ -1546,16 +1546,16 @@ export default function App() {
             commission_rate: Number(commission) || 20,
           }),
         });
-        const data = await res.json();
+        const data = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
         if (data.success) {
           setCreateAmbMsg("✓ Ambassador created successfully!");
           setCreateAmbForm({ name: "", email: "", instagram: "", code: "", password: "", commission: "20" });
           setShowCreateAmb(false);
           await loadAmbassadors();
         } else {
-          setCreateAmbMsg("✗ " + (data.error || "Something went wrong."));
+          setCreateAmbMsg("✗ " + (data.error || `HTTP ${res.status}`));
         }
-      } catch (e) { setCreateAmbMsg("✗ Request failed."); }
+      } catch (e) { setCreateAmbMsg("✗ " + (e.message || "Request failed.")); }
       setCreateAmbWorking(false);
     };
 
@@ -1891,8 +1891,17 @@ export default function App() {
                               )}
 
                               {amb.status === "suspended" && (
-                                <div style={{ background: "#0f172a", borderRadius: 10, padding: "14px 16px", fontSize: 13, color: "#94a3b8" }}>
-                                  This ambassador is suspended.
+                                <div style={{ background: "#0f172a", borderRadius: 10, padding: "14px 16px" }}>
+                                  <div style={{ fontSize: 13, color: "#94a3b8", marginBottom: 12 }}>
+                                    This ambassador is suspended.
+                                  </div>
+                                  <button
+                                    disabled={ambWorking === amb.id}
+                                    onClick={() => ambAction("reactivate", amb.id)}
+                                    style={{ ...btnPrimary({ padding: "9px 14px", fontSize: 12, borderRadius: 8 }), background: "#16a34a", opacity: ambWorking === amb.id ? 0.5 : 1 }}
+                                  >
+                                    {ambWorking === amb.id ? "Working…" : "↺ Reactivate"}
+                                  </button>
                                 </div>
                               )}
 
