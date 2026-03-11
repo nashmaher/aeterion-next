@@ -3122,7 +3122,9 @@ export default function App() {
             </div>
           </div>
         );
-      })()} style={{ background: T.white, borderBottom: `1px solid ${T.border}`, padding: "10px 14px 12px", overflowX: "auto", display: "flex", gap: 8, WebkitOverflowScrolling: "touch", scrollbarWidth: "none" }}>
+      })()}
+
+      <div id="mob-cat" style={{ background: T.white, borderBottom: `1px solid ${T.border}`, padding: "10px 14px 12px", overflowX: "auto", display: "flex", gap: 8, WebkitOverflowScrolling: "touch", scrollbarWidth: "none" }}>
         {[{id:"all",label:"All",icon:"🔬"}, ...CATS].map(c => (
           <button key={c.id} onClick={() => { setCat(c.id); setQ(""); }} style={{
             flexShrink: 0, padding: "8px 15px", borderRadius: 24, border: "1.5px solid", fontSize: 12, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit",
@@ -3337,7 +3339,9 @@ export default function App() {
             </div>
           </div>
         );
-      })()} style={{ maxWidth: 1400, margin: "0 auto", padding: "28px 24px" }}>
+      })()}
+
+      <div id="catalog" style={{ maxWidth: 1400, margin: "0 auto", padding: "28px 24px" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 22, gap: 10, flexWrap: "wrap" }}>
           <div style={{ fontSize: 13, color: T.sub }}><b style={{ color: T.text }}>{products.length}</b> products</div>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
