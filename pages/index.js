@@ -1501,6 +1501,54 @@ export default function App() {
     const [trackingInputs, setTrackingInputs] = useState({});
     const [notesInputs, setNotesInputs] = useState({});
 
+    // ── Ambassador tab state ──
+    const [adminTab, setAdminTab] = useState("orders"); // "orders" | "ambassadors"
+    const [ambassadors, setAmbassadors] = useState([]);
+    const [ambLoading, setAmbLoading] = useState(false);
+    const [ambExpanded, setAmbExpanded] = useState(null);
+    const [approveForm, setApproveForm] = useState({}); // { [id]: { code, password, commission } }
+    const [ambWorking, setAmbWorking] = useState(null);
+    const [ambMsg, setAmbMsg] = useState({});
+
+    const loadAmbassadors = async () => {
+      setAmbLoading(true);
+      try {
+        const res = await fetch("/api/ambassador/admin", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ admin_password: ADMIN_PASSWORD, action: "list" }),
+        });
+        const data = await res.json();
+        setAmbassadors(data.ambassadors || []);
+      } catch (e) { console.error(e); }
+      setAmbLoading(false);
+    };
+
+    const ambAction = async (action, id, extra = {}) => {
+      setAmbWorking(id);
+      setAmbMsg(prev => ({ ...prev, [id]: "" }));
+      try {
+        const res = await fetch("/api/ambassador/admin", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ admin_password: ADMIN_PASSWORD, action, ambassador_id: id, ...extra }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          const successMsg = action === "mark_paid"
+            ? `✓ Marked $${data.amount_paid?.toFixed(2)} as paid`
+            : `✓ ${action.charAt(0).toUpperCase() + action.slice(1)}d successfully`;
+          setAmbMsg(prev => ({ ...prev, [id]: successMsg }));
+          await loadAmbassadors();
+        } else {
+          setAmbMsg(prev => ({ ...prev, [id]: "✗ " + (data.error || "Error") }));
+        }
+      } catch (e) {
+        setAmbMsg(prev => ({ ...prev, [id]: "✗ Request failed" }));
+      }
+      setAmbWorking(null);
+    };
+
     const login = () => {
       if (pw === ADMIN_PASSWORD) { setAuthed(true); loadOrders(); }
       else { setPwErr(true); setTimeout(() => setPwErr(false), 2000); }
@@ -1569,14 +1617,192 @@ export default function App() {
             <div style={{ fontSize: 20, fontWeight: 900 }}>Admin Panel</div>
           </div>
           <div style={{ display: "flex", gap: 10 }}>
-            <button onClick={loadOrders} style={{ background: "#334155", border: "none", color: "#94a3b8", padding: "8px 16px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: "inherit" }}>↻ Refresh</button>
+            <button onClick={() => { setAdminTab("orders"); loadOrders(); }} style={{ background: adminTab === "orders" ? "#1a6ed8" : "#334155", border: "none", color: adminTab === "orders" ? "#fff" : "#94a3b8", padding: "8px 16px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: "inherit", fontWeight: 700 }}>📦 Orders</button>
+            <button onClick={() => { setAdminTab("ambassadors"); loadAmbassadors(); }} style={{ background: adminTab === "ambassadors" ? "#1a6ed8" : "#334155", border: "none", color: adminTab === "ambassadors" ? "#fff" : "#94a3b8", padding: "8px 16px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: "inherit", fontWeight: 700, position: "relative" }}>
+              🤝 Ambassadors
+              {ambassadors.filter(a => a.status === "pending").length > 0 && (
+                <span style={{ position: "absolute", top: -6, right: -6, background: "#f97316", color: "#fff", borderRadius: "50%", width: 18, height: 18, fontSize: 10, fontWeight: 900, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  {ambassadors.filter(a => a.status === "pending").length}
+                </span>
+              )}
+            </button>
+            <button onClick={() => adminTab === "orders" ? loadOrders() : loadAmbassadors()} style={{ background: "#334155", border: "none", color: "#94a3b8", padding: "8px 16px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: "inherit" }}>↻ Refresh</button>
             <button onClick={() => goTo("store")} style={{ ...btnPrimary({ padding: "8px 16px", fontSize: 13, borderRadius: 8 }) }}>← Store</button>
           </div>
         </div>
 
         <div style={{ padding: "24px", maxWidth: 1100, margin: "0 auto" }}>
 
-          {/* Stats */}
+          {/* ── AMBASSADORS TAB ── */}
+          {adminTab === "ambassadors" && (
+            <div>
+              {/* Ambassador Stats */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 14, marginBottom: 24 }}>
+                {[
+                  ["⏳", "Pending", ambassadors.filter(a => a.status === "pending").length],
+                  ["✅", "Approved", ambassadors.filter(a => a.status === "approved").length],
+                  ["💰", "Total Commissions", `$${ambassadors.reduce((s, a) => s + Number(a.total_commission_earned || 0), 0).toFixed(2)}`],
+                  ["💸", "Unpaid", `$${ambassadors.reduce((s, a) => s + Math.max(0, Number(a.total_commission_earned || 0) - Number(a.total_commission_paid || 0)), 0).toFixed(2)}`],
+                ].map(([icon, label, value]) => (
+                  <div key={label} style={{ background: "#1e293b", borderRadius: 14, padding: "18px 20px", border: "1px solid #334155" }}>
+                    <div style={{ fontSize: 22, marginBottom: 6 }}>{icon}</div>
+                    <div style={{ fontSize: 12, color: "#64748b", fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5 }}>{label}</div>
+                    <div style={{ fontSize: 22, fontWeight: 900, color: "#f8fafc", marginTop: 2 }}>{value}</div>
+                  </div>
+                ))}
+              </div>
+
+              {ambLoading ? (
+                <div style={{ textAlign: "center", padding: 60, color: "#64748b" }}>Loading ambassadors…</div>
+              ) : ambassadors.length === 0 ? (
+                <div style={{ textAlign: "center", padding: 60, color: "#64748b" }}>No applications yet. Share <strong style={{ color: "#94a3b8" }}>aeterionpeptides.com/ambassador/apply</strong> to get started.</div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                  {ambassadors.map(amb => {
+                    const isOpen = ambExpanded === amb.id;
+                    const unpaid = Math.max(0, Number(amb.total_commission_earned || 0) - Number(amb.total_commission_paid || 0));
+                    const statusColor = amb.status === "approved" ? "#16a34a" : amb.status === "pending" ? "#f97316" : "#dc2626";
+                    const form = approveForm[amb.id] || { code: "", password: "", commission: "20" };
+                    const msg = ambMsg[amb.id] || "";
+                    return (
+                      <div key={amb.id} style={{ background: "#1e293b", borderRadius: 14, border: "1px solid #334155", overflow: "hidden" }}>
+                        {/* Row header */}
+                        <div onClick={() => setAmbExpanded(isOpen ? null : amb.id)} style={{ padding: "16px 20px", display: "flex", alignItems: "center", gap: 14, cursor: "pointer" }}>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 3 }}>
+                              <span style={{ fontWeight: 800, fontSize: 15 }}>{amb.name}</span>
+                              <span style={{ fontSize: 11, fontWeight: 700, color: statusColor, background: statusColor + "22", borderRadius: 20, padding: "2px 10px" }}>{amb.status.toUpperCase()}</span>
+                              {amb.promo_code && <span style={{ fontSize: 11, fontWeight: 700, color: "#60a5fa", background: "#1e3a5f", borderRadius: 6, padding: "2px 8px" }}>{amb.promo_code}</span>}
+                            </div>
+                            <div style={{ fontSize: 12, color: "#64748b" }}>{amb.email}{amb.instagram ? ` · ${amb.instagram}` : ""}{amb.audience_size ? ` · ${amb.audience_size} followers` : ""}</div>
+                          </div>
+                          <div style={{ textAlign: "right", marginRight: 12 }}>
+                            <div style={{ fontSize: 13, fontWeight: 700, color: "#4ade80" }}>Earned: ${Number(amb.total_commission_earned || 0).toFixed(2)}</div>
+                            {unpaid > 0 && <div style={{ fontSize: 11, color: "#f97316", fontWeight: 600 }}>Unpaid: ${unpaid.toFixed(2)}</div>}
+                          </div>
+                          <span style={{ color: "#64748b", fontSize: 14 }}>{isOpen ? "▲" : "▼"}</span>
+                        </div>
+
+                        {/* Expanded panel */}
+                        {isOpen && (
+                          <div style={{ borderTop: "1px solid #334155", padding: "20px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+                            {/* Left: application details */}
+                            <div>
+                              <div style={{ fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 }}>Application</div>
+                              <div style={{ background: "#0f172a", borderRadius: 10, padding: "14px 16px", fontSize: 13, color: "#94a3b8", lineHeight: 1.8 }}>
+                                <div><strong style={{ color: "#cbd5e1" }}>Applied:</strong> {new Date(amb.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</div>
+                                {amb.instagram && <div><strong style={{ color: "#cbd5e1" }}>Platform:</strong> {amb.instagram}</div>}
+                                {amb.audience_size && <div><strong style={{ color: "#cbd5e1" }}>Audience:</strong> {amb.audience_size}</div>}
+                                {amb.why_aeterion && (
+                                  <div style={{ marginTop: 8, paddingTop: 8, borderTop: "1px solid #1e293b" }}>
+                                    <strong style={{ color: "#cbd5e1" }}>Why Aeterion:</strong><br />
+                                    <span style={{ fontStyle: "italic" }}>{amb.why_aeterion}</span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Right: actions */}
+                            <div>
+                              <div style={{ fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 }}>Actions</div>
+
+                              {amb.status === "pending" && (
+                                <div style={{ background: "#0f172a", borderRadius: 10, padding: "14px 16px" }}>
+                                  <div style={{ fontSize: 12, color: "#60a5fa", fontWeight: 700, marginBottom: 10 }}>Approve Ambassador</div>
+                                  <input
+                                    placeholder="Promo code (e.g. NASH20)"
+                                    value={form.code}
+                                    onChange={e => setApproveForm(prev => ({ ...prev, [amb.id]: { ...form, code: e.target.value.toUpperCase() } }))}
+                                    style={{ width: "100%", background: "#1e293b", border: "1px solid #334155", borderRadius: 8, padding: "9px 12px", fontSize: 13, color: "#f8fafc", outline: "none", fontFamily: "inherit", boxSizing: "border-box", marginBottom: 8 }}
+                                  />
+                                  <input
+                                    placeholder="Temporary password for ambassador"
+                                    type="text"
+                                    value={form.password}
+                                    onChange={e => setApproveForm(prev => ({ ...prev, [amb.id]: { ...form, password: e.target.value } }))}
+                                    style={{ width: "100%", background: "#1e293b", border: "1px solid #334155", borderRadius: 8, padding: "9px 12px", fontSize: 13, color: "#f8fafc", outline: "none", fontFamily: "inherit", boxSizing: "border-box", marginBottom: 8 }}
+                                  />
+                                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                                    <span style={{ fontSize: 12, color: "#64748b" }}>Commission %</span>
+                                    <input
+                                      type="number" min="1" max="100"
+                                      value={form.commission}
+                                      onChange={e => setApproveForm(prev => ({ ...prev, [amb.id]: { ...form, commission: e.target.value } }))}
+                                      style={{ width: 70, background: "#1e293b", border: "1px solid #334155", borderRadius: 8, padding: "7px 10px", fontSize: 13, color: "#f8fafc", outline: "none", fontFamily: "inherit" }}
+                                    />
+                                  </div>
+                                  <div style={{ display: "flex", gap: 8 }}>
+                                    <button
+                                      disabled={!form.code || !form.password || ambWorking === amb.id}
+                                      onClick={() => ambAction("approve", amb.id, { promo_code: form.code, password: form.password, commission_rate: Number(form.commission) || 20 })}
+                                      style={{ flex: 1, ...btnPrimary({ padding: "10px", fontSize: 13, borderRadius: 8 }), opacity: (!form.code || !form.password || ambWorking === amb.id) ? 0.5 : 1 }}
+                                    >
+                                      {ambWorking === amb.id ? "Working…" : "✓ Approve"}
+                                    </button>
+                                    <button
+                                      disabled={ambWorking === amb.id}
+                                      onClick={() => ambAction("reject", amb.id)}
+                                      style={{ flex: 1, padding: "10px", background: "#3b0000", border: "1px solid #7f1d1d", color: "#f87171", borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", opacity: ambWorking === amb.id ? 0.5 : 1 }}
+                                    >
+                                      ✗ Reject
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
+
+                              {amb.status === "approved" && (
+                                <div style={{ background: "#0f172a", borderRadius: 10, padding: "14px 16px" }}>
+                                  <div style={{ fontSize: 12, color: "#64748b", marginBottom: 10 }}>
+                                    Code: <strong style={{ color: "#60a5fa" }}>{amb.promo_code}</strong> · Commission: <strong style={{ color: "#4ade80" }}>{amb.commission_rate}%</strong>
+                                  </div>
+                                  <div style={{ fontSize: 13, color: "#94a3b8", marginBottom: 12, lineHeight: 1.6 }}>
+                                    Total earned: <strong style={{ color: "#4ade80" }}>${Number(amb.total_commission_earned || 0).toFixed(2)}</strong><br />
+                                    Total paid: <strong style={{ color: "#f8fafc" }}>${Number(amb.total_commission_paid || 0).toFixed(2)}</strong><br />
+                                    {unpaid > 0 && <>Awaiting payout: <strong style={{ color: "#f97316" }}>${unpaid.toFixed(2)}</strong></>}
+                                  </div>
+                                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                                    {unpaid > 0 && (
+                                      <button
+                                        disabled={ambWorking === amb.id}
+                                        onClick={() => ambAction("mark_paid", amb.id)}
+                                        style={{ ...btnPrimary({ padding: "9px 14px", fontSize: 12, borderRadius: 8 }), background: "#16a34a", opacity: ambWorking === amb.id ? 0.5 : 1 }}
+                                      >
+                                        {ambWorking === amb.id ? "Working…" : `✓ Mark $${unpaid.toFixed(2)} as Paid`}
+                                      </button>
+                                    )}
+                                    <button
+                                      disabled={ambWorking === amb.id}
+                                      onClick={() => ambAction("suspend", amb.id)}
+                                      style={{ padding: "9px 14px", background: "#3b0000", border: "1px solid #7f1d1d", color: "#f87171", borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", opacity: ambWorking === amb.id ? 0.5 : 1 }}
+                                    >
+                                      Suspend
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
+
+                              {amb.status === "suspended" && (
+                                <div style={{ background: "#0f172a", borderRadius: 10, padding: "14px 16px", fontSize: 13, color: "#94a3b8" }}>
+                                  This ambassador is suspended.
+                                </div>
+                              )}
+
+                              {msg && (
+                                <div style={{ marginTop: 10, fontSize: 13, fontWeight: 600, color: msg.startsWith("✓") ? "#4ade80" : "#f87171" }}>{msg}</div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── ORDERS TAB ── */}
+          {adminTab === "orders" && (<>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 14, marginBottom: 24 }}>
             {[
               ["📦", "Total Orders", orders.length],
@@ -1710,6 +1936,8 @@ export default function App() {
               </div>
             );
           })}
+        </div>
+        )}
         </div>
       </div>
     );
