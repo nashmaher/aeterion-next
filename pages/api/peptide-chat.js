@@ -148,7 +148,7 @@ export default async function handler(req, res) {
     };
 
     const geminiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:streamGenerateContent?alt=sse&key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:streamGenerateContent?alt=sse&key=${apiKey}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -159,7 +159,11 @@ export default async function handler(req, res) {
     if (!geminiRes.ok) {
       const err = await geminiRes.text();
       console.error("Gemini error:", err);
-      return res.status(500).json({ error: "Gemini API error", detail: err });
+      const status = geminiRes.status;
+      const friendly = status === 429
+        ? "The assistant is busy right now — please try again in a few seconds."
+        : "Gemini API error";
+      return res.status(status).json({ error: friendly, detail: err });
     }
 
     const reader = geminiRes.body.getReader();
