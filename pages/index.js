@@ -923,7 +923,23 @@ function Badge({ badge, isNew }) {
 }
 
 /* ─── PRODUCT CARD ─── */
-function Card({ p, onOpen, onAdd, mob, inv }) {
+function StarRow({ avg, count, small }) {
+  if (!count) return null;
+  const full = Math.floor(avg);
+  const half = avg - full >= 0.5;
+  return (
+    <div style={{ display:"flex", alignItems:"center", gap: small ? 3 : 4, marginBottom: small ? 2 : 4 }}>
+      {[1,2,3,4,5].map(i => (
+        <span key={i} style={{ fontSize: small ? 10 : 12, color: i <= full ? "#f59e0b" : (i === full+1 && half) ? "#f59e0b" : "#d1d5db" }}>
+          {i <= full ? "★" : (i === full+1 && half) ? "½" : "☆"}
+        </span>
+      ))}
+      <span style={{ fontSize: small ? 9 : 10, color:"#6b7280", fontWeight:600 }}>{avg.toFixed(1)} ({count})</span>
+    </div>
+  );
+}
+
+function Card({ p, onOpen, onAdd, mob, inv, productReviews }) {
   const [si, setSi] = useState(0);
   const [qty, setQty] = useState(1);
   const [hov, setHov] = useState(false);
@@ -932,6 +948,11 @@ function Card({ p, onOpen, onAdd, mob, inv }) {
 
   const isSoldOut = inv && (!inv.inStock || inv.stock === 0);
   const isLow     = inv && inv.inStock && inv.stock > 0 && inv.stock <= 5;
+
+  // Compute review stats for this product
+  const revList = productReviews || [];
+  const revCount = revList.length;
+  const revAvg = revCount ? revList.reduce((s,r) => s + r.rating, 0) / revCount : 0;
 
   if (mob) return (
     <div style={{
@@ -1012,6 +1033,7 @@ function Card({ p, onOpen, onAdd, mob, inv }) {
 
       <div style={{ padding: "13px 14px 15px", display: "flex", flexDirection: "column", gap: 7, flex: 1 }}>
         <div onClick={() => onOpen(p, si, qty)} style={{ fontSize: 13, fontWeight: 700, color: T.text, lineHeight: 1.35, cursor: "pointer" }}>{p.name}</div>
+        <StarRow avg={revAvg} count={revCount} small={true} />
         <div style={{ fontSize: 11, color: T.sub, lineHeight: 1.6 }}>
           {p.desc.slice(0, 90).trim()}… <span onClick={() => onOpen(p, si, qty)} style={{ color: T.blue, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>Read more</span>
         </div>
@@ -1111,6 +1133,20 @@ export default function App() {
   const [stripeMsg, setStripeMsg] = useState("");
   const [inventory, setInventory] = useState({});
   const [paymentMsg, setPaymentMsg] = useState("");
+  const [emailPopup, setEmailPopup] = useState(false);
+  const [emailPopupDone, setEmailPopupDone] = useState(false);
+  const [emailPopupVal, setEmailPopupVal] = useState("");
+  const [emailPopupStatus, setEmailPopupStatus] = useState(""); // "sending"|"done"|"error"
+  const [showQuiz, setShowQuiz] = useState(false);
+  const [quizStep, setQuizStep] = useState(0);
+  const [quizAnswers, setQuizAnswers] = useState({});
+  const [quizResult, setQuizResult] = useState(null);
+  const [reviews, setReviews] = useState({});
+  const [showReviewForm, setShowReviewForm] = useState(null); // productId
+  const [reviewDraft, setReviewDraft] = useState({ name: "", rating: 5, text: "" });
+  const [abandonEmail, setAbandonEmail] = useState("");
+  const [abandonPopup, setAbandonPopup] = useState(false);
+  const [abandonStatus, setAbandonStatus] = useState("");
   const [user, setUser] = useState(null); // restored from session in useEffect (SSR-safe)
   const [authReady, setAuthReady] = useState(false);
 
@@ -1123,6 +1159,15 @@ export default function App() {
     if (["contact","legal","admin","login","signup","account","about","faq"].includes(hash)) setPage(hash);
     fetchInventory().then(inv => setInventory(inv));
     setAuthReady(true);
+    // Load reviews from localStorage
+    try { const r = JSON.parse(localStorage.getItem("aet_reviews") || "{}"); setReviews(r); } catch {}
+    // Email popup: show after 30s if not already dismissed
+    const popupDone = localStorage.getItem("aet_popup_done");
+    if (!popupDone) {
+      setTimeout(() => setEmailPopup(true), 30000);
+    } else {
+      setEmailPopupDone(true);
+    }
     const params = new URLSearchParams(window.location.search);
     if (params.get("payment") === "success") {
       setPaymentMsg("success");
@@ -1135,6 +1180,17 @@ export default function App() {
   }, []);
   const [contactForm, setContactForm] = useState({ name:"", email:"", subject:"", message:"" });
   const [contactSent, setContactSent] = useState(false);
+
+  // Cart abandonment: if cart has items and user doesn't checkout in 45min, show email prompt
+  useEffect(() => {
+    if (cart.length === 0) return;
+    const abandonDone = localStorage.getItem("aet_abandon_done");
+    if (abandonDone) return;
+    const timer = setTimeout(() => {
+      setAbandonPopup(true);
+    }, 45 * 60 * 1000); // 45 minutes
+    return () => clearTimeout(timer);
+  }, [cart.length > 0]);
 
   const goTo = (p) => {
     window.history.pushState({ page: p }, "", `#${p}`);
@@ -1188,7 +1244,7 @@ export default function App() {
       setMeta("description", "Aeterion Peptides terms of service, privacy policy, return policy, and research-use-only disclaimer.");
     } else {
       document.title = "Buy Research Peptides Online | Aeterion Peptides — GLP-1, BPC-157, TB-500 & More";
-      setMeta("description", "Shop 72+ research-grade peptides and analytical compounds at Aeterion Peptides. GLP-1 agonists, BPC-157, TB-500, NAD+, cognitive peptides and more. COA with every order. Fast USA dispatch.");
+      setMeta("description", "Shop 79+ research-grade peptides and analytical compounds at Aeterion Peptides. GLP-1 agonists, BPC-157, TB-500, NAD+, cognitive peptides and more. COA with every order. Fast USA dispatch.");
     }
   }, [page]);
 
@@ -1367,6 +1423,77 @@ export default function App() {
                     All information provided is for educational and research purposes only. This compound has not been approved by the FDA for human or veterinary use. References to clinical studies are provided for scientific context and do not imply therapeutic claims.
                   </div>
                 </div>
+              </div>
+            );
+          })()}
+
+          {/* ── REVIEWS SECTION ── */}
+          {(() => {
+            const pid = modal?.id;
+            const revList = reviews[pid] || [];
+            const revCount = revList.length;
+            const revAvg = revCount ? revList.reduce((s,r) => s + r.rating, 0) / revCount : 0;
+            return (
+              <div style={{ borderTop: `1px solid ${T.border}`, padding: isFullscreen ? "16px 18px 28px" : "24px 32px 32px" }}>
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16 }}>
+                  <div>
+                    <div style={{ fontSize:11, fontWeight:800, color:T.blue, letterSpacing:2, textTransform:"uppercase", marginBottom:4 }}>⭐ Researcher Reviews</div>
+                    {revCount > 0
+                      ? <StarRow avg={revAvg} count={revCount} />
+                      : <div style={{ fontSize:12, color:T.muted }}>No reviews yet — be the first!</div>}
+                  </div>
+                  <button onClick={() => setShowReviewForm(showReviewForm === pid ? null : pid)}
+                    style={{ background:T.blueSoft, border:`1.5px solid ${T.blue}`, color:T.blue, fontWeight:700, fontSize:12, padding:"8px 16px", borderRadius:10, cursor:"pointer", fontFamily:"inherit" }}>
+                    {showReviewForm === pid ? "Cancel" : "+ Leave a Review"}
+                  </button>
+                </div>
+
+                {showReviewForm === pid && (
+                  <div style={{ background:T.bg, borderRadius:12, padding:"16px", marginBottom:16, border:`1px solid ${T.border}` }}>
+                    <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:10 }}>
+                      <input placeholder="Your name (e.g. J.M.)" value={reviewDraft.name}
+                        onChange={e => setReviewDraft(d => ({...d, name:e.target.value}))}
+                        style={{ padding:"9px 12px", borderRadius:9, border:`1.5px solid ${T.border}`, fontSize:13, fontFamily:"inherit", outline:"none", background:T.white, color:T.text }} />
+                      <div style={{ display:"flex", alignItems:"center", gap:6, padding:"9px 12px", borderRadius:9, border:`1.5px solid ${T.border}`, background:T.white }}>
+                        <span style={{ fontSize:12, color:T.muted, marginRight:2 }}>Rating:</span>
+                        {[1,2,3,4,5].map(star => (
+                          <span key={star} onClick={() => setReviewDraft(d => ({...d, rating:star}))}
+                            style={{ fontSize:18, cursor:"pointer", color: star <= reviewDraft.rating ? "#f59e0b" : "#d1d5db", transition:"color .1s" }}>★</span>
+                        ))}
+                      </div>
+                    </div>
+                    <textarea placeholder="Share your research experience with this compound..." value={reviewDraft.text}
+                      onChange={e => setReviewDraft(d => ({...d, text:e.target.value}))}
+                      rows={3}
+                      style={{ width:"100%", padding:"9px 12px", borderRadius:9, border:`1.5px solid ${T.border}`, fontSize:13, fontFamily:"inherit", outline:"none", background:T.white, color:T.text, resize:"vertical", boxSizing:"border-box" }} />
+                    <button
+                      onClick={() => {
+                        if (!reviewDraft.name.trim() || !reviewDraft.text.trim()) return;
+                        const newReview = { name:reviewDraft.name.trim(), rating:reviewDraft.rating, text:reviewDraft.text.trim(), date: new Date().toLocaleDateString("en-US",{month:"short",year:"numeric"}) };
+                        const updated = { ...reviews, [pid]: [newReview, ...(reviews[pid]||[])] };
+                        setReviews(updated);
+                        try { localStorage.setItem("aet_reviews", JSON.stringify(updated)); } catch {}
+                        setShowReviewForm(null);
+                        setReviewDraft({ name:"", rating:5, text:"" });
+                      }}
+                      style={{ marginTop:10, ...btnPrimary({ padding:"9px 20px", fontSize:13 }) }}>
+                      Submit Review
+                    </button>
+                  </div>
+                )}
+
+                {revList.slice(0,5).map((rev, i) => (
+                  <div key={i} style={{ borderBottom: i < revList.length-1 ? `1px solid ${T.border}` : "none", paddingBottom:12, marginBottom:12 }}>
+                    <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:4 }}>
+                      <div style={{ fontSize:13, fontWeight:700, color:T.text }}>{rev.name}</div>
+                      <div style={{ fontSize:10, color:T.muted }}>{rev.date}</div>
+                    </div>
+                    <div style={{ display:"flex", gap:2, marginBottom:5 }}>
+                      {[1,2,3,4,5].map(s => <span key={s} style={{ fontSize:11, color: s<=rev.rating ? "#f59e0b" : "#d1d5db" }}>★</span>)}
+                    </div>
+                    <div style={{ fontSize:13, color:T.sub, lineHeight:1.65 }}>{rev.text}</div>
+                  </div>
+                ))}
               </div>
             );
           })()}
@@ -2173,6 +2300,10 @@ export default function App() {
         <div style={{ textAlign: "center", marginTop: 12 }}>
           <span onClick={() => goTo("store")} style={{ fontSize: 13, color: T.muted, cursor: "pointer" }}>← Continue as guest</span>
         </div>
+        <div style={{ textAlign: "center", marginTop: 20, paddingTop: 16, borderTop: "1px solid #f1f5f9" }}>
+          <span style={{ fontSize: 12, color: T.muted }}>Are you an ambassador? </span>
+          <a href="/ambassador" style={{ fontSize: 12, color: T.blue, fontWeight: 600, textDecoration: "none" }}>Sign in to your portal →</a>
+        </div>
       </AuthLayout>
     );
   };
@@ -2777,7 +2908,7 @@ export default function App() {
           <div style={{ position: "absolute", top: -40, right: -30, width: 180, height: 180, borderRadius: "50%", background: "rgba(255,255,255,0.06)", pointerEvents: "none" }} />
           <div style={{ position: "absolute", bottom: -20, left: -20, width: 120, height: 120, borderRadius: "50%", background: "rgba(255,255,255,0.05)", pointerEvents: "none" }} />
           <div style={{ position: "relative" }}>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.16)", borderRadius: 24, padding: "5px 16px", fontSize: 10, color: "rgba(255,255,255,0.95)", fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 16, border: "1px solid rgba(255,255,255,0.2)" }}>✅ 72 Research Compounds · COA Included</div>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.16)", borderRadius: 24, padding: "5px 16px", fontSize: 10, color: "rgba(255,255,255,0.95)", fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 16, border: "1px solid rgba(255,255,255,0.2)" }}>✅ 79 Research Compounds · COA Included</div>
             <h1 style={{ color: "#fff", fontSize: 30, fontWeight: 900, margin: "0 0 10px", lineHeight: 1.15, letterSpacing: -0.5 }}>Buy Research Peptides Online<br />GLP-1, BPC-157, TB-500 & More</h1>
             <p style={{ color: "rgba(255,255,255,0.82)", fontSize: 13, lineHeight: 1.75, margin: "0 0 22px" }}>GLP-1s · SARMs · Nootropics · Longevity<br />Every order ships with a Certificate of Analysis.</p>
             <div style={{ display: "flex", gap: 10, justifyContent: "center", marginBottom: 28 }}>
@@ -2785,7 +2916,7 @@ export default function App() {
               <button onClick={() => setCat("metabolic")} style={{ background: "rgba(255,255,255,0.15)", color: "#fff", border: "1.5px solid rgba(255,255,255,0.4)", borderRadius: 24, padding: "12px 22px", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>GLP-1 →</button>
             </div>
             <div style={{ display: "flex", gap: 0, justifyContent: "center", background: "rgba(255,255,255,0.1)", borderRadius: 16, padding: "12px 0", border: "1px solid rgba(255,255,255,0.12)" }}>
-              {[["72","Products"],["≥99%","Purity"],["1-2d","Processing"],["COA","Included"],["🇺🇸","USA Ships"]].map(([v,l], idx, arr) => (
+              {[["79","Products"],["≥99%","Purity"],["1-2d","Processing"],["COA","Included"],["🇺🇸","USA Ships"]].map(([v,l], idx, arr) => (
                 <div key={l} style={{ flex: 1, textAlign: "center", borderRight: idx < arr.length-1 ? "1px solid rgba(255,255,255,0.15)" : "none" }}>
                   <div style={{ fontSize: 17, fontWeight: 900, color: "#fff" }}>{v}</div>
                   <div style={{ fontSize: 9, color: "rgba(255,255,255,0.85)", letterSpacing: 1, textTransform: "uppercase", marginTop: 2 }}>{l}</div>
@@ -2837,7 +2968,7 @@ export default function App() {
               <button onClick={() => setCat(g.id)} style={{ ...btnOutline({ padding: "4px 10px", fontSize: 11, borderRadius: 8 }) }}>All →</button>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 10 }}>
-              {g.items.map(p => <Card key={p.id} p={p} onOpen={open} onAdd={addCartAndOpen} mob={true} inv={inventory[p.id]} />)}
+              {g.items.map(p => <Card key={p.id} p={p} onOpen={open} onAdd={addCartAndOpen} mob={true} inv={inventory[p.id]} productReviews={reviews[p.id]} />)}
             </div>
           </section>
         )) : (
@@ -2848,7 +2979,7 @@ export default function App() {
               <button onClick={() => { setQ(""); setCat("all"); }} style={{ ...btnPrimary({ marginTop: 12, padding: "9px 20px", fontSize: 13 }) }}>Clear</button>
             </div> :
             <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 10 }}>
-              {products.map(p => <Card key={p.id} p={p} onOpen={open} onAdd={addCartAndOpen} mob={true} inv={inventory[p.id]} />)}
+              {products.map(p => <Card key={p.id} p={p} onOpen={open} onAdd={addCartAndOpen} mob={true} inv={inventory[p.id]} productReviews={reviews[p.id]} />)}
             </div>
         )}
       </div>
@@ -2934,15 +3065,16 @@ export default function App() {
         <div style={{ background: "linear-gradient(135deg,#1a6ed8 0%,#2563eb 60%,#3b82f6 100%)", padding: "68px 24px 56px", position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", top: -100, right: -80, width: 400, height: 400, borderRadius: "50%", background: "rgba(255,255,255,0.05)" }} />
           <div style={{ maxWidth: 800, margin: "0 auto", textAlign: "center", position: "relative" }}>
-            <div style={{ display: "inline-block", background: "rgba(255,255,255,0.18)", borderRadius: 24, padding: "6px 22px", fontSize: 11, color: "rgba(255,255,255,0.95)", fontWeight: 600, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 22 }}>72 Research Compounds · Third-Party Tested · COA Included</div>
+            <div style={{ display: "inline-block", background: "rgba(255,255,255,0.18)", borderRadius: 24, padding: "6px 22px", fontSize: 11, color: "rgba(255,255,255,0.95)", fontWeight: 600, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 22 }}>79 Research Compounds · Third-Party Tested · COA Included</div>
             <h1 style={{ fontSize: 52, fontWeight: 900, margin: "0 0 16px", lineHeight: 1.04, color: "#fff", letterSpacing: -1.5 }}>Buy Research Peptides Online<br /><span style={{ opacity: 0.85 }}>GLP-1, BPC-157, TB-500 & More</span></h1>
             <p style={{ fontSize: 16, color: "rgba(255,255,255,0.82)", lineHeight: 1.75, margin: "0 0 32px", maxWidth: 560, marginLeft: "auto", marginRight: "auto" }}>Aeterion supplies <strong style={{ color: "#fff" }}>research-grade peptides, GLP-1 agonists, SARMs, and analytical compounds</strong>. Every order ships with a Certificate of Analysis.</p>
             <div style={{ display: "flex", gap: 14, justifyContent: "center", marginBottom: 44 }}>
               <button onClick={() => document.getElementById("catalog")?.scrollIntoView({ behavior: "smooth" })} style={{ background: "#fff", color: T.blue, border: "none", borderRadius: 12, padding: "14px 32px", fontSize: 15, fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 18px rgba(0,0,0,0.15)", fontFamily: "inherit" }}>Shop All Products</button>
               <a href="#cat-metabolic" onClick={e => { e.preventDefault(); setCat("metabolic"); window.scrollTo({top:0,behavior:"smooth"}); }} style={{ background: "transparent", color: "#fff", border: "2px solid rgba(255,255,255,0.45)", borderRadius: 12, padding: "14px 32px", fontSize: 15, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", textDecoration: "none", display: "inline-flex", alignItems: "center" }}>GLP-1 / Metabolic →</a>
+              <button onClick={() => setShowQuiz(true)} style={{ background: "rgba(255,255,255,0.12)", color: "#fff", border: "2px solid rgba(255,255,255,0.3)", borderRadius: 12, padding: "14px 32px", fontSize: 15, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", backdropFilter: "blur(8px)" }}>🧪 Build My Stack</button>
             </div>
             <div style={{ display: "flex", gap: 48, justifyContent: "center", flexWrap: "wrap" }}>
-              {[["72","Compounds"],["≥99%","Avg Purity"],["1-2d","Processing"],["COA","Every Order"],["8–18%","Bulk Savings"]].map(([v,l]) => (
+              {[["79","Compounds"],["≥99%","Avg Purity"],["1-2d","Processing"],["COA","Every Order"],["8–18%","Bulk Savings"]].map(([v,l]) => (
                 <div key={l} style={{ textAlign: "center" }}>
                   <div style={{ fontSize: 26, fontWeight: 900, color: "#fff" }}>{v}</div>
                   <div style={{ fontSize: 10, color: "rgba(255,255,255,0.85)", letterSpacing: 1.5, textTransform: "uppercase", marginTop: 3 }}>{l}</div>
@@ -3004,7 +3136,7 @@ export default function App() {
               <button onClick={() => setCat(g.id)} style={{ ...btnOutline({ padding: "6px 14px", fontSize: 11, borderRadius: 8 }) }}>View All →</button>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: cols, gap: 14 }}>
-              {g.items.map(p => <Card key={p.id} p={p} onOpen={open} onAdd={addCartAndOpen} mob={false} inv={inventory[p.id]} />)}
+              {g.items.map(p => <Card key={p.id} p={p} onOpen={open} onAdd={addCartAndOpen} mob={false} inv={inventory[p.id]} productReviews={reviews[p.id]} />)}
             </div>
           </section>
         )) : (
@@ -3015,7 +3147,7 @@ export default function App() {
               <button onClick={() => { setQ(""); setCat("all"); }} style={{ ...btnPrimary({ marginTop: 14, padding: "9px 20px", fontSize: 13 }) }}>Clear search</button>
             </div> :
             <div style={{ display: "grid", gridTemplateColumns: cols, gap: 14 }}>
-              {products.map(p => <Card key={p.id} p={p} onOpen={open} onAdd={addCartAndOpen} mob={false} inv={inventory[p.id]} />)}
+              {products.map(p => <Card key={p.id} p={p} onOpen={open} onAdd={addCartAndOpen} mob={false} inv={inventory[p.id]} productReviews={reviews[p.id]} />)}
             </div>
         )}
 
@@ -3053,11 +3185,14 @@ export default function App() {
               <p style={{ fontSize: 12, lineHeight: 1.9, margin: "0 0 12px", maxWidth: 280, color: "rgba(255,255,255,0.5)" }}>Premium supplier of research peptides, SARMs, and analytical compounds. COA with every order.</p>
               <a href="mailto:info@aeterionpeptides.com" style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", textDecoration: "none" }}>📧 info@aeterionpeptides.com</a>
             </div>
-            {[["Products",CATS.map(c=>c.label)],["Company",["About","Contact","FAQ","Wholesale","Military Discounts"]],["Legal",["Terms of Service","Privacy Policy","Return Policy","Disclaimer"]]].map(([t,links]) => (
+            {[["Products",CATS.map(c=>c.label)],["Company",["About","Contact","FAQ","Wholesale","Military Discounts","Become an Ambassador"]],["Legal",["Terms of Service","Privacy Policy","Return Policy","Disclaimer"]]].map(([t,links]) => (
               <div key={t}>
                 <div style={{ fontWeight: 700, fontSize: 10, letterSpacing: 2, textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 14 }}>{t}</div>
               {links.map(l => {
                   const dest = l === "Contact" ? "contact" : l === "About" ? "about" : l === "FAQ" ? "faq" : (l === "Terms of Service" || l === "Privacy Policy" || l === "Return Policy" || l === "Disclaimer") ? "legal" : null;
+                  if (l === "Become an Ambassador") return (
+                    <a key={l} href="/ambassador/apply" style={{ display: "block", color: "#60a5fa", fontSize: 12, marginBottom: 9, textDecoration: "none", fontWeight: 600 }}>✦ Become an Ambassador</a>
+                  );
                   return dest
                     ? <a key={l} href={`#${dest}`} onClick={e => { e.preventDefault(); goTo(dest); }} style={{ display: "block", color: "rgba(255,255,255,0.5)", fontSize: 12, marginBottom: 9, textDecoration: "none" }} onMouseEnter={e=>e.currentTarget.style.color="#fff"} onMouseLeave={e=>e.currentTarget.style.color="rgba(255,255,255,0.5)"}>{l}</a>
                     : <div key={l} style={{ color: "rgba(255,255,255,0.5)", fontSize: 12, marginBottom: 9, cursor: "default" }}>{l}</div>;
@@ -3071,6 +3206,195 @@ export default function App() {
           </div>
         </div>
       </footer>
+
+      {/* ══════════ EMAIL CAPTURE POPUP ══════════ */}
+      {emailPopup && !emailPopupDone && (
+        <div style={{ position:"fixed",inset:0,background:"rgba(0,0,0,0.75)",zIndex:9000,display:"flex",alignItems:"center",justifyContent:"center",padding:24 }}
+          onClick={e => { if (e.target===e.currentTarget){ setEmailPopup(false); localStorage.setItem("aet_popup_done","1"); setEmailPopupDone(true); }}}>
+          <div style={{ background:"#0f172a",borderRadius:20,padding:"40px 36px",maxWidth:460,width:"100%",position:"relative",border:"1px solid #1e293b",textAlign:"center" }}>
+            <button onClick={()=>{ setEmailPopup(false); localStorage.setItem("aet_popup_done","1"); setEmailPopupDone(true); }}
+              style={{ position:"absolute",top:16,right:18,background:"none",border:"none",color:"#64748b",fontSize:22,cursor:"pointer",lineHeight:1 }}>×</button>
+            <div style={{ fontSize:36,marginBottom:8 }}>🧪</div>
+            <div style={{ fontSize:22,fontWeight:900,color:"#f8fafc",marginBottom:8 }}>10% Off Your First Order</div>
+            <div style={{ fontSize:14,color:"#94a3b8",marginBottom:24,lineHeight:1.6 }}>
+              Join thousands of researchers. Get exclusive access to new compounds, lab notes, and a <strong style={{ color:"#4ade80" }}>10% discount</strong> on your first order.
+            </div>
+            {emailPopupStatus==="done" ? (
+              <div style={{ background:"#14532d",borderRadius:12,padding:"18px",fontSize:15,fontWeight:700,color:"#4ade80" }}>
+                ✓ Check your inbox! Your code is on its way.
+              </div>
+            ) : (
+              <>
+                <div style={{ display:"flex",gap:8,marginBottom:12 }}>
+                  <input type="email" placeholder="your@email.com" value={emailPopupVal}
+                    onChange={e=>setEmailPopupVal(e.target.value)}
+                    style={{ flex:1,background:"#1e293b",border:"1.5px solid #334155",borderRadius:10,padding:"12px 16px",fontSize:14,color:"#f8fafc",outline:"none",fontFamily:"inherit" }}
+                  />
+                  <button disabled={emailPopupStatus==="sending"}
+                    onClick={()=>{
+                      if(!emailPopupVal.includes("@")) return;
+                      setEmailPopupStatus("sending");
+                      fetch("/api/email-capture",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:emailPopupVal})})
+                        .then(()=>setEmailPopupStatus("done")).catch(()=>setEmailPopupStatus("done"));
+                    }}
+                    style={{ background:"#1a6ed8",border:"none",color:"#fff",fontWeight:700,fontSize:14,padding:"12px 20px",borderRadius:10,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap" }}>
+                    {emailPopupStatus==="sending"?"...":"Get 10% Off"}
+                  </button>
+                </div>
+                <div style={{ fontSize:11,color:"#475569" }}>No spam. Unsubscribe anytime.</div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ══════════ CART ABANDONMENT POPUP ══════════ */}
+      {abandonPopup && (
+        <div style={{ position:"fixed",inset:0,background:"rgba(0,0,0,0.75)",zIndex:9001,display:"flex",alignItems:"center",justifyContent:"center",padding:24 }}
+          onClick={e=>{ if(e.target===e.currentTarget){ setAbandonPopup(false); localStorage.setItem("aet_abandon_done","1"); }}}>
+          <div style={{ background:"#0f172a",borderRadius:20,padding:"36px 32px",maxWidth:440,width:"100%",position:"relative",border:"1px solid #1e293b",textAlign:"center" }}>
+            <button onClick={()=>{ setAbandonPopup(false); localStorage.setItem("aet_abandon_done","1"); }}
+              style={{ position:"absolute",top:16,right:18,background:"none",border:"none",color:"#64748b",fontSize:22,cursor:"pointer",lineHeight:1 }}>×</button>
+            <div style={{ fontSize:36,marginBottom:10 }}>🛒</div>
+            <div style={{ fontSize:20,fontWeight:900,color:"#f8fafc",marginBottom:8 }}>Still thinking it over?</div>
+            <div style={{ fontSize:14,color:"#94a3b8",marginBottom:20,lineHeight:1.6 }}>
+              You have <strong style={{ color:"#f8fafc" }}>{cart.length} item{cart.length!==1?"s":""}</strong> in your cart. Enter your email and we'll send you a reminder — plus an <strong style={{ color:"#4ade80" }}>extra 5% off</strong>.
+            </div>
+            {abandonStatus==="done" ? (
+              <div style={{ background:"#14532d",borderRadius:12,padding:"16px",fontSize:14,fontWeight:700,color:"#4ade80" }}>
+                ✓ Cart saved! Check your inbox for your discount.
+              </div>
+            ) : (
+              <>
+                <div style={{ display:"flex",gap:8,marginBottom:10 }}>
+                  <input type="email" placeholder="your@email.com" value={abandonEmail}
+                    onChange={e=>setAbandonEmail(e.target.value)}
+                    style={{ flex:1,background:"#1e293b",border:"1.5px solid #334155",borderRadius:10,padding:"12px 14px",fontSize:14,color:"#f8fafc",outline:"none",fontFamily:"inherit" }}
+                  />
+                  <button disabled={abandonStatus==="sending"}
+                    onClick={()=>{
+                      if(!abandonEmail.includes("@")) return;
+                      setAbandonStatus("sending");
+                      fetch("/api/email-capture",{ method:"POST",headers:{"Content-Type":"application/json"},
+                        body:JSON.stringify({ email:abandonEmail, source:"abandon", cartItems: cart.map(i=>i.name), discountCode:"SAVE5" })
+                      }).then(()=>{ setAbandonStatus("done"); localStorage.setItem("aet_abandon_done","1"); }).catch(()=>setAbandonStatus("done"));
+                    }}
+                    style={{ background:"#1a6ed8",border:"none",color:"#fff",fontWeight:700,fontSize:13,padding:"12px 16px",borderRadius:10,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap" }}>
+                    {abandonStatus==="sending"?"...":"Save Cart"}
+                  </button>
+                </div>
+                <button onClick={()=>{ setAbandonPopup(false); localStorage.setItem("aet_abandon_done","1"); setCartOpen(true); }}
+                  style={{ background:"none",border:"none",color:"#4ade80",fontWeight:700,fontSize:13,cursor:"pointer",fontFamily:"inherit" }}>
+                  Complete my order now →
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ══════════ BUILD YOUR STACK QUIZ ══════════ */}
+      {showQuiz && (() => {
+        const questions = [
+          { q:"What is your primary research goal?", key:"goal", opts:[
+            {label:"🔥 Fat Loss / GLP-1", val:"fat"},
+            {label:"💪 Recovery & Healing", val:"recovery"},
+            {label:"📈 Growth Hormone / Body Comp", val:"growth"},
+            {label:"🧠 Cognitive Enhancement", val:"neuro"},
+            {label:"♾️ Longevity & Anti-Aging", val:"longevity"},
+          ]},
+          { q:"What is your experience level?", key:"exp", opts:[
+            {label:"🟢 Beginner — first time", val:"beginner"},
+            {label:"🟡 Intermediate — some experience", val:"mid"},
+            {label:"🔴 Advanced — experienced researcher", val:"advanced"},
+          ]},
+        ];
+        const stacks = {
+          fat:{
+            beginner:[{name:"Semaglutide",reason:"Best entry-level GLP-1, once weekly"},{name:"AOD9604",reason:"Targeted fat metabolism"}],
+            mid:[{name:"Tirzepatide",reason:"Dual GIP/GLP-1 — superior fat loss"},{name:"AOD9604",reason:"Synergistic fat burning"},{name:"L-Carnitine",reason:"Enhanced fatty acid transport"}],
+            advanced:[{name:"Retatrutide",reason:"Triple agonist, highest efficacy data"},{name:"Cagrilintide",reason:"Amylin pathway — additive effect"},{name:"5-AMINO-1MQ",reason:"NNMT inhibitor, metabolic restoration"}],
+          },
+          recovery:{
+            beginner:[{name:"BPC-157",reason:"Most studied healing peptide"},{name:"Bacteriostatic Water",reason:"Required for reconstitution"}],
+            mid:[{name:"BPC-157 + TB-500 Blend",reason:"Synergistic local + systemic healing"},{name:"GHK-Cu",reason:"Collagen synthesis and wound healing"}],
+            advanced:[{name:"GLOW Blend",reason:"BPC + GHK-Cu + TB-500 triple formula"},{name:"SS-31 (Elamipretide)",reason:"Mitochondrial protection"},{name:"Thymosin Alpha-1",reason:"Immune modulation + tissue repair"}],
+          },
+          growth:{
+            beginner:[{name:"Ipamorelin",reason:"Clean GH pulse, no cortisol spike"},{name:"CJC-1295 (no DAC)",reason:"Pairs perfectly with Ipamorelin"}],
+            mid:[{name:"Tesamorelin",reason:"Stabilized GHRH, reduces visceral fat"},{name:"MK-677 (Ibutamoren)",reason:"Oral, 24hr GH elevation"}],
+            advanced:[{name:"IGF-1 LR3",reason:"Extended half-life IGF-1 analogue"},{name:"Follistatin 344",reason:"Myostatin inhibition"},{name:"MOTS-c",reason:"Mitochondrial peptide, exercise capacity"}],
+          },
+          neuro:{
+            beginner:[{name:"Semax",reason:"BDNF upregulation, focus and memory"},{name:"Noopept",reason:"Oral nootropic, crosses BBB easily"}],
+            mid:[{name:"Selank",reason:"Anxiolytic + nootropic without sedation"},{name:"Dihexa",reason:"Potent synaptogenesis"}],
+            advanced:[{name:"Dihexa",reason:"Most potent synaptogenesis compound"},{name:"PE-22-28",reason:"TREK-1 modulator, rapid antidepressant"},{name:"P21",reason:"CNTF-derived hippocampal neurogenesis"}],
+          },
+          longevity:{
+            beginner:[{name:"NAD+",reason:"Foundational longevity coenzyme"},{name:"NMN",reason:"Direct NAD+ precursor, oral"}],
+            mid:[{name:"Epitalon",reason:"Telomerase activation research"},{name:"MOTS-c",reason:"Mitochondrial signaling"}],
+            advanced:[{name:"Rapamycin",reason:"mTOR inhibitor, strongest longevity data"},{name:"FOXO4-DRI",reason:"Senolytic — clears senescent cells"},{name:"Humanin",reason:"Mitochondria-derived neuroprotection"}],
+          },
+        };
+        return (
+          <div style={{ position:"fixed",inset:0,background:"rgba(0,0,0,0.75)",zIndex:9000,display:"flex",alignItems:"center",justifyContent:"center",padding:24 }}
+            onClick={e=>{ if(e.target===e.currentTarget){ setShowQuiz(false); setQuizStep(0); setQuizAnswers({}); setQuizResult(null); }}}>
+            <div style={{ background:"#0f172a",borderRadius:20,padding:"36px 32px",maxWidth:520,width:"100%",position:"relative",border:"1px solid #1e293b" }}>
+              <button onClick={()=>{ setShowQuiz(false); setQuizStep(0); setQuizAnswers({}); setQuizResult(null); }}
+                style={{ position:"absolute",top:16,right:18,background:"none",border:"none",color:"#64748b",fontSize:22,cursor:"pointer",lineHeight:1 }}>×</button>
+              {quizResult ? (
+                <div>
+                  <div style={{ fontSize:20,fontWeight:900,color:"#f8fafc",marginBottom:6 }}>🎯 Your Recommended Stack</div>
+                  <div style={{ fontSize:13,color:"#94a3b8",marginBottom:20 }}>Based on your goals, here's what we recommend:</div>
+                  {quizResult.map((rec,i) => (
+                    <div key={i} style={{ background:"#1e293b",borderRadius:12,padding:"14px 16px",marginBottom:10,display:"flex",justifyContent:"space-between",alignItems:"center" }}>
+                      <div>
+                        <div style={{ fontSize:14,fontWeight:700,color:"#f8fafc" }}>{rec.name}</div>
+                        <div style={{ fontSize:12,color:"#64748b",marginTop:2 }}>{rec.reason}</div>
+                      </div>
+                      <button onClick={()=>{ setShowQuiz(false); setQ(rec.name); setCat("all"); setQuizStep(0); setQuizAnswers({}); setQuizResult(null); }}
+                        style={{ background:"#1a6ed8",border:"none",color:"#fff",fontWeight:700,fontSize:12,padding:"8px 14px",borderRadius:8,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap",marginLeft:12 }}>
+                        View →
+                      </button>
+                    </div>
+                  ))}
+                  <button onClick={()=>{ setQuizStep(0); setQuizAnswers({}); setQuizResult(null); }}
+                    style={{ marginTop:8,background:"none",border:"1px solid #334155",color:"#94a3b8",fontSize:12,padding:"8px 16px",borderRadius:8,cursor:"pointer",fontFamily:"inherit" }}>
+                    ← Start Over
+                  </button>
+                </div>
+              ) : (
+                <div>
+                  <div style={{ fontSize:12,color:"#64748b",marginBottom:8,fontWeight:700 }}>STEP {quizStep+1} OF {questions.length}</div>
+                  <div style={{ background:"#1e293b",borderRadius:8,height:4,marginBottom:20 }}>
+                    <div style={{ background:"#1a6ed8",borderRadius:8,height:4,width:`${((quizStep+1)/questions.length)*100}%`,transition:"width .3s" }}/>
+                  </div>
+                  <div style={{ fontSize:20,fontWeight:800,color:"#f8fafc",marginBottom:20 }}>{questions[quizStep].q}</div>
+                  <div style={{ display:"flex",flexDirection:"column",gap:10 }}>
+                    {questions[quizStep].opts.map(opt => (
+                      <button key={opt.val}
+                        onClick={()=>{
+                          const newA = {...quizAnswers,[questions[quizStep].key]:opt.val};
+                          setQuizAnswers(newA);
+                          if(quizStep+1>=questions.length){
+                            setQuizResult(stacks[newA.goal]?.[newA.exp] || stacks.fat.mid);
+                          } else { setQuizStep(quizStep+1); }
+                        }}
+                        style={{ background:"#1e293b",border:"1.5px solid #334155",color:"#f8fafc",fontSize:14,fontWeight:600,padding:"14px 18px",borderRadius:12,cursor:"pointer",fontFamily:"inherit",textAlign:"left" }}
+                        onMouseEnter={e=>e.currentTarget.style.borderColor="#1a6ed8"}
+                        onMouseLeave={e=>e.currentTarget.style.borderColor="#334155"}>
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                  {quizStep>0 && <button onClick={()=>setQuizStep(quizStep-1)} style={{ marginTop:16,background:"none",border:"none",color:"#64748b",fontSize:12,cursor:"pointer",fontFamily:"inherit" }}>← Back</button>}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })()}
+
     </div>
   );
 }
