@@ -243,6 +243,62 @@ export default async function handler(req, res) {
         subject: `🛍️ New Order ${orderNumber} — $${(session.amount_total/100).toFixed(2)} from ${customerName}`,
         html: buildAdminEmail({ customerName, customerEmail, customerPhone, shippingAddress, items: lineItems.data, total: session.amount_total, orderNumber, orderId: session.id }),
       });
+
+      // ── AMBASSADOR COMMISSION TRACKING ──
+      const promoCode    = session.metadata?.promo_code;
+      const ambassadorId = session.metadata?.ambassador_id;
+
+      if (promoCode && ambassadorId) {
+        try {
+          const orderSubtotal    = (session.amount_subtotal || 0) / 100; // pre-discount total in dollars
+          const discountAmount   = orderSubtotal * 0.10;                 // 10% customer discount
+          const commissionAmount = orderSubtotal * 0.20;                 // 20% ambassador commission
+
+          await fetch(`${SB_URL}/rest/v1/ambassador_commissions`, {
+            method: "POST",
+            headers: {
+              "apikey": SB_ANON,
+              "Authorization": `Bearer ${SB_ANON}`,
+              "Content-Type": "application/json",
+              "Prefer": "return=minimal",
+            },
+            body: JSON.stringify({
+              ambassador_id:     ambassadorId,
+              order_id:          session.payment_intent || session.id,
+              stripe_session_id: session.id,
+              customer_email:    customerEmail || "",
+              order_subtotal:    orderSubtotal,
+              discount_amount:   discountAmount,
+              commission_amount: commissionAmount,
+              promo_code:        promoCode,
+              status:            "pending",
+            }),
+          });
+
+          // Update ambassador's running total
+          const ambRes  = await fetch(`${SB_URL}/rest/v1/ambassadors?id=eq.${ambassadorId}&select=total_commission_earned`, {
+            headers: { "apikey": SB_ANON, "Authorization": `Bearer ${SB_ANON}` }
+          });
+          const ambData = await ambRes.json();
+          if (ambData?.length) {
+            const newTotal = Number(ambData[0].total_commission_earned) + commissionAmount;
+            await fetch(`${SB_URL}/rest/v1/ambassadors?id=eq.${ambassadorId}`, {
+              method: "PATCH",
+              headers: {
+                "apikey": SB_ANON,
+                "Authorization": `Bearer ${SB_ANON}`,
+                "Content-Type": "application/json",
+                "Prefer": "return=minimal",
+              },
+              body: JSON.stringify({ total_commission_earned: newTotal }),
+            });
+          }
+
+          console.log(`Commission logged: $${commissionAmount.toFixed(2)} for ambassador ${ambassadorId}`);
+        } catch (commErr) {
+          console.error("Commission tracking error:", commErr.message);
+        }
+      }
     }
 
     return res.status(200).json({ received: true });
