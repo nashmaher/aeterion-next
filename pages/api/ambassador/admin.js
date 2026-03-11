@@ -29,24 +29,24 @@ export default async function handler(req, res) {
     }
 
     // Check email not already used
-    const { data: existingEmail } = await supabase
+    const { data: emailRows } = await supabase
       .from('ambassadors')
       .select('id')
       .eq('email', email.toLowerCase().trim())
-      .single();
+      .limit(1);
 
-    if (existingEmail) {
+    if (emailRows && emailRows.length > 0) {
       return res.status(409).json({ error: 'An ambassador with this email already exists.' });
     }
 
     // Check promo code not already used
-    const { data: existingCode } = await supabase
+    const { data: codeRows } = await supabase
       .from('ambassadors')
       .select('id')
       .eq('promo_code', promo_code.toUpperCase().trim())
-      .single();
+      .limit(1);
 
-    if (existingCode) {
+    if (codeRows && codeRows.length > 0) {
       return res.status(409).json({ error: 'That promo code is already in use.' });
     }
 
@@ -84,14 +84,14 @@ export default async function handler(req, res) {
     }
 
     // Check promo code isn't taken
-    const { data: existing } = await supabase
+    const { data: existingRows } = await supabase
       .from('ambassadors')
       .select('id')
       .eq('promo_code', promo_code.toUpperCase().trim())
       .neq('id', ambassador_id)
-      .single();
+      .limit(1);
 
-    if (existing) {
+    if (existingRows && existingRows.length > 0) {
       return res.status(409).json({ error: 'That promo code is already in use.' });
     }
 
