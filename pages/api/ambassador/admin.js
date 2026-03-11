@@ -4,6 +4,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import bcrypt from 'bcryptjs';
+import { verifyAdminToken } from '../../admin/auth';
 
 async function sendAmbassadorWelcomeEmail({ name, email, promo_code, password, commission_rate }) {
   const html = `
@@ -100,15 +101,13 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_KEY
 );
 
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'aeterion2026';
-
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { admin_password, action, ambassador_id, promo_code, password, notes, commission_rate, name, email, instagram } = req.body;
+  const { admin_token, action, ambassador_id, promo_code, password, notes, commission_rate, name, email, instagram } = req.body;
 
-  // Verify admin
-  if (admin_password !== ADMIN_PASSWORD) {
+  // Verify admin token server-side — raw password never touches the browser
+  if (!admin_token || !verifyAdminToken(admin_token)) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
