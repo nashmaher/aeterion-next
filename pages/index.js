@@ -1109,7 +1109,7 @@ export default function App() {
     // Load reviews from localStorage
     try { const r = JSON.parse(localStorage.getItem("aet_reviews") || "{}"); setReviews(r); } catch {}
     // Email popup: show after 30s if not already dismissed
-    const popupDone = localStorage.getItem("aet_popup_done");
+    const popupDone = localStorage.getItem("aet_popup_v2");
     if (!popupDone) {
       setTimeout(() => setEmailPopup(true), 10000);
     } else {
@@ -3040,6 +3040,14 @@ export default function App() {
         <meta name="description" content="Shop 79 research-grade peptides and compounds. GLP-1 agonists, BPC-157, TB-500, NAD+, cognitive peptides and more. COA with every order. USA shipping." />
         <link rel="canonical" href="https://aeterionpeptides.com" />
         {HOMEPAGE_SCHEMA.map((s, i) => <script key={i} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(s) }} />)}
+        <style>{`
+          @keyframes ticker-scroll {
+            0%   { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+          }
+          .review-ticker { display:flex; animation: ticker-scroll 45s linear infinite; width:max-content; }
+          .review-ticker:hover { animation-play-state: paused; }
+        `}</style>
       </Head>
       <div style={{ background: T.blue, padding: "8px 16px", fontSize: 11, color: "rgba(255,255,255,0.9)", textAlign: "center" }}>
         🚚 Free shipping $250+ · ✅ COA with every order · 📦 1-2 day processing
@@ -3193,6 +3201,47 @@ export default function App() {
       </nav>
 
       <MobileMenu /><ProductModal /><CartDrawer />
+
+      {/* ══════════ EMAIL CAPTURE POPUP (mobile) ══════════ */}
+      {emailPopup && !emailPopupDone && (
+        <div style={{ position:"fixed",inset:0,background:"rgba(0,0,0,0.75)",zIndex:9000,display:"flex",alignItems:"center",justifyContent:"center",padding:20 }}
+          onClick={e => { if (e.target===e.currentTarget){ setEmailPopup(false); localStorage.setItem("aet_popup_v2","1"); setEmailPopupDone(true); }}}>
+          <div style={{ background:"#0f172a",borderRadius:20,padding:"36px 28px",maxWidth:420,width:"100%",position:"relative",border:"1px solid #1e293b",textAlign:"center" }}>
+            <button onClick={()=>{ setEmailPopup(false); localStorage.setItem("aet_popup_v2","1"); setEmailPopupDone(true); }}
+              style={{ position:"absolute",top:14,right:16,background:"none",border:"none",color:"#64748b",fontSize:24,cursor:"pointer",lineHeight:1 }}>×</button>
+            <div style={{ fontSize:36,marginBottom:8 }}>🧪</div>
+            <div style={{ fontSize:20,fontWeight:900,color:"#f8fafc",marginBottom:8 }}>10% Off Your First Order</div>
+            <div style={{ fontSize:13,color:"#94a3b8",marginBottom:22,lineHeight:1.6 }}>
+              Join thousands of researchers. Get exclusive access to new compounds, lab notes, and a <strong style={{ color:"#4ade80" }}>10% discount</strong> on your first order.
+            </div>
+            {emailPopupStatus==="done" ? (
+              <div style={{ background:"#14532d",borderRadius:12,padding:"16px",fontSize:14,fontWeight:700,color:"#4ade80" }}>
+                ✓ Check your inbox! Your code is on its way.
+              </div>
+            ) : (
+              <>
+                <div style={{ display:"flex",flexDirection:"column",gap:8,marginBottom:12 }}>
+                  <input type="email" placeholder="your@email.com" value={emailPopupVal}
+                    onChange={e=>setEmailPopupVal(e.target.value)}
+                    style={{ width:"100%",boxSizing:"border-box",background:"#1e293b",border:"1.5px solid #334155",borderRadius:10,padding:"13px 16px",fontSize:14,color:"#f8fafc",outline:"none",fontFamily:"inherit" }}
+                  />
+                  <button disabled={emailPopupStatus==="sending"}
+                    onClick={()=>{
+                      if(!emailPopupVal.includes("@")) return;
+                      setEmailPopupStatus("sending");
+                      fetch("/api/email-capture",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:emailPopupVal})})
+                        .then(()=>setEmailPopupStatus("done")).catch(()=>setEmailPopupStatus("done"));
+                    }}
+                    style={{ background:"#1a6ed8",border:"none",color:"#fff",fontWeight:700,fontSize:14,padding:"13px",borderRadius:10,cursor:"pointer",fontFamily:"inherit",width:"100%" }}>
+                    {emailPopupStatus==="sending"?"...":"Get 10% Off →"}
+                  </button>
+                </div>
+                <div style={{ fontSize:11,color:"#475569" }}>No spam. Unsubscribe anytime.</div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 
@@ -3204,6 +3253,14 @@ export default function App() {
         <meta name="description" content="Shop 79 research-grade peptides and compounds. GLP-1 agonists, BPC-157, TB-500, NAD+, cognitive peptides and more. COA with every order. USA shipping." />
         <link rel="canonical" href="https://aeterionpeptides.com" />
         {HOMEPAGE_SCHEMA.map((s, i) => <script key={i} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(s) }} />)}
+        <style>{`
+          @keyframes ticker-scroll {
+            0%   { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+          }
+          .review-ticker { display:flex; animation: ticker-scroll 45s linear infinite; width:max-content; }
+          .review-ticker:hover { animation-play-state: paused; }
+        `}</style>
       </Head>
       <div style={{ background: T.blue, padding: "9px 24px", fontSize: 11.5, color: "rgba(255,255,255,0.9)", textAlign: "center", fontWeight: 500 }}>
         🚚 Free shipping on orders over $250 &nbsp;·&nbsp; ✅ COA with every order &nbsp;·&nbsp; 🛡️ Third-party tested &nbsp;·&nbsp; 🇺🇸 Ships from USA
@@ -3341,15 +3398,53 @@ export default function App() {
         );
       })()}
 
-      <div id="catalog" style={{ maxWidth: 1400, margin: "0 auto", padding: "28px 24px" }}>
+      <div id="catalog" style={{ maxWidth: 1400, margin: "0 auto", padding: "28px 24px", display: "flex", gap: 28, alignItems: "flex-start" }}>
+
+        {/* ── LEFT SIDEBAR ── */}
+        <div style={{ width: 210, flexShrink: 0, position: "sticky", top: 80, alignSelf: "flex-start" }}>
+          <div style={{ background: T.white, border: `1px solid ${T.border}`, borderRadius: 14, overflow: "hidden", boxShadow: T.shadow }}>
+            <div style={{ padding: "14px 16px 10px", borderBottom: `1px solid ${T.border}` }}>
+              <div style={{ fontSize: 10, fontWeight: 800, color: T.muted, letterSpacing: 1.5, textTransform: "uppercase" }}>Categories</div>
+            </div>
+            <div style={{ padding: "6px 0 8px" }}>
+              <button onClick={() => { setCat("all"); setQ(""); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                style={{ width: "100%", textAlign: "left", background: cat === "all" ? T.blueSoft : "none", border: "none", padding: "9px 16px", cursor: "pointer", fontSize: 13, fontWeight: cat === "all" ? 700 : 500, color: cat === "all" ? T.blue : T.text, fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, transition: "background .12s" }}
+                onMouseEnter={e => { if (cat !== "all") e.currentTarget.style.background = T.bg; }}
+                onMouseLeave={e => { if (cat !== "all") e.currentTarget.style.background = "none"; }}>
+                <span>🔬 All Products</span>
+                <span style={{ fontSize: 11, color: T.muted, fontWeight: 600 }}>{PRODUCTS.length}</span>
+              </button>
+              {CATS.map(c => {
+                const count = PRODUCTS.filter(p => p.cat === c.id).length;
+                const active = cat === c.id;
+                return (
+                  <button key={c.id} onClick={() => { setCat(c.id); setQ(""); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                    style={{ width: "100%", textAlign: "left", background: active ? T.blueSoft : "none", border: "none", padding: "9px 16px", cursor: "pointer", fontSize: 13, fontWeight: active ? 700 : 500, color: active ? T.blue : T.text, fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, transition: "background .12s" }}
+                    onMouseEnter={e => { if (!active) e.currentTarget.style.background = T.bg; }}
+                    onMouseLeave={e => { if (!active) e.currentTarget.style.background = "none"; }}>
+                    <span>{c.icon} {c.label}</span>
+                    <span style={{ fontSize: 11, color: active ? T.blue : T.muted, fontWeight: 600 }}>{count}</span>
+                  </button>
+                );
+              })}
+            </div>
+            {/* Sort */}
+            <div style={{ borderTop: `1px solid ${T.border}`, padding: "12px 16px 14px" }}>
+              <div style={{ fontSize: 10, fontWeight: 800, color: T.muted, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>Sort By</div>
+              <select value={sort} onChange={e => setSort(e.target.value)} style={{ width: "100%", background: T.bg, border: `1px solid ${T.border}`, color: T.text, borderRadius: 8, padding: "8px 10px", fontSize: 12, cursor: "pointer", fontFamily: "inherit", outline: "none" }}>
+                <option value="default">Default</option>
+                <option value="low">Price: Low → High</option>
+                <option value="high">Price: High → Low</option>
+                <option value="az">A → Z</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* ── MAIN CONTENT ── */}
+        <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 22, gap: 10, flexWrap: "wrap" }}>
           <div style={{ fontSize: 13, color: T.sub }}><b style={{ color: T.text }}>{products.length}</b> products</div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <label htmlFor="sort-select" style={{ fontSize: 12, color: T.sub }}>Sort:</label>
-            <select id="sort-select" value={sort} onChange={e => setSort(e.target.value)} style={{ background: T.white, border: `1px solid ${T.border}`, color: T.text, borderRadius: 9, padding: "7px 12px", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>
-              <option value="default">Default</option><option value="low">Price ↑</option><option value="high">Price ↓</option><option value="az">A–Z</option>
-            </select>
-          </div>
         </div>
 
         {cat !== "all" && (
@@ -3403,7 +3498,8 @@ export default function App() {
             </div>
           </section>
         )}
-      </div>
+        </div> {/* end main content */}
+      </div> {/* end catalog flex */}
 
       </main>
 
@@ -3444,9 +3540,9 @@ export default function App() {
       {/* ══════════ EMAIL CAPTURE POPUP ══════════ */}
       {emailPopup && !emailPopupDone && (
         <div style={{ position:"fixed",inset:0,background:"rgba(0,0,0,0.75)",zIndex:9000,display:"flex",alignItems:"center",justifyContent:"center",padding:24 }}
-          onClick={e => { if (e.target===e.currentTarget){ setEmailPopup(false); localStorage.setItem("aet_popup_done","1"); setEmailPopupDone(true); }}}>
+          onClick={e => { if (e.target===e.currentTarget){ setEmailPopup(false); localStorage.setItem("aet_popup_v2","1"); setEmailPopupDone(true); }}}>
           <div style={{ background:"#0f172a",borderRadius:20,padding:"40px 36px",maxWidth:460,width:"100%",position:"relative",border:"1px solid #1e293b",textAlign:"center" }}>
-            <button onClick={()=>{ setEmailPopup(false); localStorage.setItem("aet_popup_done","1"); setEmailPopupDone(true); }}
+            <button onClick={()=>{ setEmailPopup(false); localStorage.setItem("aet_popup_v2","1"); setEmailPopupDone(true); }}
               style={{ position:"absolute",top:16,right:18,background:"none",border:"none",color:"#64748b",fontSize:22,cursor:"pointer",lineHeight:1 }}>×</button>
             <div style={{ fontSize:36,marginBottom:8 }}>🧪</div>
             <div style={{ fontSize:22,fontWeight:900,color:"#f8fafc",marginBottom:8 }}>10% Off Your First Order</div>
