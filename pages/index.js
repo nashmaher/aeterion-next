@@ -923,6 +923,31 @@ function Badge({ badge, isNew }) {
 }
 
 /* ─── PRODUCT CARD ─── */
+
+/* ─── Frequently Bought Together pairs ─── */
+const FBT = {
+  // GLP-1
+  1:  [2, 3],      // Semaglutide → Tirzepatide, Retatrutide
+  2:  [1, 4],      // Tirzepatide → Semaglutide, Liraglutide
+  3:  [1, 2],      // Retatrutide → Sema, Tirze
+  // Recovery
+  23: [24, 41],    // BPC-157 → TB-500, GHK-Cu
+  24: [23, 41],    // TB-500 → BPC-157, GHK-Cu
+  41: [23, 24],    // GHK-Cu → BPC-157, TB-500
+  // Growth
+  12: [13, 17],    // Ipamorelin → CJC-1295, MK-677
+  13: [12, 17],    // CJC-1295 → Ipamorelin, MK-677
+  17: [12, 13],    // MK-677 → Ipamorelin, CJC-1295
+  // Neuro
+  50: [51, 52],    // Semax → Selank, Noopept
+  51: [50, 52],    // Selank → Semax, Noopept
+  52: [50, 51],    // Noopept → Semax, Selank
+  // Longevity
+  60: [61, 62],    // NAD+ → NMN, Epitalon
+  61: [60, 62],    // NMN → NAD+, Epitalon
+  62: [60, 61],    // Epitalon → NAD+, NMN
+};
+
 function StarRow({ avg, count, small }) {
   if (!count) return null;
   const full = Math.floor(avg);
@@ -1156,7 +1181,7 @@ export default function App() {
     if (sess) setUser(sess);
     // Restore page from hash
     const hash = window.location.hash.replace("#", "");
-    if (["contact","legal","admin","login","signup","account","about","faq"].includes(hash)) setPage(hash);
+    if (["contact","legal","admin","login","signup","account","about","faq","wholesale"].includes(hash)) setPage(hash);
     fetchInventory().then(inv => setInventory(inv));
     setAuthReady(true);
     // Load reviews from localStorage
@@ -1423,6 +1448,52 @@ export default function App() {
                     All information provided is for educational and research purposes only. This compound has not been approved by the FDA for human or veterinary use. References to clinical studies are provided for scientific context and do not imply therapeutic claims.
                   </div>
                 </div>
+              </div>
+            );
+          })()}
+
+          {/* ── FREQUENTLY BOUGHT TOGETHER ── */}
+          {(() => {
+            const pid = modal?.id;
+            const fbtIds = FBT[pid];
+            if (!fbtIds || fbtIds.length === 0) return null;
+            const fbtProducts = fbtIds.map(id => PRODUCTS.find(p => p.id === id)).filter(Boolean);
+            if (fbtProducts.length === 0) return null;
+            return (
+              <div style={{ borderTop: `1px solid ${T.border}`, padding: isFullscreen ? "16px 18px 20px" : "22px 32px 24px", background: T.bg }}>
+                <div style={{ fontSize:11, fontWeight:800, color:T.blue, letterSpacing:2, textTransform:"uppercase", marginBottom:14 }}>🛒 Frequently Bought Together</div>
+                <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
+                  {/* The current product */}
+                  <div style={{ display:"flex", alignItems:"center", gap:10, background:T.white, border:`1.5px solid ${T.blue}`, borderRadius:12, padding:"10px 14px", flex:"1 1 160px", minWidth:140 }}>
+                    <img src={modal.img} alt={modal.name} style={{ width:40, height:40, borderRadius:8, objectFit:"cover" }} />
+                    <div>
+                      <div style={{ fontSize:12, fontWeight:700, color:T.text }}>{modal.name}</div>
+                      <div style={{ fontSize:11, color:T.blue, fontWeight:600 }}>This item</div>
+                    </div>
+                  </div>
+                  {fbtProducts.map((fp, i) => (
+                    <div key={fp.id} style={{ display:"flex", alignItems:"center", gap:10, background:T.white, border:`1.5px solid ${T.border}`, borderRadius:12, padding:"10px 14px", flex:"1 1 160px", minWidth:140, cursor:"pointer", transition:"border-color .15s" }}
+                      onMouseEnter={e => e.currentTarget.style.borderColor = T.blue}
+                      onMouseLeave={e => e.currentTarget.style.borderColor = T.border}
+                      onClick={() => { setModal(fp); setMSi(0); setMQty(1); }}>
+                      <img src={fp.img} alt={fp.name} style={{ width:40, height:40, borderRadius:8, objectFit:"cover" }} />
+                      <div>
+                        <div style={{ fontSize:12, fontWeight:700, color:T.text }}>{fp.name}</div>
+                        <div style={{ fontSize:11, color:T.muted }}>{fmt(fp.variants[0].p)}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <button
+                  onClick={() => {
+                    fbtProducts.forEach(fp => addCart(fp, fp.variants[0], 1, fp.variants[0].p));
+                    addCart(modal, modal.variants[mSi], mQty, calcP(modal.variants[mSi].p, mQty));
+                    setCartOpen(true);
+                    setModal(null);
+                  }}
+                  style={{ marginTop:14, background: T.blueSoft, border:`1.5px solid ${T.blue}`, color:T.blue, fontWeight:700, fontSize:13, padding:"10px 20px", borderRadius:10, cursor:"pointer", fontFamily:"inherit" }}>
+                  Add All {fbtProducts.length + 1} to Cart
+                </button>
               </div>
             );
           })()}
@@ -2821,6 +2892,175 @@ export default function App() {
     );
   };
 
+  /* ════════ WHOLESALE PAGE ════════ */
+  const WholesalePage = ({ goTo }) => {
+    const [form, setForm] = useState({ name:"", email:"", company:"", type:"", monthly:"", compounds:"", message:"" });
+    const [sent, setSent] = useState(false);
+    const [sending, setSending] = useState(false);
+    const [err, setErr] = useState("");
+
+    const tiers = [
+      { name:"Starter", min:"$500", disc:"25%", perks:["Dedicated account manager","Priority dispatch","COA digital vault access"] },
+      { name:"Professional", min:"$1,500", disc:"32%", perks:["Everything in Starter","Custom labelling available","Net-30 payment terms","Monthly new compound previews"] },
+      { name:"Enterprise", min:"$5,000", disc:"40%", perks:["Everything in Professional","White-label packaging","Dedicated cold-chain logistics","Quarterly pricing reviews"] },
+    ];
+
+    const submit = async () => {
+      if (!form.name || !form.email || !form.company || !form.type) { setErr("Please fill in all required fields."); return; }
+      setSending(true); setErr("");
+      try {
+        await fetch("/api/contact", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({
+          name: form.name,
+          email: form.email,
+          subject: `Wholesale Application — ${form.company}`,
+          message: `Company: ${form.company}\nType: ${form.type}\nMonthly Volume: ${form.monthly}\nCompounds of Interest: ${form.compounds}\n\nMessage:\n${form.message}`,
+        })});
+        setSent(true);
+      } catch { setErr("Something went wrong. Please email info@aeterionpeptides.com directly."); }
+      setSending(false);
+    };
+
+    const inp = (label, key, type="text", placeholder="", required=false) => (
+      <div style={{ marginBottom:16 }}>
+        <div style={{ fontSize:12, fontWeight:700, color:T.text, marginBottom:6 }}>{label}{required && <span style={{ color:"#dc2626" }}>*</span>}</div>
+        <input type={type} value={form[key]} onChange={e => setForm(f=>({...f,[key]:e.target.value}))} placeholder={placeholder}
+          style={{ width:"100%", padding:"11px 14px", borderRadius:10, border:`1.5px solid ${T.border}`, fontSize:14, fontFamily:"inherit", outline:"none", background:T.white, color:T.text, boxSizing:"border-box" }} />
+      </div>
+    );
+
+    return (
+      <div style={{ fontFamily:"'DM Sans', system-ui, sans-serif", background:T.bg, minHeight:"100vh" }}>
+        {/* Header */}
+        <div style={{ background:"#0f172a", padding: mob ? "40px 24px 48px" : "56px 24px 64px", textAlign:"center" }}>
+          <div style={{ maxWidth:700, margin:"0 auto" }}>
+            <div style={{ display:"inline-flex", alignItems:"center", gap:6, background:"rgba(255,255,255,0.1)", borderRadius:20, padding:"5px 14px", fontSize:11, color:"rgba(255,255,255,0.7)", fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", marginBottom:16 }}>🏥 B2B Wholesale Program</div>
+            <h1 style={{ fontSize: mob ? 28 : 40, fontWeight:900, color:"#f8fafc", margin:"0 0 14px", lineHeight:1.15 }}>Volume Pricing for Clinics & Researchers</h1>
+            <p style={{ fontSize:15, color:"rgba(255,255,255,0.65)", lineHeight:1.7, margin:0 }}>
+              Aeterion partners with medical clinics, research institutions, compounding pharmacies, and med spas. Unlock wholesale pricing, dedicated support, and priority fulfilment.
+            </p>
+          </div>
+        </div>
+
+        <div style={{ maxWidth:1100, margin:"0 auto", padding: mob ? "32px 16px 60px" : "52px 24px 80px" }}>
+
+          {/* Tier cards */}
+          <div style={{ textAlign:"center", marginBottom:8 }}>
+            <div style={{ fontSize:11, color:T.blue, fontWeight:800, letterSpacing:2, textTransform:"uppercase" }}>PRICING TIERS</div>
+            <div style={{ fontSize: mob ? 22 : 28, fontWeight:900, color:T.text, marginTop:8, marginBottom:6 }}>Save up to 40% on every order</div>
+            <div style={{ fontSize:14, color:T.sub, marginBottom:32 }}>Based on monthly commitment volume</div>
+          </div>
+          <div style={{ display:"grid", gridTemplateColumns: mob ? "1fr" : "repeat(3,1fr)", gap:16, marginBottom:56 }}>
+            {tiers.map((t,i) => (
+              <div key={t.name} style={{ background:T.white, borderRadius:16, border:`2px solid ${i===1?T.blue:T.border}`, padding:"28px 24px", position:"relative", boxShadow: i===1 ? "0 8px 32px rgba(26,110,216,0.12)" : T.shadow }}>
+                {i===1 && <div style={{ position:"absolute", top:-13, left:"50%", transform:"translateX(-50%)", background:T.blue, color:"#fff", fontSize:10, fontWeight:800, padding:"4px 14px", borderRadius:20, letterSpacing:1.5 }}>MOST POPULAR</div>}
+                <div style={{ fontSize:11, fontWeight:800, color:i===1?T.blue:T.muted, letterSpacing:2, textTransform:"uppercase", marginBottom:8 }}>{t.name}</div>
+                <div style={{ fontSize:36, fontWeight:900, color:T.text, marginBottom:2 }}>{t.disc}<span style={{ fontSize:18 }}> off</span></div>
+                <div style={{ fontSize:13, color:T.muted, marginBottom:20 }}>On orders {t.min}+/month</div>
+                <div style={{ borderTop:`1px solid ${T.border}`, paddingTop:16 }}>
+                  {t.perks.map(p => (
+                    <div key={p} style={{ fontSize:13, color:T.sub, marginBottom:10, display:"flex", gap:8, alignItems:"flex-start" }}>
+                      <span style={{ color:"#16a34a", fontWeight:800, flexShrink:0 }}>✓</span>{p}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Application form */}
+          <div style={{ display:"grid", gridTemplateColumns: mob ? "1fr" : "1fr 1fr", gap: mob ? 24 : 48, alignItems:"start" }}>
+            <div>
+              <div style={{ fontSize:11, color:T.blue, fontWeight:800, letterSpacing:2, textTransform:"uppercase", marginBottom:8 }}>APPLY NOW</div>
+              <div style={{ fontSize: mob ? 22 : 28, fontWeight:900, color:T.text, marginBottom:10 }}>Start Your Wholesale Application</div>
+              <div style={{ fontSize:14, color:T.sub, lineHeight:1.75, marginBottom:24 }}>
+                Fill out the form and our team will reach out within 1 business day with your custom pricing agreement and onboarding details.
+              </div>
+              <div style={{ background:T.white, borderRadius:16, border:`1px solid ${T.border}`, padding:"22px 24px" }}>
+                <div style={{ fontSize:13, fontWeight:700, color:T.text, marginBottom:16 }}>What's included in your account:</div>
+                {[
+                  "Personalised pricing agreement",
+                  "Dedicated account manager via email & phone",
+                  "Same-day dispatch on orders placed before 2pm EST",
+                  "Batch COAs emailed automatically on every order",
+                  "Net-30 invoicing available (approved accounts)",
+                  "Early access to new compound launches",
+                ].map(item => (
+                  <div key={item} style={{ fontSize:13, color:T.sub, marginBottom:9, display:"flex", gap:8 }}>
+                    <span style={{ color:"#16a34a", fontWeight:800, flexShrink:0 }}>✓</span>{item}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ background:T.white, borderRadius:20, border:`1px solid ${T.border}`, padding: mob ? "24px 20px" : "32px 28px", boxShadow:T.shadow }}>
+              {sent ? (
+                <div style={{ textAlign:"center", padding:"40px 0" }}>
+                  <div style={{ fontSize:48, marginBottom:16 }}>✅</div>
+                  <div style={{ fontSize:22, fontWeight:900, color:T.text, marginBottom:10 }}>Application Received</div>
+                  <div style={{ fontSize:14, color:T.sub, lineHeight:1.7, marginBottom:28 }}>
+                    Thanks <strong>{form.name}</strong>! Our wholesale team will review your application and reach out within 1 business day.
+                  </div>
+                  <button onClick={() => goTo("store")} style={{ ...btnPrimary({ padding:"12px 28px", fontSize:14, borderRadius:12 }) }}>← Back to Store</button>
+                </div>
+              ) : (
+                <>
+                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"0 16px" }}>
+                    {inp("Full Name","name","text","Dr. Jane Smith",true)}
+                    {inp("Email Address","email","email","jane@clinic.com",true)}
+                  </div>
+                  {inp("Company / Practice Name","company","text","Smith Aesthetics & Wellness",true)}
+                  <div style={{ marginBottom:16 }}>
+                    <div style={{ fontSize:12, fontWeight:700, color:T.text, marginBottom:6 }}>Account Type<span style={{ color:"#dc2626" }}>*</span></div>
+                    <select value={form.type} onChange={e => setForm(f=>({...f,type:e.target.value}))}
+                      style={{ width:"100%", padding:"11px 14px", borderRadius:10, border:`1.5px solid ${T.border}`, fontSize:14, fontFamily:"inherit", outline:"none", background:T.white, color: form.type ? T.text : T.muted, boxSizing:"border-box" }}>
+                      <option value="">Select account type...</option>
+                      <option>Medical Clinic / Practice</option>
+                      <option>Med Spa / Aesthetics</option>
+                      <option>Compounding Pharmacy</option>
+                      <option>Research Institution / University</option>
+                      <option>Wellness / Longevity Center</option>
+                      <option>Other</option>
+                    </select>
+                  </div>
+                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"0 16px" }}>
+                    <div style={{ marginBottom:16 }}>
+                      <div style={{ fontSize:12, fontWeight:700, color:T.text, marginBottom:6 }}>Est. Monthly Volume</div>
+                      <select value={form.monthly} onChange={e => setForm(f=>({...f,monthly:e.target.value}))}
+                        style={{ width:"100%", padding:"11px 14px", borderRadius:10, border:`1.5px solid ${T.border}`, fontSize:14, fontFamily:"inherit", outline:"none", background:T.white, color: form.monthly ? T.text : T.muted, boxSizing:"border-box" }}>
+                        <option value="">Select range...</option>
+                        <option>$500 – $1,499</option>
+                        <option>$1,500 – $4,999</option>
+                        <option>$5,000 – $14,999</option>
+                        <option>$15,000+</option>
+                      </select>
+                    </div>
+                    {inp("Compounds of Interest","compounds","text","BPC-157, Semaglutide...")}
+                  </div>
+                  <div style={{ marginBottom:16 }}>
+                    <div style={{ fontSize:12, fontWeight:700, color:T.text, marginBottom:6 }}>Additional Notes</div>
+                    <textarea value={form.message} onChange={e => setForm(f=>({...f,message:e.target.value}))}
+                      placeholder="Tell us about your practice and any specific requirements..." rows={3}
+                      style={{ width:"100%", padding:"11px 14px", borderRadius:10, border:`1.5px solid ${T.border}`, fontSize:14, fontFamily:"inherit", outline:"none", background:T.white, color:T.text, resize:"vertical", boxSizing:"border-box" }} />
+                  </div>
+                  {err && <div style={{ background:"#fef2f2", border:"1px solid #fecaca", borderRadius:10, padding:"10px 14px", fontSize:13, color:"#dc2626", marginBottom:14 }}>⚠️ {err}</div>}
+                  <button onClick={submit} disabled={sending} style={{ ...btnPrimary({ width:"100%", padding:"14px", fontSize:15, borderRadius:12, boxShadow:"0 4px 14px rgba(26,110,216,0.25)" }), opacity: sending ? 0.7 : 1 }}>
+                    {sending ? "Submitting…" : "Submit Application →"}
+                  </button>
+                  <div style={{ fontSize:11, color:T.muted, textAlign:"center", marginTop:10 }}>We'll respond within 1 business day</div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <footer style={{ background:"#111827", color:"rgba(255,255,255,0.5)", padding:"24px", textAlign:"center", fontSize:12 }}>
+          <p style={{ margin:"0 0 6px" }}>© 2025 Aeterion Peptides. All Rights Reserved.</p>
+          <p style={{ margin:0 }}>All products for laboratory research purposes only. Not for human consumption. Must be 18+.</p>
+        </footer>
+      </div>
+    );
+  };
+
   /* ════════════════════ PAGE ROUTING ════════════════════ */
   if (page === "contact") return <ContactPage />;
   if (page === "legal") return <LegalPage />;
@@ -2830,6 +3070,7 @@ export default function App() {
   if (page === "account") return <AccountPage />;
   if (page === "about") return <AboutPage goTo={goTo} />;
   if (page === "faq") return <FAQPage goTo={goTo} />;
+  if (page === "wholesale") return <WholesalePage goTo={goTo} />;
 
   /* ════════ THANK YOU PAGE ════════ */
   if (paymentMsg === "success") return (
@@ -3189,7 +3430,7 @@ export default function App() {
               <div key={t}>
                 <div style={{ fontWeight: 700, fontSize: 10, letterSpacing: 2, textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 14 }}>{t}</div>
               {links.map(l => {
-                  const dest = l === "Contact" ? "contact" : l === "About" ? "about" : l === "FAQ" ? "faq" : (l === "Terms of Service" || l === "Privacy Policy" || l === "Return Policy" || l === "Disclaimer") ? "legal" : null;
+                  const dest = l === "Contact" ? "contact" : l === "About" ? "about" : l === "FAQ" ? "faq" : l === "Wholesale" ? "wholesale" : (l === "Terms of Service" || l === "Privacy Policy" || l === "Return Policy" || l === "Disclaimer") ? "legal" : null;
                   if (l === "Become an Ambassador") return (
                     <a key={l} href="/ambassador/apply" style={{ display: "block", color: "#60a5fa", fontSize: 12, marginBottom: 9, textDecoration: "none", fontWeight: 600 }}>✦ Become an Ambassador</a>
                   );
