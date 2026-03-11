@@ -1570,7 +1570,12 @@ export default function App() {
 
               {/* ── Order Summary Breakdown ── */}
               {(() => {
-                const baseTotal = cart.reduce((s, i) => s + i.variants[0].p * i.qty, 0);
+                // lt already has bulk discount applied (lt = unit_price * qty * DISC[qty])
+                // Back-calculate undiscounted base: unit price = lt / qty / DISC[qty]
+                const baseTotal = cart.reduce((s, i) => {
+                  const discRate = i.qty >= 10 ? 0.82 : i.qty >= 5 ? 0.92 : 1;
+                  return s + (i.lt / discRate);
+                }, 0);
                 const bulkSavings = baseTotal - total;
                 const promoSavings = promoDiscount > 0 ? total * (promoDiscount / 100) : 0;
                 const finalTotal = total - promoSavings;
