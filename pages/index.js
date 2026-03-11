@@ -3096,7 +3096,33 @@ export default function App() {
         <span style={{ fontSize: 11, color: "#15803d" }}>10 vials <b>-18%</b></span>
       </div>
 
-      <div id="mob-cat" style={{ background: T.white, borderBottom: `1px solid ${T.border}`, padding: "10px 14px 12px", overflowX: "auto", display: "flex", gap: 8, WebkitOverflowScrolling: "touch", scrollbarWidth: "none" }}>
+      {/* ── REVIEW TICKER (mobile) ── */}
+      {(() => {
+        const TICKER_REVIEWS = [
+          { name:"Dr. M.R.", rating:5, text:"Semaglutide purity matched COA exactly." },
+          { name:"J.T.", rating:5, text:"BPC-157 + TB-500 arrived cold-packed perfectly." },
+          { name:"K.S.", rating:5, text:"Tirzepatide delivered in 2 days. Packaging immaculate." },
+          { name:"Dr. A.P.", rating:5, text:"GHK-Cu — consistent across 3 batches. Best supplier." },
+          { name:"W.L.", rating:5, text:"Ipamorelin + CJC blend — exactly as described." },
+          { name:"Research Lab", rating:5, text:"All 10 compounds shipped same day with COAs." },
+          { name:"C.D.", rating:5, text:"GLOW blend — real difference in recovery markers." },
+          { name:"Dr. H.N.", rating:5, text:"Tesamorelin purity confirmed in-house. Our go-to supplier." },
+        ];
+        const items = [...TICKER_REVIEWS, ...TICKER_REVIEWS];
+        return (
+          <div style={{ background:"#0f172a", borderBottom:"1px solid #1e293b", overflow:"hidden", height:34 }}>
+            <div className="review-ticker" style={{ display:"flex", alignItems:"center", height:"100%" }}>
+              {items.map((r, i) => (
+                <div key={i} style={{ display:"inline-flex", alignItems:"center", gap:7, padding:"0 20px", borderRight:"1px solid rgba(255,255,255,0.07)", whiteSpace:"nowrap", height:34 }}>
+                  <span style={{ color:"#f59e0b", fontSize:10 }}>{"★".repeat(r.rating)}</span>
+                  <span style={{ fontSize:11, color:"rgba(255,255,255,0.82)", fontWeight:600 }}>"{r.text}"</span>
+                  <span style={{ fontSize:10, color:"rgba(255,255,255,0.3)" }}>— {r.name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()} style={{ background: T.white, borderBottom: `1px solid ${T.border}`, padding: "10px 14px 12px", overflowX: "auto", display: "flex", gap: 8, WebkitOverflowScrolling: "touch", scrollbarWidth: "none" }}>
         {[{id:"all",label:"All",icon:"🔬"}, ...CATS].map(c => (
           <button key={c.id} onClick={() => { setCat(c.id); setQ(""); }} style={{
             flexShrink: 0, padding: "8px 15px", borderRadius: 24, border: "1.5px solid", fontSize: 12, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit",
@@ -3270,7 +3296,48 @@ export default function App() {
         </div>
       </div>
 
-      <div id="catalog" style={{ maxWidth: 1400, margin: "0 auto", padding: "28px 24px" }}>
+      {/* ── REVIEW TICKER ── */}
+      {(() => {
+        const TICKER_REVIEWS = [
+          { name:"Dr. M.R.", rating:5, text:"Semaglutide purity is exceptional — HPLC results matched COA exactly.", product:"Semaglutide" },
+          { name:"J.T.", rating:5, text:"BPC-157 + TB-500 blend arrived cold-packed and reconstituted perfectly.", product:"BPC-157 + TB-500" },
+          { name:"Research Lab", rating:5, text:"Retatrutide batch COA was thorough. Will be reordering.", product:"Retatrutide" },
+          { name:"K.S.", rating:5, text:"Tirzepatide arrived in 2 days. Packaging was immaculate.", product:"Tirzepatide" },
+          { name:"Dr. A.P.", rating:5, text:"GHK-Cu 50mg — consistent results across 3 batches. Best supplier I've used.", product:"GHK-Cu" },
+          { name:"W.L.", rating:5, text:"Ipamorelin and CJC blend — exactly as described. Fast dispatch.", product:"CJC+IPA Blend" },
+          { name:"L.M.", rating:5, text:"NAD+ 500mg — clear solution, no particulates. Very impressed.", product:"NAD+" },
+          { name:"Research Institute", rating:5, text:"Ordered 10 compounds in one go. All shipped same day with individual COAs.", product:"Multiple" },
+          { name:"C.D.", rating:5, text:"GLOW blend is the real deal — noticeable difference in recovery markers.", product:"GLOW Blend" },
+          { name:"Dr. H.N.", rating:5, text:"Tesamorelin purity confirmed in-house. Aeterion is our go-to supplier.", product:"Tesamorelin" },
+          { name:"S.K.", rating:5, text:"Semax and Selank both arrived lyophilized and intact. Excellent quality.", product:"Semax" },
+          { name:"P.O.", rating:5, text:"HGH 15iu vials — clean powder, verified with independent test. Perfect.", product:"HGH" },
+        ];
+        // Duplicate for seamless infinite loop
+        const items = [...TICKER_REVIEWS, ...TICKER_REVIEWS];
+        return (
+          <div style={{ background:"#0f172a", borderBottom:"1px solid #1e293b", overflow:"hidden", position:"relative", height:38 }}>
+            <style>{`
+              @keyframes ticker-scroll {
+                0%   { transform: translateX(0); }
+                100% { transform: translateX(-50%); }
+              }
+              .review-ticker { display:flex; animation: ticker-scroll 55s linear infinite; width:max-content; }
+              .review-ticker:hover { animation-play-state: paused; }
+            `}</style>
+            <div style={{ display:"flex", alignItems:"center", height:"100%" }}>
+              <div className="review-ticker">
+                {items.map((r, i) => (
+                  <div key={i} style={{ display:"inline-flex", alignItems:"center", gap:10, padding:"0 28px", borderRight:"1px solid rgba(255,255,255,0.07)", whiteSpace:"nowrap", height:38 }}>
+                    <span style={{ color:"#f59e0b", fontSize:11, letterSpacing:1 }}>{"★".repeat(r.rating)}</span>
+                    <span style={{ fontSize:12, color:"rgba(255,255,255,0.85)", fontWeight:600 }}>"{r.text}"</span>
+                    <span style={{ fontSize:11, color:"rgba(255,255,255,0.35)" }}>— {r.name} · {r.product}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      })()} style={{ maxWidth: 1400, margin: "0 auto", padding: "28px 24px" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 22, gap: 10, flexWrap: "wrap" }}>
           <div style={{ fontSize: 13, color: T.sub }}><b style={{ color: T.text }}>{products.length}</b> products</div>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
