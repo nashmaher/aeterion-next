@@ -1,5 +1,7 @@
 import Stripe from "stripe";
 
+const SB_URL = "https://kafwkhbzdtpsxkufmkmm.supabase.co";
+
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
@@ -16,7 +18,35 @@ export default async function handler(req, res) {
   const stripe = new Stripe(key, { apiVersion: "2023-10-16" });
 
   try {
-    const { items, user_id, user_email } = req.body;
+    const { items, user_id, user_email, promoCode } = req.body;
+
+    // ── Validate ambassador promo code if provided ──
+    let validatedAmbassador = null;
+    let stripeCouponId = null;
+
+    if (promoCode) {
+      const sbKey = process.env.SUPABASE_SERVICE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+      const promoRes = await fetch(`${SB_URL}/rest/v1/ambassadors?promo_code=eq.${encodeURIComponent(promoCode.toUpperCase().trim())}&status=eq.approved&select=id,promo_code,commission_rate`, {
+        headers: { "apikey": sbKey, "Authorization": `Bearer ${sbKey}` }
+      });
+      const promoData = await promoRes.json();
+      if (promoData?.length) {
+        validatedAmbassador = promoData[0];
+        const couponId = `AMB_${validatedAmbassador.promo_code}`;
+        try {
+          await stripe.coupons.retrieve(couponId);
+          stripeCouponId = couponId;
+        } catch {
+          const coupon = await stripe.coupons.create({
+            id: couponId,
+            percent_off: 10,
+            duration: "forever",
+            name: `Ambassador Code: ${validatedAmbassador.promo_code}`,
+          });
+          stripeCouponId = coupon.id;
+        }
+      }
+    }
 
     if (!items || !items.length) {
       return res.status(400).json({ error: "No items in cart" });
@@ -84,8 +114,15 @@ export default async function handler(req, res) {
       phone_number_collection: { enabled: true },
       metadata: {
         user_id: user_id || "",
+        promo_code: validatedAmbassador?.promo_code || "",
+        ambassador_id: validatedAmbassador?.id || "",
       },
     };
+
+    // Apply ambassador discount coupon if valid code was provided
+    if (stripeCouponId) {
+      sessionParams.discounts = [{ coupon: stripeCouponId }];
+    }
 
     // Pre-fill email if user is signed in
     if (user_email) sessionParams.customer_email = user_email;
