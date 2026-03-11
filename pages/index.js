@@ -1059,6 +1059,33 @@ const HOMEPAGE_SCHEMA = [
   }
 ];
 
+function ReviewForm({ pid, reviewDraft, setReviewDraft, onSubmit, onCancel, T, btnPrimary }) {
+  return (
+    <div style={{ background:T.bg, borderRadius:12, padding:"16px", marginBottom:16, border:`1px solid ${T.border}` }}>
+      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:10 }}>
+        <input placeholder="Your name (e.g. J.M.)" value={reviewDraft.name}
+          onChange={e => setReviewDraft(d => ({...d, name:e.target.value}))}
+          style={{ padding:"9px 12px", borderRadius:9, border:`1.5px solid ${T.border}`, fontSize:13, fontFamily:"inherit", outline:"none", background:T.white, color:T.text }} />
+        <div style={{ display:"flex", alignItems:"center", gap:6, padding:"9px 12px", borderRadius:9, border:`1.5px solid ${T.border}`, background:T.white }}>
+          <span style={{ fontSize:12, color:T.muted, marginRight:2 }}>Rating:</span>
+          {[1,2,3,4,5].map(star => (
+            <span key={star} onClick={() => setReviewDraft(d => ({...d, rating:star}))}
+              style={{ fontSize:18, cursor:"pointer", color: star <= reviewDraft.rating ? "#f59e0b" : "#d1d5db", transition:"color .1s" }}>★</span>
+          ))}
+        </div>
+      </div>
+      <textarea placeholder="Share your research experience with this compound..." value={reviewDraft.text}
+        onChange={e => setReviewDraft(d => ({...d, text:e.target.value}))}
+        rows={3}
+        style={{ width:"100%", padding:"9px 12px", borderRadius:9, border:`1.5px solid ${T.border}`, fontSize:13, fontFamily:"inherit", outline:"none", background:T.white, color:T.text, resize:"vertical", boxSizing:"border-box" }} />
+      <div style={{ display:"flex", gap:8, marginTop:10 }}>
+        <button onClick={onSubmit} style={{ ...btnPrimary({ padding:"9px 20px", fontSize:13 }) }}>Submit Review</button>
+        <button onClick={onCancel} style={{ padding:"9px 16px", fontSize:13, borderRadius:9, border:`1.5px solid ${T.border}`, background:"none", color:T.muted, cursor:"pointer", fontFamily:"inherit" }}>Cancel</button>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const mob = useIsMobile();
   const tab = useIsTablet();
@@ -1092,6 +1119,7 @@ export default function App() {
 
   // ── AI Research Assistant ──
   const [chatOpen, setChatOpen] = useState(typeof window !== 'undefined' ? window.innerWidth >= 768 : false);
+  const [bubbleDismissed, setBubbleDismissed] = useState(false);
   const [chatMessages, setChatMessages] = useState([]);
   const [chatInput, setChatInput] = useState("");
   const [chatStreaming, setChatStreaming] = useState(false);
@@ -1508,37 +1536,23 @@ export default function App() {
                 </div>
 
                 {showReviewForm === pid && (
-                  <div style={{ background:T.bg, borderRadius:12, padding:"16px", marginBottom:16, border:`1px solid ${T.border}` }}>
-                    <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:10 }}>
-                      <input placeholder="Your name (e.g. J.M.)" value={reviewDraft.name}
-                        onChange={e => setReviewDraft(d => ({...d, name:e.target.value}))}
-                        style={{ padding:"9px 12px", borderRadius:9, border:`1.5px solid ${T.border}`, fontSize:13, fontFamily:"inherit", outline:"none", background:T.white, color:T.text }} />
-                      <div style={{ display:"flex", alignItems:"center", gap:6, padding:"9px 12px", borderRadius:9, border:`1.5px solid ${T.border}`, background:T.white }}>
-                        <span style={{ fontSize:12, color:T.muted, marginRight:2 }}>Rating:</span>
-                        {[1,2,3,4,5].map(star => (
-                          <span key={star} onClick={() => setReviewDraft(d => ({...d, rating:star}))}
-                            style={{ fontSize:18, cursor:"pointer", color: star <= reviewDraft.rating ? "#f59e0b" : "#d1d5db", transition:"color .1s" }}>★</span>
-                        ))}
-                      </div>
-                    </div>
-                    <textarea placeholder="Share your research experience with this compound..." value={reviewDraft.text}
-                      onChange={e => setReviewDraft(d => ({...d, text:e.target.value}))}
-                      rows={3}
-                      style={{ width:"100%", padding:"9px 12px", borderRadius:9, border:`1.5px solid ${T.border}`, fontSize:13, fontFamily:"inherit", outline:"none", background:T.white, color:T.text, resize:"vertical", boxSizing:"border-box" }} />
-                    <button
-                      onClick={() => {
-                        if (!reviewDraft.name.trim() || !reviewDraft.text.trim()) return;
-                        const newReview = { name:reviewDraft.name.trim(), rating:reviewDraft.rating, text:reviewDraft.text.trim(), date: new Date().toLocaleDateString("en-US",{month:"short",year:"numeric"}) };
-                        const updated = { ...reviews, [pid]: [newReview, ...(reviews[pid]||[])] };
-                        setReviews(updated);
-                        try { localStorage.setItem("aet_reviews", JSON.stringify(updated)); } catch {}
-                        setShowReviewForm(null);
-                        setReviewDraft({ name:"", rating:5, text:"" });
-                      }}
-                      style={{ marginTop:10, ...btnPrimary({ padding:"9px 20px", fontSize:13 }) }}>
-                      Submit Review
-                    </button>
-                  </div>
+                  <ReviewForm
+                    pid={pid}
+                    reviewDraft={reviewDraft}
+                    setReviewDraft={setReviewDraft}
+                    T={T}
+                    btnPrimary={btnPrimary}
+                    onCancel={() => { setShowReviewForm(null); setReviewDraft({ name:"", rating:5, text:"" }); }}
+                    onSubmit={() => {
+                      if (!reviewDraft.name.trim() || !reviewDraft.text.trim()) return;
+                      const newReview = { name:reviewDraft.name.trim(), rating:reviewDraft.rating, text:reviewDraft.text.trim(), date: new Date().toLocaleDateString("en-US",{month:"short",year:"numeric"}) };
+                      const updated = { ...reviews, [pid]: [newReview, ...(reviews[pid]||[])] };
+                      setReviews(updated);
+                      try { localStorage.setItem("aet_reviews", JSON.stringify(updated)); } catch {}
+                      setShowReviewForm(null);
+                      setReviewDraft({ name:"", rating:5, text:"" });
+                    }}
+                  />
                 )}
 
                 {revList.slice(0,5).map((rev, i) => (
@@ -3339,7 +3353,7 @@ export default function App() {
             </button>
 
             {/* Speech bubble — mobile only, when closed */}
-            {mob && !chatOpen && (
+            {mob && !chatOpen && !bubbleDismissed && (
               <div style={{
                 position: "fixed", bottom: 148, right: 18, zIndex: 8001,
                 background: "#1a6ed8", color: "#fff",
@@ -3349,7 +3363,8 @@ export default function App() {
                 pointerEvents: "none",
                 animation: "bubble-bounce 2.5s ease-in-out infinite",
               }}>
-                🔬 AI Research Assistant
+                <span>🔬 AI Research Assistant</span>
+                <button onClick={() => setBubbleDismissed(true)} style={{ marginLeft: 8, background: "none", border: "none", color: "rgba(255,255,255,0.7)", cursor: "pointer", fontSize: 13, lineHeight: 1, padding: "0 0 0 4px" }}>✕</button>
                 <div style={{ position: "absolute", bottom: -6, right: 16, width: 0, height: 0, borderLeft: "6px solid transparent", borderRight: "6px solid transparent", borderTop: "6px solid #1a6ed8" }} />
               </div>
             )}
@@ -3820,7 +3835,7 @@ export default function App() {
             </button>
 
             {/* Speech bubble — mobile only, when closed */}
-            {mob && !chatOpen && (
+            {mob && !chatOpen && !bubbleDismissed && (
               <div style={{
                 position: "fixed", bottom: 148, right: 18, zIndex: 8001,
                 background: "#1a6ed8", color: "#fff",
@@ -3830,7 +3845,8 @@ export default function App() {
                 pointerEvents: "none",
                 animation: "bubble-bounce 2.5s ease-in-out infinite",
               }}>
-                🔬 AI Research Assistant
+                <span>🔬 AI Research Assistant</span>
+                <button onClick={() => setBubbleDismissed(true)} style={{ marginLeft: 8, background: "none", border: "none", color: "rgba(255,255,255,0.7)", cursor: "pointer", fontSize: 13, lineHeight: 1, padding: "0 0 0 4px" }}>✕</button>
                 <div style={{ position: "absolute", bottom: -6, right: 16, width: 0, height: 0, borderLeft: "6px solid transparent", borderRight: "6px solid transparent", borderTop: "6px solid #1a6ed8" }} />
               </div>
             )}
