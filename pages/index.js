@@ -1120,6 +1120,7 @@ export default function App() {
   // ── AI Research Assistant ──
   const [chatOpen, setChatOpen] = useState(typeof window !== 'undefined' ? window.innerWidth >= 768 : false);
   const [bubbleDismissed, setBubbleDismissed] = useState(false);
+  const [widgetHidden, setWidgetHidden] = useState(false);
   const [chatMessages, setChatMessages] = useState([]);
   const [chatInput, setChatInput] = useState("");
   const [chatStreaming, setChatStreaming] = useState(false);
@@ -3335,7 +3336,7 @@ export default function App() {
         return (
           <>
             {/* Floating button */}
-            <button
+            {(!mob || !widgetHidden) && <button
               onClick={() => setChatOpen(o => !o)}
               style={{
                 position: "fixed", bottom: mob ? 82 : 28, right: 24, zIndex: 8000,
@@ -3350,10 +3351,29 @@ export default function App() {
               title="AI Research Assistant"
             >
               {chatOpen ? "✕" : "🔬"}
-            </button>
+            </button>}
+
+            {/* Mobile pull tab — always visible on mobile, hides/shows entire widget */}
+            {mob && (
+              <div
+                onClick={() => { setWidgetHidden(h => !h); if (!widgetHidden) { setChatOpen(false); } }}
+                style={{
+                  position: "fixed", right: 0, bottom: 140, zIndex: 8002,
+                  background: "linear-gradient(135deg,#1a6ed8,#2563eb)",
+                  color: "#fff", fontSize: 11, fontWeight: 700,
+                  padding: "10px 6px", borderRadius: "10px 0 0 10px",
+                  cursor: "pointer", writingMode: "vertical-rl",
+                  textOrientation: "mixed", letterSpacing: 1,
+                  boxShadow: "-3px 0 12px rgba(26,110,216,0.35)",
+                  userSelect: "none", display: "flex", alignItems: "center", gap: 4,
+                }}
+              >
+                {widgetHidden ? "◀ AI" : "▶ AI"}
+              </div>
+            )}
 
             {/* Speech bubble — mobile only, when closed */}
-            {mob && !chatOpen && !bubbleDismissed && (
+            {mob && !widgetHidden && !chatOpen && !bubbleDismissed && (
               <div style={{
                 position: "fixed", bottom: 148, right: 18, zIndex: 8001,
                 background: "#1a6ed8", color: "#fff",
@@ -3371,7 +3391,7 @@ export default function App() {
             <style>{`@keyframes bubble-bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }`}</style>
 
             {/* Chat panel */}
-            {chatOpen && (
+            {chatOpen && (!mob || !widgetHidden) && (
               <div style={{
                 position: "fixed", bottom: mob ? 150 : 96, right: 24, zIndex: 7999,
                 width: mob ? "calc(100vw - 32px)" : 380,
@@ -3817,7 +3837,7 @@ export default function App() {
         return (
           <>
             {/* Floating button */}
-            <button
+            {(!mob || !widgetHidden) && <button
               onClick={() => setChatOpen(o => !o)}
               style={{
                 position: "fixed", bottom: mob ? 82 : 28, right: 24, zIndex: 8000,
@@ -3832,10 +3852,29 @@ export default function App() {
               title="AI Research Assistant"
             >
               {chatOpen ? "✕" : "🔬"}
-            </button>
+            </button>}
+
+            {/* Mobile pull tab — always visible on mobile, hides/shows entire widget */}
+            {mob && (
+              <div
+                onClick={() => { setWidgetHidden(h => !h); if (!widgetHidden) { setChatOpen(false); } }}
+                style={{
+                  position: "fixed", right: 0, bottom: 140, zIndex: 8002,
+                  background: "linear-gradient(135deg,#1a6ed8,#2563eb)",
+                  color: "#fff", fontSize: 11, fontWeight: 700,
+                  padding: "10px 6px", borderRadius: "10px 0 0 10px",
+                  cursor: "pointer", writingMode: "vertical-rl",
+                  textOrientation: "mixed", letterSpacing: 1,
+                  boxShadow: "-3px 0 12px rgba(26,110,216,0.35)",
+                  userSelect: "none", display: "flex", alignItems: "center", gap: 4,
+                }}
+              >
+                {widgetHidden ? "◀ AI" : "▶ AI"}
+              </div>
+            )}
 
             {/* Speech bubble — mobile only, when closed */}
-            {mob && !chatOpen && !bubbleDismissed && (
+            {mob && !widgetHidden && !chatOpen && !bubbleDismissed && (
               <div style={{
                 position: "fixed", bottom: 148, right: 18, zIndex: 8001,
                 background: "#1a6ed8", color: "#fff",
@@ -3853,7 +3892,7 @@ export default function App() {
             <style>{`@keyframes bubble-bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }`}</style>
 
             {/* Chat panel */}
-            {chatOpen && (
+            {chatOpen && (!mob || !widgetHidden) && (
               <div style={{
                 position: "fixed", bottom: mob ? 150 : 96, right: 24, zIndex: 7999,
                 width: mob ? "calc(100vw - 32px)" : 380,
