@@ -1091,7 +1091,7 @@ export default function App() {
   const [quizResult, setQuizResult] = useState(null);
 
   // ── AI Research Assistant ──
-  const [chatOpen, setChatOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(true);
   const [chatMessages, setChatMessages] = useState([]);
   const [chatInput, setChatInput] = useState("");
   const [chatStreaming, setChatStreaming] = useState(false);
@@ -1109,9 +1109,18 @@ export default function App() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages: newMessages }),
       });
+
+      // If not streaming response, it's an error — show it
+      if (!res.ok || res.headers.get("content-type")?.includes("application/json")) {
+        const err = await res.json().catch(() => ({ error: "Unknown error" }));
+        setChatMessages(prev => { const u = [...prev]; u[u.length-1] = { role:"assistant", content:`⚠️ ${err.error || "API error. Check that GEMINI_API_KEY is set in Vercel environment variables."}` }; return u; });
+        return;
+      }
+
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let buffer = "";
+      let gotText = false;
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
@@ -1125,6 +1134,7 @@ export default function App() {
           try {
             const parsed = JSON.parse(data);
             if (parsed.text) {
+              gotText = true;
               setChatMessages(prev => {
                 const updated = [...prev];
                 updated[updated.length - 1] = { ...updated[updated.length - 1], content: updated[updated.length - 1].content + parsed.text };
@@ -1134,8 +1144,12 @@ export default function App() {
           } catch {}
         }
       }
-    } catch {
-      setChatMessages(prev => { const u = [...prev]; u[u.length-1] = { role:"assistant", content:"Connection error. Please try again." }; return u; });
+      // If we streamed but got nothing, show helpful message
+      if (!gotText) {
+        setChatMessages(prev => { const u = [...prev]; u[u.length-1] = { role:"assistant", content:"⚠️ No response received. Please check that GEMINI_API_KEY is added to your Vercel environment variables and redeploy." }; return u; });
+      }
+    } catch (err) {
+      setChatMessages(prev => { const u = [...prev]; u[u.length-1] = { role:"assistant", content:`⚠️ Connection error: ${err.message}` }; return u; });
     } finally {
       setChatStreaming(false);
     }
