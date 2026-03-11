@@ -1095,6 +1095,51 @@ export default function App() {
   const [chatMessages, setChatMessages] = useState([]);
   const [chatInput, setChatInput] = useState("");
   const [chatStreaming, setChatStreaming] = useState(false);
+
+  const sendMessage = async (text) => {
+    if (!text || !text.trim() || chatStreaming) return;
+    const userMsg = { role: "user", content: text.trim() };
+    const newMessages = [...chatMessages, userMsg];
+    setChatMessages([...newMessages, { role: "assistant", content: "" }]);
+    setChatInput("");
+    setChatStreaming(true);
+    try {
+      const res = await fetch("/api/peptide-chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: newMessages }),
+      });
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop();
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          const data = line.slice(6);
+          if (data === "[DONE]") continue;
+          try {
+            const parsed = JSON.parse(data);
+            if (parsed.text) {
+              setChatMessages(prev => {
+                const updated = [...prev];
+                updated[updated.length - 1] = { ...updated[updated.length - 1], content: updated[updated.length - 1].content + parsed.text };
+                return updated;
+              });
+            }
+          } catch {}
+        }
+      }
+    } catch {
+      setChatMessages(prev => { const u = [...prev]; u[u.length-1] = { role:"assistant", content:"Connection error. Please try again." }; return u; });
+    } finally {
+      setChatStreaming(false);
+    }
+  };
   const [reviews, setReviews] = useState({});
   const [showReviewForm, setShowReviewForm] = useState(null); // productId
   const [reviewDraft, setReviewDraft] = useState({ name: "", rating: 5, text: "" });
@@ -3259,65 +3304,6 @@ export default function App() {
           "What's the difference between BPC-157 and TB-500?",
         ];
 
-        const sendMessage = async (text) => {
-          if (!text.trim() || chatStreaming) return;
-          const userMsg = { role: "user", content: text.trim() };
-          const newMessages = [...chatMessages, userMsg];
-          setChatMessages(newMessages);
-          setChatInput("");
-          setChatStreaming(true);
-
-          // Add empty assistant message to stream into
-          setChatMessages(prev => [...prev, { role: "assistant", content: "" }]);
-
-          try {
-            const res = await fetch("/api/peptide-chat", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ messages: newMessages }),
-            });
-
-            const reader = res.body.getReader();
-            const decoder = new TextDecoder();
-            let buffer = "";
-
-            while (true) {
-              const { done, value } = await reader.read();
-              if (done) break;
-              buffer += decoder.decode(value, { stream: true });
-              const lines = buffer.split("\n");
-              buffer = lines.pop();
-
-              for (const line of lines) {
-                if (!line.startsWith("data: ")) continue;
-                const data = line.slice(6);
-                if (data === "[DONE]") continue;
-                try {
-                  const parsed = JSON.parse(data);
-                  if (parsed.text) {
-                    setChatMessages(prev => {
-                      const updated = [...prev];
-                      updated[updated.length - 1] = {
-                        ...updated[updated.length - 1],
-                        content: updated[updated.length - 1].content + parsed.text,
-                      };
-                      return updated;
-                    });
-                  }
-                } catch {}
-              }
-            }
-          } catch (err) {
-            setChatMessages(prev => {
-              const updated = [...prev];
-              updated[updated.length - 1] = { role: "assistant", content: "Connection error. Please try again." };
-              return updated;
-            });
-          } finally {
-            setChatStreaming(false);
-          }
-        };
-
         return (
           <>
             {/* Floating button */}
@@ -3358,7 +3344,7 @@ export default function App() {
                       <div style={{ fontSize: 14, fontWeight: 800, color: "#f8fafc" }}>Research Assistant</div>
                       <div style={{ fontSize: 11, color: "#4ade80", fontWeight: 600, display: "flex", alignItems: "center", gap: 4 }}>
                         <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#4ade80", display: "inline-block" }} />
-                        Powered by Claude · Aeterion Catalog
+                        Powered by Gemini · Aeterion Catalog
                       </div>
                     </div>
                   </div>
@@ -3782,65 +3768,6 @@ export default function App() {
           "What's the difference between BPC-157 and TB-500?",
         ];
 
-        const sendMessage = async (text) => {
-          if (!text.trim() || chatStreaming) return;
-          const userMsg = { role: "user", content: text.trim() };
-          const newMessages = [...chatMessages, userMsg];
-          setChatMessages(newMessages);
-          setChatInput("");
-          setChatStreaming(true);
-
-          // Add empty assistant message to stream into
-          setChatMessages(prev => [...prev, { role: "assistant", content: "" }]);
-
-          try {
-            const res = await fetch("/api/peptide-chat", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ messages: newMessages }),
-            });
-
-            const reader = res.body.getReader();
-            const decoder = new TextDecoder();
-            let buffer = "";
-
-            while (true) {
-              const { done, value } = await reader.read();
-              if (done) break;
-              buffer += decoder.decode(value, { stream: true });
-              const lines = buffer.split("\n");
-              buffer = lines.pop();
-
-              for (const line of lines) {
-                if (!line.startsWith("data: ")) continue;
-                const data = line.slice(6);
-                if (data === "[DONE]") continue;
-                try {
-                  const parsed = JSON.parse(data);
-                  if (parsed.text) {
-                    setChatMessages(prev => {
-                      const updated = [...prev];
-                      updated[updated.length - 1] = {
-                        ...updated[updated.length - 1],
-                        content: updated[updated.length - 1].content + parsed.text,
-                      };
-                      return updated;
-                    });
-                  }
-                } catch {}
-              }
-            }
-          } catch (err) {
-            setChatMessages(prev => {
-              const updated = [...prev];
-              updated[updated.length - 1] = { role: "assistant", content: "Connection error. Please try again." };
-              return updated;
-            });
-          } finally {
-            setChatStreaming(false);
-          }
-        };
-
         return (
           <>
             {/* Floating button */}
@@ -3881,7 +3808,7 @@ export default function App() {
                       <div style={{ fontSize: 14, fontWeight: 800, color: "#f8fafc" }}>Research Assistant</div>
                       <div style={{ fontSize: 11, color: "#4ade80", fontWeight: 600, display: "flex", alignItems: "center", gap: 4 }}>
                         <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#4ade80", display: "inline-block" }} />
-                        Powered by Claude · Aeterion Catalog
+                        Powered by Gemini · Aeterion Catalog
                       </div>
                     </div>
                   </div>
