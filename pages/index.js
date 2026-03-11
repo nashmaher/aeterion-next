@@ -285,13 +285,6 @@ const RESEARCH = {
     storage: `Store lyophilized at -20°C. Stable 28 days at 2–8°C. Both peptides are compatible in solution.`,
     specs: [["Components", "Cagrilintide + Semaglutide"], ["Mechanism", "Dual amylin + GLP-1 agonism"], ["Clinical Result", "~22.7% weight reduction"], ["Storage", "-20°C lyophilized"], ["Purity", "≥98% (HPLC)"], ["Dosing", "Once weekly co-formulation"]],
   },
-  10: {
-    mechanism: `Orforglipron is an oral, non-peptide small molecule GLP-1 receptor agonist. Its small molecule structure enables oral bioavailability through conventional capsule formulation, bypassing the need for injection entirely.`,
-    pharmacology: `As a non-peptide GLP-1 agonist, orforglipron activates the same receptor as semaglutide and liraglutide, producing appetite suppression, gastric emptying delay, and insulin secretion enhancement. The oral route bypasses DPP-4 degradation through structural design rather than chemical modification.`,
-    research: `Phase 2 trials demonstrated weight reductions of 9–14% over 26 weeks with daily oral dosing, approaching the efficacy of injectable weekly semaglutide. The non-peptide structure may enable different tissue distribution and receptor interaction profiles compared to peptide analogues.`,
-    storage: `Store oral capsules at room temperature (15–25°C) away from moisture and light. Do not refrigerate. Shelf life typically 18–24 months.`,
-    specs: [["Type", "Non-peptide small molecule"], ["Route", "Oral (capsule)"], ["Target", "GLP-1 receptor"], ["Dosing", "Once daily oral"], ["Storage", "Room temperature"], ["Purity", "≥99% (HPLC)"]],
-  },
   11: {
     mechanism: `Ipamorelin is a selective pentapeptide GHRP and ghrelin receptor agonist. Its selectivity for GHS-R1a distinguishes it from earlier GHRPs — it stimulates GH release without meaningfully activating ACTH, cortisol, or prolactin pathways.`,
     pharmacology: `Binding to GHS-R1a in the hypothalamus and anterior pituitary triggers GH release through phospholipase C and PKC signaling. The pulsatile GH release ipamorelin produces mirrors physiological GH secretion patterns. IGF-1 levels rise downstream, promoting anabolic and regenerative signaling.`,
@@ -340,13 +333,6 @@ const RESEARCH = {
     research: `One of the most clinically studied GHRH analogues with published data spanning 20+ years. Studies show consistent GH and IGF-1 elevation, improvements in sleep quality and sleep-associated GH secretion, and body composition benefits in GH-deficient adult research subjects.`,
     storage: `Store lyophilized at -20°C. Reconstituted solution stable 28 days at 2–8°C. Bacteriostatic water is the standard diluent.`,
     specs: [["Type", "GHRH analogue (1-29 fragment)"], ["Molecular Weight", "3357.9 Da"], ["Target", "GHRH receptor (pituitary)"], ["Half-life", "~11 minutes"], ["Storage", "-20°C lyophilized"], ["Purity", "≥99% (HPLC)"]],
-  },
-  18: {
-    mechanism: `MK-677 is a non-peptide, orally active spiropiperidine compound and selective GHS-R1a agonist. Its small molecule structure provides oral bioavailability and a 24-hour half-life, enabling once-daily dosing that sustains GH and IGF-1 elevation throughout the day.`,
-    pharmacology: `GHS-R1a agonism triggers pulsatile GH release while preserving the natural pulsatile architecture of GH secretion. MK-677 amplifies GH pulse amplitude without increasing pulse frequency, closely mimicking youthful GH secretion patterns.`,
-    research: `Key findings: 60% increase in GH pulse amplitude and 60–70% increase in IGF-1 in elderly subjects; improved REM and slow-wave sleep stages; preservation of lean mass during caloric restriction; positive effects on bone mineral density. A 2-year study showed sustained efficacy without tachyphylaxis.`,
-    storage: `Store oral capsules at room temperature (15–25°C) in a cool, dry place. Avoid humidity and direct light. Shelf life 2+ years from manufacture.`,
-    specs: [["Molecular Formula", "C₂₇H₃₆N₄O₅S"], ["Molecular Weight", "528.7 Da"], ["Target", "GHS-R1a"], ["Half-life", "~24 hours"], ["Form", "Oral capsule"], ["Purity", "≥99% (HPLC)"]],
   },
   19: {
     mechanism: `Tesamorelin is a GHRH analogue with a trans-3-hexenoic acid group conjugated to its N-terminus, protecting it against DPP-IV cleavage and extending half-life to approximately 26 minutes (vs ~7 minutes for native GHRH). This preserves full GHRH receptor activity.`,
@@ -425,13 +411,6 @@ const RESEARCH = {
     storage: `Store lyophilized at -20°C. Reconstituted solution stable 28 days at 2–8°C. Tα1 is relatively stable due to N-terminal acetylation. Bacteriostatic water recommended.`,
     specs: [["Molecular Formula", "C₁₂₉H₂₁₅N₃₃O₅₅"], ["Molecular Weight", "3108.4 Da"], ["Primary Targets", "TLR-2, TLR-9, T cells, DCs"], ["N-terminal", "Acetylated"], ["Storage", "-20°C lyophilized"], ["Purity", "≥99% (HPLC)"]],
   },
-  30: {
-    mechanism: `Pentadeca Arginate (PDA) is a structural analogue of BPC-157 where arginine has been incorporated into the pentadecapeptide backbone, enhancing stability and potentially bioavailability. It shares BPC-157's core FAK-paxillin pathway activation with improved resistance to peptidase degradation.`,
-    pharmacology: `The arginine modification confers additional physicochemical stability compared to BPC-157. Arginine is a nitric oxide precursor, potentially enhancing the NO-mediated vasodilatory and tissue repair effects already present in BPC-157. Early research suggests PDA may have improved gut mucosal bioavailability.`,
-    research: `PDA research is early-stage relative to BPC-157's 200+ study literature. Existing preclinical data suggests equivalent or superior tissue repair effects in tendon and GI models. The arginine stabilization addresses BPC-157's rapid enzymatic degradation, potentially improving in vivo efficacy.`,
-    storage: `Store lyophilized at -20°C. Reconstituted solution stable 30 days at 2–8°C. Slightly more stable than BPC-157 due to arginine modification. Bacteriostatic water recommended.`,
-    specs: [["Type", "BPC-157 structural analogue"], ["Modification", "Arginine-stabilized backbone"], ["Primary Target", "FAK-paxillin / tissue repair"], ["Storage", "-20°C lyophilized"], ["Stability", "Enhanced vs BPC-157"], ["Purity", "≥99% (HPLC)"]],
-  },
   31: {
     mechanism: `SS-31 (Elamipretide) is a tetrapeptide (D-Arg-2,6-Dmt-Lys-Phe-NH2) that selectively concentrates 1000–5000× in the inner mitochondrial membrane (IMM) by electrostatic interaction with cardiolipin. This cardiolipin binding stabilizes IMM architecture and preserves electron transport chain complex activity.`,
     pharmacology: `Cardiolipin is a unique phospholipid essential for cristae curvature, respiratory complex organization, and ATP synthase efficiency. Oxidative stress causes cardiolipin peroxidation and IMM disruption. SS-31 prevents this by acting as a cardiolipin-protective antioxidant and structural stabilizer, preserving ATP production.`,
@@ -460,20 +439,6 @@ const RESEARCH = {
     storage: `Store lyophilized at -20°C protected from moisture. NAD+ is hygroscopic — humidity causes rapid degradation. Reconstituted solution should be used within 24 hours. Do not freeze-thaw reconstituted solution.`,
     specs: [["Molecular Formula", "C₂₁H₂₇N₇O₁₄P₂"], ["Molecular Weight", "663.4 Da"], ["Function", "Redox coenzyme + sirtuin/PARP substrate"], ["Decline with Age", "~50% by age 80"], ["Storage", "-20°C (moisture-protected)"], ["Purity", "≥99% (HPLC)"]],
   },
-  35: {
-    mechanism: `NMN (nicotinamide mononucleotide) is the direct biosynthetic precursor to NAD+ in the Preiss-Handler and salvage pathways. It is phosphorylated by NMNAT-1/2/3 to form NAD+. As a nucleotide, NMN enters cells via Slc12a8 transporter and rapidly converts to NAD+.`,
-    pharmacology: `NMN supplementation bypasses the rate-limiting step of NAD+ biosynthesis (NAMPT enzyme conversion of nicotinamide to NMN), providing direct substrate for NAD+ generation. Research has focused on restoration of age-associated NAD+ decline and downstream effects on sirtuin activity, mitochondrial function, and metabolic homeostasis.`,
-    research: `Landmark mouse studies demonstrated NMN reversal of age-associated metabolic decline, improved insulin sensitivity, enhanced energy metabolism, and muscle function preservation. Human trials showed significant increases in blood NAD+ levels (40–90%) and improvements in muscle insulin sensitivity.`,
-    storage: `Store oral capsules at room temperature (15–25°C) away from heat and humidity. NMN is sensitive to moisture. Refrigeration optional but not required.`,
-    specs: [["Molecular Formula", "C₁₁H₁₅N₂O₈P"], ["Molecular Weight", "334.2 Da"], ["Role", "Direct NAD+ precursor"], ["Transporter", "Slc12a8"], ["Storage", "Room temperature (cool, dry)"], ["Purity", "≥99% (HPLC)"]],
-  },
-  36: {
-    mechanism: `Rapamycin (sirolimus) inhibits mTORC1 by forming a gain-of-function complex with the intracellular protein FKBP12. This complex binds and allosterically inhibits mTORC1, blocking downstream S6K1 and 4EBP1 phosphorylation.`,
-    pharmacology: `mTORC1 inhibition activates autophagy — the cellular self-cleaning process that degrades and recycles damaged proteins and organelles. Reduced mTORC1 signaling also shifts cells toward catabolic rather than anabolic programs, reducing cell growth and proliferation. These effects underpin rapamycin's life-extending properties.`,
-    research: `Rapamycin is the most robust pharmacological life-extension intervention discovered: 9–14% lifespan extension in mice even when started at equivalent of human age 60. ITP confirmed these results across multiple independent labs. Research also documents improved immune function, reduced age-associated cognitive decline, and cancer prevention in multiple tumor models.`,
-    storage: `Store oral tablets at room temperature (15–25°C) away from heat, light, and moisture. Rapamycin is photosensitive. Shelf life typically 2 years.`,
-    specs: [["Molecular Formula", "C₅₁H₇₉NO₁₃"], ["Molecular Weight", "914.2 Da"], ["Target", "mTORC1 (via FKBP12)"], ["Lifespan Extension", "9–14% in mice"], ["Form", "Oral tablet"], ["Purity", "≥99% (HPLC)"]],
-  },
   37: {
     mechanism: `Humanin is a 21-amino acid peptide encoded within the 16S ribosomal RNA gene of mitochondrial DNA. It signals through a trimeric receptor complex (CNTFR-α/WSX-1/gp130) and activates STAT3 and PI3K/Akt survival pathways.`,
     pharmacology: `Humanin protects neurons against Aβ-induced and oxidative stress-induced apoptosis, reduces cardiomyocyte death from ischemic stress, protects against chemotherapy-induced gonadal toxicity, and improves insulin sensitivity. Its receptor complex is shared with CNTF, IL-27, and other cytokines.`,
@@ -487,20 +452,6 @@ const RESEARCH = {
     research: `Mouse studies demonstrate: reversal of age- and diet-induced insulin resistance, 31% increase in running capacity, protection against obesity on high-fat diet, and extended lifespan in aged mice. Human studies show exercise increases circulating MOTS-c levels, and young adults have higher MOTS-c than elderly subjects.`,
     storage: `Store lyophilized at -20°C. Reconstituted solution stable 21 days at 2–8°C. Bacteriostatic water for reconstitution.`,
     specs: [["Type", "Mitochondria-derived peptide (MDP)"], ["Molecular Weight", "~2174 Da"], ["Primary Target", "AMPK (via folate cycle inhibition)"], ["Nuclear Role", "Metabolic gene regulation"], ["Storage", "-20°C lyophilized"], ["Purity", "≥98% (HPLC)"]],
-  },
-  39: {
-    mechanism: `Pinealon is a synthetic tripeptide (Glu-Asp-Arg) derived from pineal gland tissue, studied as a bioregulator with neuroprotective and cognitive-enhancing properties. It is thought to modulate gene expression in neural tissue through interactions with chromatin-associated proteins.`,
-    pharmacology: `Research suggests Pinealon activates neuroprotective gene expression programs, increases antioxidant enzyme activity (catalase and superoxide dismutase) in brain tissue, and modulates melatonin-related pathways. Its ability to cross the blood-brain barrier has been demonstrated in animal studies using radiolabeled peptide tracking.`,
-    research: `Russian longevity research programs document Pinealon's cognitive protection in aging models, antioxidant effects in neural tissue, normalization of circadian-related gene expression, and neuroprotection against ischemia and toxic insults in brain tissue models.`,
-    storage: `Store lyophilized at -20°C. Reconstituted solution stable 28 days at 2–8°C. Standard bacteriostatic water reconstitution.`,
-    specs: [["Sequence", "Glu-Asp-Arg"], ["Origin", "Pineal gland bioregulator"], ["Molecular Weight", "~404 Da"], ["BBB Penetration", "Demonstrated in animal studies"], ["Storage", "-20°C lyophilized"], ["Purity", "≥99% (HPLC)"]],
-  },
-  40: {
-    mechanism: `Vilon (Lys-Glu) is a synthetic dipeptide bioregulator derived from thymus tissue. As a minimal dipeptide, it acts through epigenetic mechanisms — modulating chromatin structure and gene expression patterns associated with cellular differentiation and aging.`,
-    pharmacology: `Research demonstrates that Vilon activates expression of genes encoding antioxidant enzymes, immune function proteins, and longevity-associated transcription factors. Its thymic origin and immunomodulatory effects position it in cellular aging and T-cell biology research.`,
-    research: `Published research from the St. Petersburg Institute of Gerontology documents: 20–42% life extension in aging animal models, normalization of immune cell function in aged subjects, activation of longevity-associated genes, and synergistic effects with Epithalamin in combined longevity protocols.`,
-    storage: `Store lyophilized at -20°C. Reconstituted solution stable 28 days at 2–8°C. Very stable small dipeptide.`,
-    specs: [["Sequence", "Lys-Glu"], ["Origin", "Thymic dipeptide bioregulator"], ["Molecular Weight", "~275 Da"], ["Mechanism", "Epigenetic gene modulation"], ["Storage", "-20°C lyophilized"], ["Purity", "≥99% (HPLC)"]],
   },
   41: {
     mechanism: `Thymalin is a polypeptide extract from thymic tissue containing multiple bioactive peptides that collectively restore thymic function. It acts on T-cell precursors in bone marrow, the thymic microenvironment, and peripheral T-cell populations to restore age-associated immune decline.`,
@@ -536,34 +487,6 @@ const RESEARCH = {
     research: `Extensive research across stroke recovery, Alzheimer's disease, TBI, and vascular dementia. Meta-analyses of stroke trials demonstrate significant improvements in functional outcomes. Alzheimer's trials show stabilization of cognitive decline. TBI studies document accelerated neurological recovery. Cerebrolysin has been in clinical use in Europe and Asia for 50+ years.`,
     storage: `Store unopened vials at room temperature (15–25°C). Once opened, use immediately or refrigerate at 2–8°C for up to 24 hours. Cerebrolysin is supplied as aqueous solution — do not freeze.`,
     specs: [["Type", "Neuropeptide mixture (porcine brain)"], ["Molecular Weight", "<10,000 Da (peptide fragments)"], ["Key Effects", "Neurotrophic, neuroprotective, neuroplasticity"], ["Clinical Use", "50+ years (EU/Asia)"], ["Storage", "Room temp (unopened)"], ["Purity", "Standardized by bioassay"]],
-  },
-  46: {
-    mechanism: `NSI-189 is a benzylpiperazine-aminopyridine compound that stimulates hippocampal neurogenesis — the birth of new neurons in the dentate gyrus subgranular zone. Its exact molecular target remains under investigation but appears to involve phosphodiesterase inhibition and neurotrophic factor upregulation.`,
-    pharmacology: `Hippocampal neurogenesis is implicated in antidepressant effects, memory formation, and cognitive resilience. NSI-189 increases proliferation of neural progenitor cells in the hippocampus and promotes their survival and integration into existing neural circuits. Published research documents 20% increases in hippocampal volume in preclinical models.`,
-    research: `Phase 1b clinical trial in major depressive disorder demonstrated significant improvement in cognitive measures (CANTAB battery) and trend improvement in depression scores. Hippocampal volume increase was confirmed in MRI substudy. Phase 2 trials have continued evaluating NSI-189 in MDD and cognitive decline.`,
-    storage: `Store capsules at room temperature (15–25°C) away from heat and humidity. Shelf life 18–24 months.`,
-    specs: [["Type", "Small molecule neurogenic compound"], ["Primary Effect", "Hippocampal neurogenesis"], ["Hippocampal Volume", "~20% increase (preclinical)"], ["Clinical Stage", "Phase 1b/2 (MDD)"], ["Form", "Oral capsule"], ["Purity", "≥99% (HPLC)"]],
-  },
-  47: {
-    mechanism: `Noopept (N-phenylacetyl-L-prolylglycine ethyl ester) rapidly crosses the blood-brain barrier. After hydrolysis, it releases cycloprolylglycine (CPG) — an endogenous neuropeptide that modulates AMPA and NMDA receptors and increases expression of BDNF and NGF.`,
-    pharmacology: `Noopept increases acetylcholine transmission, reduces excessive calcium influx through NMDA receptor modulation, enhances BDNF and NGF expression in the hippocampus and frontal cortex, and exhibits neuroprotective effects against oxidative stress and excitotoxicity.`,
-    research: `Russian and Eastern European clinical research documents improvement in cognitive function, memory consolidation, learning, and attention in subjects with age-associated cognitive impairment. Animal studies demonstrate protection against scopolamine-induced amnesia and enhanced spatial learning in ischemia models.`,
-    storage: `Store oral capsules at room temperature (15–25°C). Protect from moisture and direct light. Shelf life 2 years.`,
-    specs: [["Type", "Synthetic dipeptide nootropic"], ["Active Metabolite", "Cycloprolylglycine (CPG)"], ["BBB Penetration", "Rapid (lipophilic)"], ["Key Targets", "BDNF/NGF upregulation, AMPA/NMDA modulation"], ["Form", "Oral capsule"], ["Purity", "≥99% (HPLC)"]],
-  },
-  48: {
-    mechanism: `P21 is a synthetic peptide derived from CNTF that acts as a partial agonist at CNTF receptors. Unlike full CNTF, P21 stimulates neurogenesis without inducing receptor desensitization — addressing a key limitation of full CNTF as a neurogenic research tool.`,
-    pharmacology: `P21 activates JAK/STAT3 and MAPK signaling downstream of CNTF receptors, promoting hippocampal neural progenitor cell proliferation and differentiation. The partial agonist profile maintains STAT3 activation at sustained levels rather than triggering the rapid receptor internalization seen with full CNTF.`,
-    research: `Animal studies demonstrate: 30–50% increase in hippocampal neurogenesis with chronic P21 administration, improvements in spatial memory performance in Morris water maze, reversal of age-associated cognitive decline in aged rodents, and neuroprotection against excitotoxic insults.`,
-    storage: `Store lyophilized at -20°C. Reconstituted solution stable 14 days at 2–8°C. Bacteriostatic water for reconstitution.`,
-    specs: [["Origin", "CNTF-derived synthetic peptide"], ["Receptor Profile", "Partial CNTF receptor agonist"], ["Primary Effect", "Hippocampal neurogenesis"], ["Advantage vs CNTF", "No receptor desensitization"], ["Storage", "-20°C lyophilized"], ["Purity", "≥98% (HPLC)"]],
-  },
-  49: {
-    mechanism: `Cortexin is a polypeptide complex extracted from the cerebral cortex of young cattle or pigs, containing multiple low-molecular-weight neuropeptides that collectively produce neurotrophic, neuroprotective, and nootropic effects.`,
-    pharmacology: `The peptide components activate multiple neuronal survival and plasticity pathways simultaneously — reducing excitotoxicity via glutamate receptor modulation, promoting neurite outgrowth through Ras/MAPK signaling, increasing antioxidant enzyme expression, and enhancing synaptic transmission. The multi-peptide composition means Cortexin targets several mechanisms in parallel.`,
-    research: `Research conducted primarily in Russian and Eastern European clinical settings documents improvements in cognitive function after stroke, TBI, and age-related cognitive decline. Controlled trials show faster neurological recovery, improved MMSE scores in early dementia, and enhanced rehabilitation outcomes following brain injury.`,
-    storage: `Store lyophilized at -20°C. Reconstituted solution stable 14 days at 2–8°C. Multi-peptide complex — handle gently. Bacteriostatic water for reconstitution.`,
-    specs: [["Type", "Polypeptide brain complex"], ["Origin", "Cerebral cortex extract (bovine/porcine)"], ["Molecular Weight", "<10,000 Da (peptide fractions)"], ["Key Applications", "Stroke, TBI, cognitive decline research"], ["Storage", "-20°C lyophilized"], ["Purity", "Standardized by activity"]],
   },
   50: {
     mechanism: `DSIP (Delta Sleep-Inducing Peptide) is a nonapeptide (Trp-Ala-Gly-Gly-Asp-Ala-Ser-Gly-Glu) originally isolated from rabbit thalamic venous blood during sleep. It appears to act on multiple systems including the serotonin/melatonin axis, opioid receptors, GABA receptors, and hypothalamic releasing hormones.`,
@@ -788,7 +711,6 @@ const PRODUCTS = [
   P(7,"metabolic","Survodutide",[{s:"10mg",p:142}],"Survodutide (BI 456906) is a potent GLP-1 and glucagon receptor co-agonist designed for metabolic and liver health research. Studies have demonstrated strong effects on weight reduction and liver fat content, with ongoing research into non-alcoholic fatty liver disease.",null,true,"injectable",["GLP-1/Glucagon co-agonist","Liver health research","NAFLD studies","Strong metabolic effects"]),
   P(8,"metabolic","Cagrilintide",[{s:"5mg",p:84},{s:"10mg",p:140}],"Cagrilintide is a long-acting amylin analogue that works through a complementary mechanism to GLP-1 agonists. Amylin regulates food intake and glucagon secretion. Research has shown that combining cagrilintide with semaglutide produces additive effects on body weight reduction.",null,true,"injectable",["Amylin receptor agonist","Complementary to GLP-1","Glucagon regulation","Combination research"]),
   P(9,"metabolic","Cagrisema (2.5+2.5mg)",[{s:"combo",p:99}],"Cagrisema is the investigational combination of cagrilintide and semaglutide in a single formulation. Phase 3 trials have demonstrated superior weight reduction compared to either compound alone, representing a convergence of two complementary metabolic pathways.",null,true,"injectable",["Dual mechanism combo","Amylin + GLP-1","Superior combo data","Phase 3 research"]),
-  P(10,"metabolic","Orforglipron",[{s:"5mg",p:99}],"Orforglipron is an oral, non-peptide GLP-1 receptor agonist — a landmark development in metabolic research. Unlike injectable GLP-1 peptides, its small molecule structure allows oral bioavailability. Research has demonstrated meaningful weight reduction with a daily oral dosing schedule.",null,true,"capsule",["Oral GLP-1 agonist","Non-peptide molecule","Daily oral dosing","Bioavailability research"]),
 
   // ── GROWTH HORMONE ──
   P(11,"growth","Ipamorelin",[{s:"2mg",p:41},{s:"5mg",p:67},{s:"10mg",p:105}],"Ipamorelin is a selective growth hormone secretagogue and ghrelin receptor agonist. It stimulates pulsatile GH release without significantly affecting cortisol, prolactin, or ACTH. Research highlights its clean GH-stimulating profile, making it one of the most studied GHRP compounds available.",null,false,"injectable",["Selective GH secretagogue","No cortisol spike","Pulsatile GH release","Clean safety profile"]),
@@ -798,7 +720,6 @@ const PRODUCTS = [
   P(15,"growth","GHRP-6",[{s:"5mg",p:38},{s:"10mg",p:62}],"GHRP-6 is one of the original synthetic growth hormone releasing peptides. Research demonstrates significant GH release along with notable appetite stimulation through ghrelin receptor activation. It remains a well-characterized research tool for GH axis studies.",null,false,"injectable",["Original GHRP compound","Significant GH release","Appetite stimulation","Ghrelin research"]),
   P(16,"growth","Hexarelin",[{s:"2mg",p:39},{s:"5mg",p:67}],"Hexarelin is a potent synthetic GHRP that produces some of the highest GH release among GHRP compounds. Research also indicates cardioprotective properties independent of GH release, with studies examining its effects on cardiac function and tissue protection.",null,false,"injectable",["Strongest GHRP","Cardiac research","High GH release","Tissue protection"]),
   P(17,"growth","Sermorelin",[{s:"2mg",p:37},{s:"5mg",p:59},{s:"10mg",p:95}],"Sermorelin is a synthetic analogue of the first 29 amino acids of endogenous GHRH. Research explores its ability to stimulate the pituitary gland to produce GH naturally. It is one of the most studied GHRH analogues in clinical research.",null,false,"injectable",["GHRH(1-29) analogue","Pituitary stimulation","Natural GH pathway","Extensively studied"]),
-  P(18,"growth","MK-677 (Ibutamoren)",[{s:"30mg x60 caps",p:77}],"MK-677 is an orally active, non-peptide ghrelin receptor agonist and growth hormone secretagogue. Research demonstrates sustained 24-hour elevation of GH and IGF-1 with once-daily oral dosing. Studies have examined effects on bone density, lean mass, and sleep quality.","Best Seller",false,"capsule",["Oral GH secretagogue","24hr GH/IGF-1 elevation","Bone density research","Sleep quality studies"]),
   P(19,"growth","Tesamorelin",[{s:"2mg",p:52},{s:"5mg",p:88},{s:"10mg",p:138},{s:"20mg",p:242}],"Tesamorelin is a stabilized GHRH analogue with a trans-3-hexenoic acid modification that extends its half-life. Research has focused on its ability to reduce visceral fat accumulation. It produces physiological GH release patterns.",null,false,"injectable",["Stabilized GHRH analogue","Visceral fat research","Physiological GH pattern","Extended half-life"]),
   P(20,"growth","IGF-1 LR3",[{s:"1mg",p:88}],"IGF-1 LR3 is a recombinant analogue of insulin-like growth factor-1 engineered with a 13-amino acid N-terminal extension and an arginine substitution at position 3. These modifications reduce binding to IGF-binding proteins and extend its half-life to approximately 20 hours, making it a powerful tool for growth factor signaling research.",null,true,"injectable",["IGF-1R agonist","Extended half-life","Anabolic signaling","PI3K/Akt pathway"]),
   P(21,"growth","Follistatin 344",[{s:"1mg",p:113}],"Follistatin 344 (FST-344) is a glycoprotein that acts as a potent antagonist of myostatin and activin, thereby removing key inhibitors of muscle growth. Research in animal models has demonstrated significant increases in muscle mass. It is one of the most studied proteins in muscle biology research.",null,true,"injectable",["Myostatin antagonist","Activin inhibitor","Muscle mass research","Animal model data"]),
@@ -812,19 +733,14 @@ const PRODUCTS = [
   P(27,"recovery","LL-37",[{s:"5mg",p:70}],"LL-37 is a human cathelicidin antimicrobial peptide. Research examines its broad-spectrum antimicrobial activity, immune modulation, wound healing promotion, and angiogenic properties. It has shown promise in infection resistance and skin repair studies.",null,false,"injectable",["Human cathelicidin","Antimicrobial research","Immune modulation","Wound healing"]),
   P(28,"recovery","GHK-Cu",[{s:"50mg",p:45},{s:"100mg",p:77}],"GHK-Cu is a naturally occurring tripeptide with high affinity for copper ions. Research has documented effects on collagen synthesis, wound healing, hair follicle stimulation, and antioxidant activity. It is one of the most extensively studied peptides in regenerative research.",null,false,"injectable",["Copper-binding tripeptide","Collagen synthesis","Hair follicle research","Antioxidant activity"]),
   P(29,"recovery","Thymosin Alpha-1",[{s:"5mg",p:64},{s:"10mg",p:105}],"Thymosin Alpha-1 is a 28-amino acid peptide derived from prothymosin alpha. Research demonstrates potent immune system modulation, particularly in enhancing T-cell function and dendritic cell activity. It has been investigated for immune deficiency, viral infections, and cancer immunotherapy support.",null,false,"injectable",["Immune modulator","T-cell enhancement","Antiviral research","Cancer support studies"]),
-  P(30,"recovery","Pentadeca Arginate (PDA)",[{s:"5mg",p:52}],"Pentadeca Arginate is a novel synthetic peptide and structural analogue of BPC-157, stabilized with arginine. Research suggests it shares BPC-157's tissue protective and healing properties while offering enhanced stability. Early studies indicate potential for gut protection and anti-inflammatory activity.",null,true,"injectable",["BPC-157 analogue","Arginine-stabilized","Enhanced stability","Gut protection"]),
   P(31,"recovery","SS-31 (Elamipretide)",[{s:"5mg",p:88},{s:"10mg",p:148}],"SS-31 (Elamipretide) is a mitochondria-targeted tetrapeptide that selectively concentrates in the inner mitochondrial membrane. Research demonstrates protection against mitochondrial dysfunction, oxidative stress, and cellular energy failure in models of heart failure, ischemia-reperfusion, and aging.",null,false,"injectable",["Mitochondria-targeted","Oxidative stress research","Cardioprotective","Energy metabolism"]),
   P(32,"recovery","VIP (Vasoactive Intestinal Peptide)",[{s:"5mg",p:70},{s:"10mg",p:113}],"VIP is a 28-amino acid neuropeptide with broad biological activity across the nervous, immune, and endocrine systems. Research examines its potent anti-inflammatory effects, bronchodilatory properties, neuroprotection, and immune modulation. It has been studied in models of pulmonary hypertension and autoimmune conditions.",null,false,"injectable",["Neuropeptide","Anti-inflammatory","Bronchodilatory research","Immune modulation"]),
 
   // ── LONGEVITY ──
   P(33,"longevity","Epitalon",[{s:"10mg",p:52},{s:"50mg",p:210}],"Epitalon is a synthetic tetrapeptide derived from Epithalamin, a natural polypeptide from the pineal gland. Research has focused on its telomerase activation properties, antioxidant activity, and potential anti-aging effects. Studies suggest it may regulate melatonin production and circadian rhythms.",null,false,"injectable",["Telomerase activation","Pineal gland derived","Circadian regulation","Anti-aging research"]),
   P(34,"longevity","NAD+",[{s:"100mg",p:48},{s:"500mg",p:73},{s:"1000mg",p:127}],"NAD+ is a critical coenzyme in cellular energy metabolism present in every living cell. Research has extensively documented its role in mitochondrial function, DNA repair via sirtuins and PARPs, and cellular aging processes. Levels decline significantly with age.",null,false,"injectable",["Mitochondrial function","DNA repair pathway","Sirtuin activation","Cellular aging research"]),
-  P(35,"longevity","NMN",[{s:"500mg x60 caps",p:70}],"NMN is a direct biosynthetic precursor to NAD+. Research demonstrates that supplemental NMN effectively raises intracellular NAD+ levels. Studies have examined its effects on metabolic function, muscle performance, cognitive health, and markers of biological aging.",null,false,"capsule",["NAD+ precursor","Raises NAD+ levels","Metabolic function","Biological aging markers"]),
-  P(36,"longevity","Rapamycin",[{s:"5mg x30 tabs",p:116}],"Rapamycin is an mTOR inhibitor with extensive research applications in aging biology, immunosuppression, and cancer. By inhibiting the mTOR signaling pathway, it activates autophagy and has shown remarkable life extension in multiple animal models. It remains one of the most studied longevity compounds.",null,false,"capsule",["mTOR inhibitor","Autophagy activator","Life extension research","Most studied longevity"]),
   P(37,"longevity","Humanin",[{s:"10mg",p:70}],"Humanin is a 21-amino acid mitochondria-derived peptide encoded within the 16S ribosomal RNA region of mitochondrial DNA. Research has demonstrated neuroprotective, cardioprotective, and cytoprotective properties. Circulating humanin levels decline with age.",null,false,"injectable",["Mitochondria-derived","Neuroprotective","Cardioprotective","Declines with age"]),
   P(38,"longevity","MOTS-c",[{s:"10mg",p:88},{s:"15mg",p:120},{s:"20mg",p:156},{s:"40mg",p:260}],"MOTS-c is a mitochondria-derived peptide encoded in the mitochondrial genome. Research demonstrates its role in regulating metabolic homeostasis, insulin sensitivity, and exercise capacity. Studies suggest it acts as a mitochondrial signal to the nucleus influencing gene expression related to metabolism.",null,false,"injectable",["Mitochondrial peptide","Insulin sensitivity","Exercise capacity","Metabolic homeostasis"]),
-  P(39,"longevity","Pinealon",[{s:"10mg",p:56}],"Pinealon is a synthetic tripeptide studied for its neuroprotective and cognitive-enhancing properties. Research has investigated its effects on brain aging, cognitive function, and antioxidant activity in neural tissue. It is thought to penetrate the blood-brain barrier effectively.",null,false,"injectable",["Neuroprotective","Blood-brain barrier active","Cognitive function","Neural antioxidant"]),
-  P(40,"longevity","Vilon",[{s:"10mg",p:47}],"Vilon is a synthetic dipeptide bioregulator derived from the thymus. Research has examined its immunomodulatory properties and role in regulating cellular aging processes. Studies suggest it activates gene expression associated with longevity pathways.",null,false,"injectable",["Thymic dipeptide","Bioregulator","Immune modulation","Aging gene research"]),
   P(41,"longevity","Thymalin",[{s:"10mg",p:53}],"Thymalin is a polypeptide extract from thymic tissue studied for its broad immunomodulatory properties. Research demonstrates restoration of T-cell function, improved immune responses, and potential anti-aging effects through thymic pathway activation.",null,false,"injectable",["Thymic polypeptide","T-cell restoration","Immune function","Anti-aging research"]),
 
   // ── COGNITIVE & NEURO ──
@@ -832,10 +748,6 @@ const PRODUCTS = [
   P(43,"neuro","Selank",[{s:"5mg",p:52},{s:"10mg",p:88}],"Selank is a synthetic analogue of the human tetrapeptide tuftsin. Research examines its anxiolytic, nootropic, and immunomodulatory properties. Unlike traditional anxiolytics, it does not appear to cause sedation, tolerance, or dependence in research models.",null,false,"injectable",["Tuftsin analogue","Anxiolytic without sedation","Nootropic properties","No tolerance observed"]),
   P(44,"neuro","Dihexa",[{s:"10mg",p:95}],"Dihexa is a potent nootropic peptide derived from angiotensin IV. Research has shown it to be several orders of magnitude more potent than BDNF in promoting new synapse formation. Studies have examined its effects on cognitive deficits and neurodegenerative conditions.",null,false,"injectable",["Angiotensin IV derivative","Synaptogenesis","Potent nootropic","Neurodegeneration research"]),
   P(45,"neuro","Cerebrolysin",[{s:"60mg",p:56}],"Cerebrolysin is a mixture of neuropeptides derived from purified porcine brain proteins. Extensive research has examined its neurotrophic, neuroprotective, and neuroplasticity-enhancing properties. Studies cover stroke recovery, traumatic brain injury, and neurodegenerative disease models.",null,false,"injectable",["Neurotrophic peptide mix","Stroke recovery research","TBI applications","Neuroplasticity"]),
-  P(46,"neuro","NSI-189",[{s:"50mg",p:81}],"NSI-189 is a neurogenic compound that stimulates hippocampal neurogenesis — the growth of new neurons in the hippocampus. Research has documented increases in hippocampal volume and cognitive improvements, particularly in depression and cognitive decline research.",null,false,"capsule",["Hippocampal neurogenesis","New neuron growth","Depression research","Cognitive improvement"]),
-  P(47,"neuro","Noopept",[{s:"30mg x60 caps",p:45}],"Noopept is a synthetic dipeptide nootropic that rapidly crosses the blood-brain barrier. Research demonstrates upregulation of BDNF and NGF, enhanced memory consolidation, and neuroprotective effects against excitotoxicity.",null,false,"capsule",["Dipeptide nootropic","BDNF & NGF upregulation","Blood-brain barrier active","Memory consolidation"]),
-  P(48,"neuro","P21",[{s:"1mg",p:73}],"P21 is a synthetic peptide derived from CNTF (Ciliary Neurotrophic Factor) that promotes neurogenesis and cognitive function. Research has examined its effects on hippocampal neurogenesis, spatial memory, and neuroprotection without the receptor desensitization seen with full CNTF.",null,true,"injectable",["CNTF-derived peptide","Hippocampal neurogenesis","Spatial memory research","No receptor desensitization"]),
-  P(49,"neuro","Cortexin",[{s:"10mg",p:49}],"Cortexin is a polypeptide complex derived from the cerebral cortex of young animals. Research has examined its broad neuroprotective, nootropic, and tissue-repair properties. Studies document improved cognitive function and recovery in models of brain injury and neurodegenerative conditions.",null,false,"injectable",["Polypeptide nootropic","Neuroprotective complex","Brain injury research","Cognitive function"]),
   P(50,"neuro","DSIP (Delta Sleep Inducing Peptide)",[{s:"2mg",p:45},{s:"5mg",p:69}],"DSIP is a nonapeptide originally isolated from rabbit brain during sleep. Research has examined its effects on sleep architecture, stress response modulation, and pain regulation. Studies also explore its influence on hormone release including GH and cortisol.",null,false,"injectable",["Sleep architecture research","Stress modulation","GH release influence","Pain regulation"]),
   P(51,"neuro","Adamax",[{s:"5mg",p:86}],"Adamax is a next-generation nootropic peptide combining adamantane with a tripeptide backbone for enhanced blood-brain barrier penetration. Research examines its cognitive-enhancing and neuroprotective properties, with studies suggesting potent effects on memory consolidation and neural resilience.",null,true,"injectable",["Enhanced BBB penetration","Cognitive enhancement","Memory consolidation","Neuroprotective"]),
   P(52,"neuro","PE-22-28",[{s:"5mg",p:73}],"PE-22-28 is a synthetic peptide fragment of spadin, itself derived from the TREK-1 potassium channel propeptide. Research has demonstrated rapid antidepressant effects in animal models, acting through a mechanism distinct from classical antidepressants with a notably fast onset of action.",null,true,"injectable",["TREK-1 channel modulator","Antidepressant research","Rapid onset action","Novel mechanism"]),
@@ -921,6 +833,11 @@ function Badge({ badge, isNew }) {
     </div>
   );
 }
+  // ── Added from supplier list ──
+  P(80,"growth","HGH (Somatropin)",[{s:"10iu",p:129},{s:"12iu",p:149},{s:"15iu",p:175},{s:"24iu",p:245}],"Human Growth Hormone (Somatropin) is the full 191-amino acid sequence recombinant hGH used extensively in growth and metabolic research. Studies examine its effects on lean mass accretion, lipolysis, IGF-1 signaling, bone density, and recovery. Each vial is supplied as lyophilized powder requiring reconstitution with bacteriostatic water.",null,false,"injectable",["191aa sequence","IGF-1 stimulation","Lean mass research","Lipolysis & recovery"]),
+  P(81,"recovery","CJC-1295 + Ipamorelin Blend",[{s:"10mg (5+5)",p:69}],"A pre-combined blend of CJC-1295 (without DAC) and Ipamorelin in equal 5mg portions per vial. Research documents synergistic GHRH + GHRP action: CJC-1295 extends the GH pulse window while Ipamorelin triggers a clean, selective GH release without significant cortisol or prolactin elevation. One of the most studied GH-axis stacks.",null,false,"injectable",["Synergistic GHRH+GHRP","Clean GH pulse","No cortisol spike","Most studied GH stack"]),
+  P(82,"recovery","BPC+GHK-Cu+TB500+KPV Quad Blend",[{s:"80mg",p:145}],"A comprehensive recovery blend combining BPC-157 (10mg), GHK-Cu (50mg), TB-500 (10mg), and KPV (10mg) in a single vial. Research on each component documents complementary mechanisms: BPC-157 for gut and tendon repair, GHK-Cu for collagen and wound healing, TB-500 for systemic tissue regeneration, and KPV for anti-inflammatory signalling.",null,true,"injectable",["Quad-peptide recovery","BPC+GHK+TB500+KPV","Anti-inflammatory","Comprehensive healing"]),
+  P(83,"metabolic","FTPP Adipotide",[{s:"5mg",p:59}],"FTPP Adipotide (also listed as Adipotide or FTPP) is a pro-apoptotic peptide that selectively targets the vasculature of white adipose tissue. Research has demonstrated significant reductions in visceral fat in primate models. It acts by inducing apoptosis specifically in blood vessels supplying fat deposits, representing a mechanistically novel fat-reduction approach.",null,false,"injectable",["Pro-apoptotic","Adipose vasculature targeting","Visceral fat research","Primate model data"]),
 
 /* ─── PRODUCT CARD ─── */
 
@@ -934,18 +851,24 @@ const FBT = {
   23: [24, 41],    // BPC-157 → TB-500, GHK-Cu
   24: [23, 41],    // TB-500 → BPC-157, GHK-Cu
   41: [23, 24],    // GHK-Cu → BPC-157, TB-500
-  // Growth
-  12: [13, 17],    // Ipamorelin → CJC-1295, MK-677
-  13: [12, 17],    // CJC-1295 → Ipamorelin, MK-677
-  17: [12, 13],    // MK-677 → Ipamorelin, CJC-1295
+  82: [23, 24],    // BPC+GHK+TB+KPV Quad → BPC-157, TB-500
+  // Growth / GH axis
+  12: [81, 13],    // Ipamorelin → CJC+IPA Blend, CJC-1295
+  13: [81, 12],    // CJC-1295 → CJC+IPA Blend, Ipamorelin
+  81: [12, 13],    // CJC+IPA Blend → Ipamorelin, CJC-1295
+  80: [12, 13],    // HGH → Ipamorelin, CJC-1295
+  14: [80, 12],    // Tesamorelin → HGH, Ipamorelin
   // Neuro
-  50: [51, 52],    // Semax → Selank, Noopept
-  51: [50, 52],    // Selank → Semax, Noopept
-  52: [50, 51],    // Noopept → Semax, Selank
+  50: [51, 53],    // Semax → Selank, Dihexa
+  51: [50, 53],    // Selank → Semax, Dihexa
+  53: [50, 51],    // Dihexa → Semax, Selank
   // Longevity
-  60: [61, 62],    // NAD+ → NMN, Epitalon
-  61: [60, 62],    // NMN → NAD+, Epitalon
-  62: [60, 61],    // Epitalon → NAD+, NMN
+  60: [62, 58],    // NAD+ → Epitalon, MOTS-c
+  62: [60, 58],    // Epitalon → NAD+, MOTS-c
+  58: [60, 62],    // MOTS-c → NAD+, Epitalon
+  // Metabolic / fat loss
+  83: [7, 8],      // FTPP Adipotide → AOD9604, L-Carnitine
+  7:  [83, 8],     // AOD9604 → FTPP Adipotide, L-Carnitine
 };
 
 function StarRow({ avg, count, small }) {
@@ -1121,14 +1044,13 @@ const HOMEPAGE_SCHEMA = [
     "name": "Research Peptides Catalog",
     "description": "Research-grade peptides, GLP-1 agonists, SARMs, and analytical compounds",
     "url": "https://aeterionpeptides.com",
-    "numberOfItems": 79,
+    "numberOfItems": 72,
     "itemListElement": [
       { "@type": "ListItem", "position": 1, "name": "Semaglutide", "url": "https://aeterionpeptides.com/products/semaglutide" },
       { "@type": "ListItem", "position": 2, "name": "Tirzepatide", "url": "https://aeterionpeptides.com/products/tirzepatide" },
       { "@type": "ListItem", "position": 3, "name": "BPC-157", "url": "https://aeterionpeptides.com/products/bpc-157" },
       { "@type": "ListItem", "position": 4, "name": "TB-500", "url": "https://aeterionpeptides.com/products/tb-500" },
       { "@type": "ListItem", "position": 5, "name": "Retatrutide", "url": "https://aeterionpeptides.com/products/retatrutide" },
-      { "@type": "ListItem", "position": 6, "name": "MK-677", "url": "https://aeterionpeptides.com/products/mk-677" },
       { "@type": "ListItem", "position": 7, "name": "CJC-1295", "url": "https://aeterionpeptides.com/products/cjc-1295-with-dac" },
       { "@type": "ListItem", "position": 8, "name": "Ipamorelin", "url": "https://aeterionpeptides.com/products/ipamorelin" },
       { "@type": "ListItem", "position": 9, "name": "NAD+", "url": "https://aeterionpeptides.com/products/nad" },
@@ -1269,7 +1191,7 @@ export default function App() {
       setMeta("description", "Aeterion Peptides terms of service, privacy policy, return policy, and research-use-only disclaimer.");
     } else {
       document.title = "Buy Research Peptides Online | Aeterion Peptides — GLP-1, BPC-157, TB-500 & More";
-      setMeta("description", "Shop 79+ research-grade peptides and analytical compounds at Aeterion Peptides. GLP-1 agonists, BPC-157, TB-500, NAD+, cognitive peptides and more. COA with every order. Fast USA dispatch.");
+      setMeta("description", "Shop 72+ research-grade peptides and analytical compounds at Aeterion Peptides. GLP-1 agonists, BPC-157, TB-500, NAD+, cognitive peptides and more. COA with every order. Fast USA dispatch.");
     }
   }, [page]);
 
@@ -3149,7 +3071,7 @@ export default function App() {
           <div style={{ position: "absolute", top: -40, right: -30, width: 180, height: 180, borderRadius: "50%", background: "rgba(255,255,255,0.06)", pointerEvents: "none" }} />
           <div style={{ position: "absolute", bottom: -20, left: -20, width: 120, height: 120, borderRadius: "50%", background: "rgba(255,255,255,0.05)", pointerEvents: "none" }} />
           <div style={{ position: "relative" }}>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.16)", borderRadius: 24, padding: "5px 16px", fontSize: 10, color: "rgba(255,255,255,0.95)", fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 16, border: "1px solid rgba(255,255,255,0.2)" }}>✅ 79 Research Compounds · COA Included</div>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.16)", borderRadius: 24, padding: "5px 16px", fontSize: 10, color: "rgba(255,255,255,0.95)", fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 16, border: "1px solid rgba(255,255,255,0.2)" }}>✅ 72 Research Compounds · COA Included</div>
             <h1 style={{ color: "#fff", fontSize: 30, fontWeight: 900, margin: "0 0 10px", lineHeight: 1.15, letterSpacing: -0.5 }}>Buy Research Peptides Online<br />GLP-1, BPC-157, TB-500 & More</h1>
             <p style={{ color: "rgba(255,255,255,0.82)", fontSize: 13, lineHeight: 1.75, margin: "0 0 22px" }}>GLP-1s · SARMs · Nootropics · Longevity<br />Every order ships with a Certificate of Analysis.</p>
             <div style={{ display: "flex", gap: 10, justifyContent: "center", marginBottom: 28 }}>
@@ -3157,7 +3079,7 @@ export default function App() {
               <button onClick={() => setCat("metabolic")} style={{ background: "rgba(255,255,255,0.15)", color: "#fff", border: "1.5px solid rgba(255,255,255,0.4)", borderRadius: 24, padding: "12px 22px", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>GLP-1 →</button>
             </div>
             <div style={{ display: "flex", gap: 0, justifyContent: "center", background: "rgba(255,255,255,0.1)", borderRadius: 16, padding: "12px 0", border: "1px solid rgba(255,255,255,0.12)" }}>
-              {[["79","Products"],["≥99%","Purity"],["1-2d","Processing"],["COA","Included"],["🇺🇸","USA Ships"]].map(([v,l], idx, arr) => (
+              {[["72","Products"],["≥99%","Purity"],["1-2d","Processing"],["COA","Included"],["🇺🇸","USA Ships"]].map(([v,l], idx, arr) => (
                 <div key={l} style={{ flex: 1, textAlign: "center", borderRight: idx < arr.length-1 ? "1px solid rgba(255,255,255,0.15)" : "none" }}>
                   <div style={{ fontSize: 17, fontWeight: 900, color: "#fff" }}>{v}</div>
                   <div style={{ fontSize: 9, color: "rgba(255,255,255,0.85)", letterSpacing: 1, textTransform: "uppercase", marginTop: 2 }}>{l}</div>
@@ -3306,7 +3228,7 @@ export default function App() {
         <div style={{ background: "linear-gradient(135deg,#1a6ed8 0%,#2563eb 60%,#3b82f6 100%)", padding: "68px 24px 56px", position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", top: -100, right: -80, width: 400, height: 400, borderRadius: "50%", background: "rgba(255,255,255,0.05)" }} />
           <div style={{ maxWidth: 800, margin: "0 auto", textAlign: "center", position: "relative" }}>
-            <div style={{ display: "inline-block", background: "rgba(255,255,255,0.18)", borderRadius: 24, padding: "6px 22px", fontSize: 11, color: "rgba(255,255,255,0.95)", fontWeight: 600, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 22 }}>79 Research Compounds · Third-Party Tested · COA Included</div>
+            <div style={{ display: "inline-block", background: "rgba(255,255,255,0.18)", borderRadius: 24, padding: "6px 22px", fontSize: 11, color: "rgba(255,255,255,0.95)", fontWeight: 600, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 22 }}>72 Research Compounds · Third-Party Tested · COA Included</div>
             <h1 style={{ fontSize: 52, fontWeight: 900, margin: "0 0 16px", lineHeight: 1.04, color: "#fff", letterSpacing: -1.5 }}>Buy Research Peptides Online<br /><span style={{ opacity: 0.85 }}>GLP-1, BPC-157, TB-500 & More</span></h1>
             <p style={{ fontSize: 16, color: "rgba(255,255,255,0.82)", lineHeight: 1.75, margin: "0 0 32px", maxWidth: 560, marginLeft: "auto", marginRight: "auto" }}>Aeterion supplies <strong style={{ color: "#fff" }}>research-grade peptides, GLP-1 agonists, SARMs, and analytical compounds</strong>. Every order ships with a Certificate of Analysis.</p>
             <div style={{ display: "flex", gap: 14, justifyContent: "center", marginBottom: 44 }}>
@@ -3315,7 +3237,7 @@ export default function App() {
               <button onClick={() => setShowQuiz(true)} style={{ background: "rgba(255,255,255,0.12)", color: "#fff", border: "2px solid rgba(255,255,255,0.3)", borderRadius: 12, padding: "14px 32px", fontSize: 15, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", backdropFilter: "blur(8px)" }}>🧪 Build My Stack</button>
             </div>
             <div style={{ display: "flex", gap: 48, justifyContent: "center", flexWrap: "wrap" }}>
-              {[["79","Compounds"],["≥99%","Avg Purity"],["1-2d","Processing"],["COA","Every Order"],["8–18%","Bulk Savings"]].map(([v,l]) => (
+              {[["72","Compounds"],["≥99%","Avg Purity"],["1-2d","Processing"],["COA","Every Order"],["8–18%","Bulk Savings"]].map(([v,l]) => (
                 <div key={l} style={{ textAlign: "center" }}>
                   <div style={{ fontSize: 26, fontWeight: 900, color: "#fff" }}>{v}</div>
                   <div style={{ fontSize: 10, color: "rgba(255,255,255,0.85)", letterSpacing: 1.5, textTransform: "uppercase", marginTop: 3 }}>{l}</div>
@@ -3563,18 +3485,18 @@ export default function App() {
           },
           growth:{
             beginner:[{name:"Ipamorelin",reason:"Clean GH pulse, no cortisol spike"},{name:"CJC-1295 (no DAC)",reason:"Pairs perfectly with Ipamorelin"}],
-            mid:[{name:"Tesamorelin",reason:"Stabilized GHRH, reduces visceral fat"},{name:"MK-677 (Ibutamoren)",reason:"Oral, 24hr GH elevation"}],
+            mid:[{name:"Tesamorelin",reason:"Stabilized GHRH, reduces visceral fat"},{name:"HGH (Somatropin)",reason:"Full 191aa sequence, peak GH/IGF-1 elevation"}],
             advanced:[{name:"IGF-1 LR3",reason:"Extended half-life IGF-1 analogue"},{name:"Follistatin 344",reason:"Myostatin inhibition"},{name:"MOTS-c",reason:"Mitochondrial peptide, exercise capacity"}],
           },
           neuro:{
-            beginner:[{name:"Semax",reason:"BDNF upregulation, focus and memory"},{name:"Noopept",reason:"Oral nootropic, crosses BBB easily"}],
+            beginner:[{name:"Semax",reason:"BDNF upregulation, focus and memory"},{name:"Selank",reason:"Anxiolytic + nootropic, no sedation"}],
             mid:[{name:"Selank",reason:"Anxiolytic + nootropic without sedation"},{name:"Dihexa",reason:"Potent synaptogenesis"}],
-            advanced:[{name:"Dihexa",reason:"Most potent synaptogenesis compound"},{name:"PE-22-28",reason:"TREK-1 modulator, rapid antidepressant"},{name:"P21",reason:"CNTF-derived hippocampal neurogenesis"}],
+            advanced:[{name:"Dihexa",reason:"Most potent synaptogenesis compound"},{name:"PE-22-28",reason:"TREK-1 modulator, rapid antidepressant"},{name:"VIP (Vasoactive Intestinal Peptide)",reason:"Neuropeptide with broad cognitive and anti-inflammatory research"}],
           },
           longevity:{
-            beginner:[{name:"NAD+",reason:"Foundational longevity coenzyme"},{name:"NMN",reason:"Direct NAD+ precursor, oral"}],
+            beginner:[{name:"NAD+",reason:"Foundational longevity coenzyme"},{name:"MOTS-c",reason:"Mitochondrial peptide, metabolic health"}],
             mid:[{name:"Epitalon",reason:"Telomerase activation research"},{name:"MOTS-c",reason:"Mitochondrial signaling"}],
-            advanced:[{name:"Rapamycin",reason:"mTOR inhibitor, strongest longevity data"},{name:"FOXO4-DRI",reason:"Senolytic — clears senescent cells"},{name:"Humanin",reason:"Mitochondria-derived neuroprotection"}],
+            advanced:[{name:"Epitalon",reason:"Telomerase activation, pineal bioregulator"},{name:"FOXO4-DRI",reason:"Senolytic — clears senescent cells"},{name:"Humanin",reason:"Mitochondria-derived neuroprotection"}],
           },
         };
         return (
