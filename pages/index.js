@@ -1089,6 +1089,12 @@ export default function App() {
   const [quizStep, setQuizStep] = useState(0);
   const [quizAnswers, setQuizAnswers] = useState({});
   const [quizResult, setQuizResult] = useState(null);
+
+  // ── AI Research Assistant ──
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [chatInput, setChatInput] = useState("");
+  const [chatStreaming, setChatStreaming] = useState(false);
   const [reviews, setReviews] = useState({});
   const [showReviewForm, setShowReviewForm] = useState(null); // productId
   const [reviewDraft, setReviewDraft] = useState({ name: "", rating: 5, text: "" });
@@ -3241,6 +3247,194 @@ export default function App() {
 
       <MobileMenu /><ProductModal />{cartDrawerJSX}
 
+
+      {/* ══════════ AI RESEARCH ASSISTANT ══════════ */}
+      {(() => {
+        const SUGGESTIONS = [
+          "Best stack for fat loss?",
+          "GLP-1 comparison — Sema vs Tirze vs Retatra?",
+          "Recovery stack for joint repair?",
+          "Best nootropic peptides for focus?",
+          "GH axis stack for beginners?",
+          "What's the difference between BPC-157 and TB-500?",
+        ];
+
+        const sendMessage = async (text) => {
+          if (!text.trim() || chatStreaming) return;
+          const userMsg = { role: "user", content: text.trim() };
+          const newMessages = [...chatMessages, userMsg];
+          setChatMessages(newMessages);
+          setChatInput("");
+          setChatStreaming(true);
+
+          // Add empty assistant message to stream into
+          setChatMessages(prev => [...prev, { role: "assistant", content: "" }]);
+
+          try {
+            const res = await fetch("/api/peptide-chat", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ messages: newMessages }),
+            });
+
+            const reader = res.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = "";
+
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              buffer += decoder.decode(value, { stream: true });
+              const lines = buffer.split("\n");
+              buffer = lines.pop();
+
+              for (const line of lines) {
+                if (!line.startsWith("data: ")) continue;
+                const data = line.slice(6);
+                if (data === "[DONE]") continue;
+                try {
+                  const parsed = JSON.parse(data);
+                  if (parsed.text) {
+                    setChatMessages(prev => {
+                      const updated = [...prev];
+                      updated[updated.length - 1] = {
+                        ...updated[updated.length - 1],
+                        content: updated[updated.length - 1].content + parsed.text,
+                      };
+                      return updated;
+                    });
+                  }
+                } catch {}
+              }
+            }
+          } catch (err) {
+            setChatMessages(prev => {
+              const updated = [...prev];
+              updated[updated.length - 1] = { role: "assistant", content: "Connection error. Please try again." };
+              return updated;
+            });
+          } finally {
+            setChatStreaming(false);
+          }
+        };
+
+        return (
+          <>
+            {/* Floating button */}
+            <button
+              onClick={() => setChatOpen(o => !o)}
+              style={{
+                position: "fixed", bottom: mob ? 82 : 28, right: 24, zIndex: 8000,
+                width: 56, height: 56, borderRadius: "50%",
+                background: chatOpen ? "#0f172a" : "linear-gradient(135deg,#1a6ed8,#2563eb)",
+                border: chatOpen ? "2px solid #334155" : "none",
+                color: "#fff", fontSize: 22, cursor: "pointer",
+                boxShadow: "0 4px 20px rgba(26,110,216,0.4)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                transition: "all .2s",
+              }}
+              title="AI Research Assistant"
+            >
+              {chatOpen ? "✕" : "🔬"}
+            </button>
+
+            {/* Chat panel */}
+            {chatOpen && (
+              <div style={{
+                position: "fixed", bottom: mob ? 150 : 96, right: 24, zIndex: 7999,
+                width: mob ? "calc(100vw - 32px)" : 380,
+                maxHeight: mob ? "65vh" : 540,
+                background: "#0f172a", borderRadius: 20,
+                border: "1px solid #1e293b",
+                boxShadow: "0 24px 60px rgba(0,0,0,0.5)",
+                display: "flex", flexDirection: "column", overflow: "hidden",
+              }}>
+
+                {/* Header */}
+                <div style={{ padding: "16px 18px 14px", borderBottom: "1px solid #1e293b", background: "#0f172a" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <div style={{ width: 34, height: 34, borderRadius: "50%", background: "linear-gradient(135deg,#1a6ed8,#3b82f6)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>🔬</div>
+                    <div>
+                      <div style={{ fontSize: 14, fontWeight: 800, color: "#f8fafc" }}>Research Assistant</div>
+                      <div style={{ fontSize: 11, color: "#4ade80", fontWeight: 600, display: "flex", alignItems: "center", gap: 4 }}>
+                        <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#4ade80", display: "inline-block" }} />
+                        Powered by Claude · Aeterion Catalog
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Messages */}
+                <div style={{ flex: 1, overflowY: "auto", padding: "14px 16px", display: "flex", flexDirection: "column", gap: 12 }}
+                  ref={el => { if (el) el.scrollTop = el.scrollHeight; }}>
+
+                  {chatMessages.length === 0 && (
+                    <div>
+                      <div style={{ fontSize: 13, color: "#94a3b8", lineHeight: 1.6, marginBottom: 14 }}>
+                        Ask me anything about research compounds, stacks, mechanisms, or protocols. I know the full Aeterion catalog.
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                        {SUGGESTIONS.map((s, i) => (
+                          <button key={i} onClick={() => sendMessage(s)}
+                            style={{ textAlign: "left", background: "#1e293b", border: "1px solid #334155", borderRadius: 10, padding: "9px 13px", fontSize: 12, color: "#cbd5e1", cursor: "pointer", fontFamily: "inherit", transition: "border-color .15s" }}
+                            onMouseEnter={e => e.currentTarget.style.borderColor = "#1a6ed8"}
+                            onMouseLeave={e => e.currentTarget.style.borderColor = "#334155"}>
+                            {s}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {chatMessages.map((m, i) => (
+                    <div key={i} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start" }}>
+                      <div style={{
+                        maxWidth: "85%", padding: "10px 14px", borderRadius: m.role === "user" ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
+                        background: m.role === "user" ? "#1a6ed8" : "#1e293b",
+                        fontSize: 13, color: m.role === "user" ? "#fff" : "#e2e8f0",
+                        lineHeight: 1.65, whiteSpace: "pre-wrap", wordBreak: "break-word",
+                      }}>
+                        {m.content}
+                        {m.role === "assistant" && chatStreaming && i === chatMessages.length - 1 && (
+                          <span style={{ display: "inline-block", width: 8, height: 13, background: "#4ade80", borderRadius: 2, marginLeft: 3, animation: "blink 1s infinite" }} />
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Input */}
+                <div style={{ padding: "12px 14px", borderTop: "1px solid #1e293b", display: "flex", gap: 8 }}>
+                  <input
+                    value={chatInput}
+                    onChange={e => setChatInput(e.target.value)}
+                    onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(chatInput); } }}
+                    placeholder="Ask about compounds, stacks, protocols…"
+                    disabled={chatStreaming}
+                    autoComplete="off"
+                    style={{ flex: 1, background: "#1e293b", border: "1.5px solid #334155", borderRadius: 10, padding: "10px 14px", fontSize: 13, color: "#f1f5f9", outline: "none", fontFamily: "inherit", resize: "none" }}
+                    onFocus={e => e.target.style.borderColor = "#1a6ed8"}
+                    onBlur={e => e.target.style.borderColor = "#334155"}
+                  />
+                  <button
+                    onClick={() => sendMessage(chatInput)}
+                    disabled={chatStreaming || !chatInput.trim()}
+                    style={{ background: chatStreaming || !chatInput.trim() ? "#1e293b" : "#1a6ed8", border: "none", borderRadius: 10, width: 40, height: 40, cursor: chatStreaming ? "wait" : "pointer", color: "#fff", fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "background .15s" }}>
+                    {chatStreaming ? "⏳" : "↑"}
+                  </button>
+                </div>
+
+                <div style={{ padding: "6px 14px 10px", fontSize: 10, color: "#334155", textAlign: "center" }}>
+                  For research purposes only · Not medical advice
+                </div>
+              </div>
+            )}
+
+            <style>{`@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }`}</style>
+          </>
+        );
+      })()}
+
       {/* ══════════ EMAIL CAPTURE POPUP (mobile) ══════════ */}
       {emailPopup && !emailPopupDone && (
         <div style={{ position:"fixed",inset:0,background:"rgba(0,0,0,0.75)",zIndex:9000,display:"flex",alignItems:"center",justifyContent:"center",padding:20 }}
@@ -3575,6 +3769,194 @@ export default function App() {
           </div>
         </div>
       </footer>
+
+
+      {/* ══════════ AI RESEARCH ASSISTANT ══════════ */}
+      {(() => {
+        const SUGGESTIONS = [
+          "Best stack for fat loss?",
+          "GLP-1 comparison — Sema vs Tirze vs Retatra?",
+          "Recovery stack for joint repair?",
+          "Best nootropic peptides for focus?",
+          "GH axis stack for beginners?",
+          "What's the difference between BPC-157 and TB-500?",
+        ];
+
+        const sendMessage = async (text) => {
+          if (!text.trim() || chatStreaming) return;
+          const userMsg = { role: "user", content: text.trim() };
+          const newMessages = [...chatMessages, userMsg];
+          setChatMessages(newMessages);
+          setChatInput("");
+          setChatStreaming(true);
+
+          // Add empty assistant message to stream into
+          setChatMessages(prev => [...prev, { role: "assistant", content: "" }]);
+
+          try {
+            const res = await fetch("/api/peptide-chat", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ messages: newMessages }),
+            });
+
+            const reader = res.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = "";
+
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              buffer += decoder.decode(value, { stream: true });
+              const lines = buffer.split("\n");
+              buffer = lines.pop();
+
+              for (const line of lines) {
+                if (!line.startsWith("data: ")) continue;
+                const data = line.slice(6);
+                if (data === "[DONE]") continue;
+                try {
+                  const parsed = JSON.parse(data);
+                  if (parsed.text) {
+                    setChatMessages(prev => {
+                      const updated = [...prev];
+                      updated[updated.length - 1] = {
+                        ...updated[updated.length - 1],
+                        content: updated[updated.length - 1].content + parsed.text,
+                      };
+                      return updated;
+                    });
+                  }
+                } catch {}
+              }
+            }
+          } catch (err) {
+            setChatMessages(prev => {
+              const updated = [...prev];
+              updated[updated.length - 1] = { role: "assistant", content: "Connection error. Please try again." };
+              return updated;
+            });
+          } finally {
+            setChatStreaming(false);
+          }
+        };
+
+        return (
+          <>
+            {/* Floating button */}
+            <button
+              onClick={() => setChatOpen(o => !o)}
+              style={{
+                position: "fixed", bottom: mob ? 82 : 28, right: 24, zIndex: 8000,
+                width: 56, height: 56, borderRadius: "50%",
+                background: chatOpen ? "#0f172a" : "linear-gradient(135deg,#1a6ed8,#2563eb)",
+                border: chatOpen ? "2px solid #334155" : "none",
+                color: "#fff", fontSize: 22, cursor: "pointer",
+                boxShadow: "0 4px 20px rgba(26,110,216,0.4)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                transition: "all .2s",
+              }}
+              title="AI Research Assistant"
+            >
+              {chatOpen ? "✕" : "🔬"}
+            </button>
+
+            {/* Chat panel */}
+            {chatOpen && (
+              <div style={{
+                position: "fixed", bottom: mob ? 150 : 96, right: 24, zIndex: 7999,
+                width: mob ? "calc(100vw - 32px)" : 380,
+                maxHeight: mob ? "65vh" : 540,
+                background: "#0f172a", borderRadius: 20,
+                border: "1px solid #1e293b",
+                boxShadow: "0 24px 60px rgba(0,0,0,0.5)",
+                display: "flex", flexDirection: "column", overflow: "hidden",
+              }}>
+
+                {/* Header */}
+                <div style={{ padding: "16px 18px 14px", borderBottom: "1px solid #1e293b", background: "#0f172a" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <div style={{ width: 34, height: 34, borderRadius: "50%", background: "linear-gradient(135deg,#1a6ed8,#3b82f6)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>🔬</div>
+                    <div>
+                      <div style={{ fontSize: 14, fontWeight: 800, color: "#f8fafc" }}>Research Assistant</div>
+                      <div style={{ fontSize: 11, color: "#4ade80", fontWeight: 600, display: "flex", alignItems: "center", gap: 4 }}>
+                        <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#4ade80", display: "inline-block" }} />
+                        Powered by Claude · Aeterion Catalog
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Messages */}
+                <div style={{ flex: 1, overflowY: "auto", padding: "14px 16px", display: "flex", flexDirection: "column", gap: 12 }}
+                  ref={el => { if (el) el.scrollTop = el.scrollHeight; }}>
+
+                  {chatMessages.length === 0 && (
+                    <div>
+                      <div style={{ fontSize: 13, color: "#94a3b8", lineHeight: 1.6, marginBottom: 14 }}>
+                        Ask me anything about research compounds, stacks, mechanisms, or protocols. I know the full Aeterion catalog.
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                        {SUGGESTIONS.map((s, i) => (
+                          <button key={i} onClick={() => sendMessage(s)}
+                            style={{ textAlign: "left", background: "#1e293b", border: "1px solid #334155", borderRadius: 10, padding: "9px 13px", fontSize: 12, color: "#cbd5e1", cursor: "pointer", fontFamily: "inherit", transition: "border-color .15s" }}
+                            onMouseEnter={e => e.currentTarget.style.borderColor = "#1a6ed8"}
+                            onMouseLeave={e => e.currentTarget.style.borderColor = "#334155"}>
+                            {s}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {chatMessages.map((m, i) => (
+                    <div key={i} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start" }}>
+                      <div style={{
+                        maxWidth: "85%", padding: "10px 14px", borderRadius: m.role === "user" ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
+                        background: m.role === "user" ? "#1a6ed8" : "#1e293b",
+                        fontSize: 13, color: m.role === "user" ? "#fff" : "#e2e8f0",
+                        lineHeight: 1.65, whiteSpace: "pre-wrap", wordBreak: "break-word",
+                      }}>
+                        {m.content}
+                        {m.role === "assistant" && chatStreaming && i === chatMessages.length - 1 && (
+                          <span style={{ display: "inline-block", width: 8, height: 13, background: "#4ade80", borderRadius: 2, marginLeft: 3, animation: "blink 1s infinite" }} />
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Input */}
+                <div style={{ padding: "12px 14px", borderTop: "1px solid #1e293b", display: "flex", gap: 8 }}>
+                  <input
+                    value={chatInput}
+                    onChange={e => setChatInput(e.target.value)}
+                    onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(chatInput); } }}
+                    placeholder="Ask about compounds, stacks, protocols…"
+                    disabled={chatStreaming}
+                    autoComplete="off"
+                    style={{ flex: 1, background: "#1e293b", border: "1.5px solid #334155", borderRadius: 10, padding: "10px 14px", fontSize: 13, color: "#f1f5f9", outline: "none", fontFamily: "inherit", resize: "none" }}
+                    onFocus={e => e.target.style.borderColor = "#1a6ed8"}
+                    onBlur={e => e.target.style.borderColor = "#334155"}
+                  />
+                  <button
+                    onClick={() => sendMessage(chatInput)}
+                    disabled={chatStreaming || !chatInput.trim()}
+                    style={{ background: chatStreaming || !chatInput.trim() ? "#1e293b" : "#1a6ed8", border: "none", borderRadius: 10, width: 40, height: 40, cursor: chatStreaming ? "wait" : "pointer", color: "#fff", fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "background .15s" }}>
+                    {chatStreaming ? "⏳" : "↑"}
+                  </button>
+                </div>
+
+                <div style={{ padding: "6px 14px 10px", fontSize: 10, color: "#334155", textAlign: "center" }}>
+                  For research purposes only · Not medical advice
+                </div>
+              </div>
+            )}
+
+            <style>{`@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }`}</style>
+          </>
+        );
+      })()}
 
       {/* ══════════ EMAIL CAPTURE POPUP ══════════ */}
       {emailPopup && !emailPopupDone && (
