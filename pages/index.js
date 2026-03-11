@@ -1487,9 +1487,9 @@ export default function App() {
   };
 
   /* ════════════════════ ADMIN PAGE ════════════════════ */
-  const ADMIN_PASSWORD = "aeterion2026";
   const AdminPage = ({ goTo }) => {
     const [authed, setAuthed] = useState(false);
+    const [adminToken, setAdminToken] = useState("");
     const [pw, setPw] = useState("");
     const [pwErr, setPwErr] = useState(false);
     const [orders, setOrders] = useState([]);
@@ -1520,7 +1520,7 @@ export default function App() {
         const res = await fetch("/api/ambassador/admin", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ admin_password: ADMIN_PASSWORD, action: "list" }),
+          body: JSON.stringify({ admin_token: adminToken, action: "list" }),
         });
         const data = await res.json();
         setAmbassadors(data.ambassadors || []);
@@ -1538,7 +1538,7 @@ export default function App() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            admin_password: ADMIN_PASSWORD,
+            admin_token: adminToken,
             action: "create",
             name, email, instagram,
             promo_code: code.toUpperCase().trim(),
@@ -1566,7 +1566,7 @@ export default function App() {
         const res = await fetch("/api/ambassador/admin", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ admin_password: ADMIN_PASSWORD, action, ambassador_id: id, ...extra }),
+          body: JSON.stringify({ admin_token: adminToken, action, ambassador_id: id, ...extra }),
         });
         const data = await res.json();
         if (data.success) {
@@ -1584,9 +1584,26 @@ export default function App() {
       setAmbWorking(null);
     };
 
-    const login = () => {
-      if (pw === ADMIN_PASSWORD) { setAuthed(true); loadOrders(); }
-      else { setPwErr(true); setTimeout(() => setPwErr(false), 2000); }
+    const login = async () => {
+      try {
+        const res = await fetch("/api/admin/auth", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ password: pw }),
+        });
+        const data = await res.json();
+        if (data.token) {
+          setAdminToken(data.token);
+          setAuthed(true);
+          loadOrders();
+        } else {
+          setPwErr(true);
+          setTimeout(() => setPwErr(false), 2000);
+        }
+      } catch {
+        setPwErr(true);
+        setTimeout(() => setPwErr(false), 2000);
+      }
     };
 
     const loadOrders = async () => {
