@@ -1111,7 +1111,7 @@ export default function App() {
     // Email popup: show after 30s if not already dismissed
     const popupDone = localStorage.getItem("aet_popup_done");
     if (!popupDone) {
-      setTimeout(() => setEmailPopup(true), 30000);
+      setTimeout(() => setEmailPopup(true), 10000);
     } else {
       setEmailPopupDone(true);
     }
