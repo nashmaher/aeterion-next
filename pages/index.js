@@ -1060,9 +1060,9 @@ const HOMEPAGE_SCHEMA = [
 ];
 
 function ReviewForm({ pid, onSubmit, onCancel, T, btnPrimary }) {
-  const [name, setName] = React.useState("");
-  const [rating, setRating] = React.useState(5);
-  const [text, setText] = React.useState("");
+  const [name, setName] = useState("");
+  const [rating, setRating] = useState(5);
+  const [text, setText] = useState("");
 
   return (
     <div style={{ background:T.bg, borderRadius:12, padding:"16px", marginBottom:16, border:`1px solid ${T.border}` }}>
@@ -1129,9 +1129,14 @@ export default function App() {
   const [quizResult, setQuizResult] = useState(null);
 
   // ── AI Research Assistant ──
-  const [chatOpen, setChatOpen] = useState(typeof window !== 'undefined' ? window.innerWidth >= 768 : false);
+  const [chatOpen, setChatOpen] = useState(false);
   const [bubbleDismissed, setBubbleDismissed] = useState(false);
   const [widgetHidden, setWidgetHidden] = useState(false);
+
+  // Open chat on desktop after hydration
+  useEffect(() => {
+    if (window.innerWidth >= 768) setChatOpen(true);
+  }, []);
   const [chatMessages, setChatMessages] = useState([]);
   const [chatInput, setChatInput] = useState("");
   const [chatStreaming, setChatStreaming] = useState(false);
