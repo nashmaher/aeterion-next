@@ -1770,8 +1770,65 @@ export default function App() {
     }, [authed, adminToken]);
 
     // ── Ambassador tab state ──
-    const [adminTab, setAdminTab] = useState("orders"); // "orders" | "ambassadors" | "commissions"
+    const [adminTab, setAdminTab] = useState("orders"); // "orders" | "ambassadors" | "commissions" | "blog"
     const [commissions, setCommissions] = useState([]);
+
+    // ── Blog state ──
+    const [blogPosts, setBlogPosts] = useState([]);
+    const [blogForm, setBlogForm] = useState({ title: "", excerpt: "", body: "", cover_url: "", tags: "", published: false });
+    const [blogEditing, setBlogEditing] = useState(null); // post id being edited
+    const [blogWorking, setBlogWorking] = useState(false);
+    const [blogMsg, setBlogMsg] = useState("");
+    const [blogPreview, setBlogPreview] = useState(false);
+
+    const loadBlogPosts = async () => {
+      try {
+        const res = await fetch(`/api/blog?admin_token=${encodeURIComponent(adminToken)}`);
+        const data = await res.json();
+        if (data.posts) setBlogPosts(data.posts);
+      } catch {}
+    };
+
+    const saveBlogPost = async () => {
+      if (!blogForm.title.trim()) { setBlogMsg("✗ Title is required"); return; }
+      setBlogWorking(true); setBlogMsg("");
+      try {
+        const payload = {
+          admin_token: adminToken,
+          title: blogForm.title.trim(),
+          excerpt: blogForm.excerpt.trim() || blogForm.body.slice(0, 160),
+          body: blogForm.body,
+          cover_url: blogForm.cover_url.trim() || null,
+          tags: blogForm.tags ? blogForm.tags.split(",").map(t => t.trim()).filter(Boolean) : [],
+          published: blogForm.published,
+        };
+        const method = blogEditing ? "PUT" : "POST";
+        if (blogEditing) payload.id = blogEditing;
+        const res = await fetch("/api/blog", { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+        const data = await res.json();
+        if (data.post) {
+          setBlogMsg(blogEditing ? "✓ Post updated" : "✓ Post published");
+          setBlogForm({ title: "", excerpt: "", body: "", cover_url: "", tags: "", published: false });
+          setBlogEditing(null);
+          await loadBlogPosts();
+        } else {
+          setBlogMsg("✗ " + (data.error || "Failed"));
+        }
+      } catch { setBlogMsg("✗ Request failed"); }
+      setBlogWorking(false);
+    };
+
+    const deleteBlogPost = async (id) => {
+      if (!window.confirm("Delete this post permanently?")) return;
+      await fetch("/api/blog", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ admin_token: adminToken, id }) });
+      await loadBlogPosts();
+    };
+
+    const editBlogPost = (post) => {
+      setBlogEditing(post.id);
+      setBlogForm({ title: post.title, excerpt: post.excerpt || "", body: post.body || "", cover_url: post.cover_url || "", tags: (post.tags || []).join(", "), published: post.published });
+      setBlogMsg("");
+    };
 
     const loadCommissions = async () => {
       try {
@@ -1973,7 +2030,8 @@ export default function App() {
               )}
             </button>
             <button onClick={() => { setAdminTab("commissions"); loadCommissions(); }} style={{ background: adminTab === "commissions" ? "#1a6ed8" : "#334155", border: "none", color: adminTab === "commissions" ? "#fff" : "#94a3b8", padding: "8px 16px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: "inherit", fontWeight: 700 }}>💰 Commissions</button>
-            <button onClick={() => adminTab === "orders" ? loadOrders() : adminTab === "commissions" ? loadCommissions() : loadAmbassadors()} style={{ background: "#334155", border: "none", color: "#94a3b8", padding: "8px 16px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: "inherit" }}>↻ Refresh</button>
+            <button onClick={() => { setAdminTab("blog"); loadBlogPosts(); }} style={{ background: adminTab === "blog" ? "#1a6ed8" : "#334155", border: "none", color: adminTab === "blog" ? "#fff" : "#94a3b8", padding: "8px 16px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: "inherit", fontWeight: 700 }}>📝 Blog</button>
+            <button onClick={() => adminTab === "orders" ? loadOrders() : adminTab === "commissions" ? loadCommissions() : adminTab === "blog" ? loadBlogPosts() : loadAmbassadors()} style={{ background: "#334155", border: "none", color: "#94a3b8", padding: "8px 16px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: "inherit" }}>↻ Refresh</button>
             <button onClick={() => goTo("store")} style={{ ...btnPrimary({ padding: "8px 16px", fontSize: 13, borderRadius: 8 }) }}>← Store</button>
             <button onClick={() => { try { sessionStorage.removeItem("aet_admin_token"); } catch {} setAuthed(false); setAdminToken(""); }} style={{ background: "#3b0000", border: "1px solid #7f1d1d", color: "#f87171", borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>Sign Out</button>
           </div>
@@ -2422,6 +2480,127 @@ export default function App() {
               </table>
             </div>
           )}
+        </div>
+      )}
+
+      {/* ── BLOG TAB ── */}
+      {adminTab === "blog" && (
+        <div style={{ padding: "0 24px 48px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: 24, alignItems: "start" }}>
+
+            {/* ── Editor ── */}
+            <div style={{ background: "#1e293b", borderRadius: 14, border: "1px solid #334155", overflow: "hidden" }}>
+              <div style={{ padding: "20px 24px", borderBottom: "1px solid #334155", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <div style={{ fontSize: 15, fontWeight: 800, color: "#f8fafc" }}>{blogEditing ? "✏️ Edit Post" : "✏️ New Post"}</div>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button onClick={() => setBlogPreview(p => !p)} style={{ background: blogPreview ? "#1a6ed8" : "#334155", border: "none", color: blogPreview ? "#fff" : "#94a3b8", padding: "7px 14px", borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
+                    {blogPreview ? "✏️ Edit" : "👁 Preview"}
+                  </button>
+                  {blogEditing && (
+                    <button onClick={() => { setBlogEditing(null); setBlogForm({ title: "", excerpt: "", body: "", cover_url: "", tags: "", published: false }); setBlogMsg(""); }}
+                      style={{ background: "#334155", border: "none", color: "#94a3b8", padding: "7px 14px", borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>✕ Cancel</button>
+                  )}
+                </div>
+              </div>
+
+              {blogPreview ? (
+                <div style={{ padding: "24px", minHeight: 400 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: 1, marginBottom: 16 }}>Preview</div>
+                  {blogForm.cover_url && <img src={blogForm.cover_url} alt="" style={{ width: "100%", maxHeight: 240, objectFit: "cover", borderRadius: 10, marginBottom: 20 }} />}
+                  <div style={{ fontSize: 26, fontWeight: 900, color: "#f8fafc", marginBottom: 10, letterSpacing: "-0.5px" }}>{blogForm.title || "Untitled"}</div>
+                  {blogForm.tags && <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 16 }}>{blogForm.tags.split(",").map(t => t.trim()).filter(Boolean).map(t => <span key={t} style={{ fontSize: 10, fontWeight: 800, color: "#60a5fa", background: "rgba(26,110,216,0.12)", border: "1px solid rgba(26,110,216,0.25)", borderRadius: 20, padding: "3px 10px", textTransform: "uppercase", letterSpacing: 1 }}>{t}</span>)}</div>}
+                  <div style={{ fontSize: 14, color: "#94a3b8", whiteSpace: "pre-wrap", lineHeight: 1.8 }}>{blogForm.body || "No content yet…"}</div>
+                </div>
+              ) : (
+                <div style={{ padding: "24px", display: "flex", flexDirection: "column", gap: 16 }}>
+                  <div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>Title *</div>
+                    <input value={blogForm.title} onChange={e => setBlogForm(f => ({...f, title: e.target.value}))}
+                      placeholder="e.g. BPC-157: The Complete Research Guide"
+                      style={{ width: "100%", background: "#0f172a", border: "1px solid #334155", borderRadius: 8, padding: "11px 14px", fontSize: 16, color: "#f8fafc", outline: "none", fontFamily: "inherit", boxSizing: "border-box" }} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>Excerpt <span style={{ color: "#475569", fontWeight: 400, textTransform: "none" }}>(shown on blog card)</span></div>
+                    <input value={blogForm.excerpt} onChange={e => setBlogForm(f => ({...f, excerpt: e.target.value}))}
+                      placeholder="Short description for the blog listing…"
+                      style={{ width: "100%", background: "#0f172a", border: "1px solid #334155", borderRadius: 8, padding: "11px 14px", fontSize: 16, color: "#f8fafc", outline: "none", fontFamily: "inherit", boxSizing: "border-box" }} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>Body *</div>
+                    <div style={{ fontSize: 11, color: "#475569", marginBottom: 8 }}>Supports: # H1, ## H2, ### H3, - bullet lists, {">"} blockquote, blank line = new paragraph</div>
+                    <textarea value={blogForm.body} onChange={e => setBlogForm(f => ({...f, body: e.target.value}))}
+                      placeholder={"## Introduction\n\nBPC-157 is one of the most researched peptides...\n\n## Mechanism of Action\n\n- Upregulates growth factor receptors\n- Promotes angiogenesis\n- Modulates nitric oxide production"}
+                      rows={14}
+                      style={{ width: "100%", background: "#0f172a", border: "1px solid #334155", borderRadius: 8, padding: "11px 14px", fontSize: 13, color: "#f8fafc", outline: "none", fontFamily: "monospace", boxSizing: "border-box", resize: "vertical", lineHeight: 1.7 }} />
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+                    <div>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>Cover Image URL</div>
+                      <input value={blogForm.cover_url} onChange={e => setBlogForm(f => ({...f, cover_url: e.target.value}))}
+                        placeholder="https://..."
+                        style={{ width: "100%", background: "#0f172a", border: "1px solid #334155", borderRadius: 8, padding: "11px 14px", fontSize: 16, color: "#f8fafc", outline: "none", fontFamily: "inherit", boxSizing: "border-box" }} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>Tags <span style={{ color: "#475569", fontWeight: 400, textTransform: "none" }}>(comma separated)</span></div>
+                      <input value={blogForm.tags} onChange={e => setBlogForm(f => ({...f, tags: e.target.value}))}
+                        placeholder="BPC-157, Recovery, Healing"
+                        style={{ width: "100%", background: "#0f172a", border: "1px solid #334155", borderRadius: 8, padding: "11px 14px", fontSize: 16, color: "#f8fafc", outline: "none", fontFamily: "inherit", boxSizing: "border-box" }} />
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
+                      <div onClick={() => setBlogForm(f => ({...f, published: !f.published}))}
+                        style={{ width: 44, height: 24, borderRadius: 99, background: blogForm.published ? "#16a34a" : "#334155", position: "relative", transition: "background .2s", cursor: "pointer" }}>
+                        <div style={{ width: 18, height: 18, borderRadius: "50%", background: "#fff", position: "absolute", top: 3, left: blogForm.published ? 23 : 3, transition: "left .2s" }}/>
+                      </div>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: blogForm.published ? "#4ade80" : "#64748b" }}>{blogForm.published ? "Published" : "Draft"}</span>
+                    </label>
+                    <div style={{ flex: 1 }}/>
+                    <button onClick={saveBlogPost} disabled={blogWorking}
+                      style={{ background: "linear-gradient(135deg,#1a6ed8,#2563eb)", border: "none", color: "#fff", padding: "11px 28px", borderRadius: 10, fontSize: 14, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", opacity: blogWorking ? 0.6 : 1 }}>
+                      {blogWorking ? "Saving…" : blogEditing ? "Update Post" : "Publish Post"}
+                    </button>
+                  </div>
+                  {blogMsg && <div style={{ fontSize: 13, fontWeight: 700, color: blogMsg.startsWith("✓") ? "#4ade80" : "#f87171" }}>{blogMsg}</div>}
+                </div>
+              )}
+            </div>
+
+            {/* ── Post list ── */}
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: 1, marginBottom: 14 }}>Published Posts ({blogPosts.length})</div>
+              {blogPosts.length === 0 ? (
+                <div style={{ background: "#1e293b", border: "1px solid #334155", borderRadius: 12, padding: 24, textAlign: "center", color: "#475569", fontSize: 13 }}>No posts yet. Write your first one!</div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  {blogPosts.map(post => (
+                    <div key={post.id} style={{ background: "#1e293b", border: "1px solid #334155", borderRadius: 12, padding: "14px 16px" }}>
+                      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10 }}>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 13, fontWeight: 700, color: "#f8fafc", marginBottom: 4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{post.title}</div>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <span style={{ fontSize: 10, fontWeight: 800, borderRadius: 20, padding: "2px 8px", background: post.published ? "#14532d" : "#422006", color: post.published ? "#4ade80" : "#fb923c" }}>{post.published ? "Live" : "Draft"}</span>
+                            <span style={{ fontSize: 11, color: "#475569" }}>{new Date(post.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
+                          </div>
+                        </div>
+                        <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                          <button onClick={() => editBlogPost(post)} style={{ background: "#334155", border: "none", color: "#94a3b8", padding: "6px 10px", borderRadius: 6, fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>Edit</button>
+                          <button onClick={() => window.open(`/blog/${post.slug}`, '_blank')} style={{ background: "#1e3a5f", border: "none", color: "#60a5fa", padding: "6px 10px", borderRadius: 6, fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>View</button>
+                          <button onClick={() => deleteBlogPost(post.id)} style={{ background: "#1a0000", border: "1px solid #7f1d1d", color: "#f87171", padding: "6px 8px", borderRadius: 6, fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>🗑</button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Blog link */}
+              <div style={{ marginTop: 16, padding: "12px 16px", background: "#0f172a", borderRadius: 10, border: "1px solid #1e293b", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontSize: 12, color: "#475569" }}>Public blog</span>
+                <a href="/blog" target="_blank" style={{ fontSize: 12, color: "#60a5fa", fontWeight: 700, textDecoration: "none" }}>aeterionpeptides.com/blog →</a>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
@@ -4245,6 +4424,7 @@ Respond ONLY with a valid JSON object, no markdown, no backticks, no extra text:
   "compounds": [
     {
       "name": "EXACT product name from catalog",
+      "recommendedSize": "the specific vial size from its variants (e.g. 10mg, 5mg+5mg)",
       "role": "2-4 word role label (e.g. Foundation, Amplifier, Support)",
       "reason": "1-2 sentence scientific rationale for including this compound",
       "researchNote": "One brief note on published research protocols for this compound"
@@ -4255,8 +4435,11 @@ Respond ONLY with a valid JSON object, no markdown, no backticks, no extra text:
 
 Rules:
 - Only use products that exist EXACTLY in the Aeterion catalog above
-- Beginner: 2-3 compounds. Intermediate: 3-4. Advanced: 4-5
-- Match budget — low means cheaper compounds, high means premium/rare
+- Beginner: 2-3 compounds, recommend the SMALLEST available vial size
+- Intermediate: 3-4 compounds, recommend MID-RANGE vial sizes (e.g. 5mg, 10mg)
+- Advanced: 4-5 compounds, recommend the LARGEST available vial sizes (e.g. 10mg, 15mg, 20mg)
+- When referencing a product, always mention the specific size you recommend from its available variants
+- Match budget — low means cheaper/smaller compounds, high means premium/rare and larger sizes
 - Make the protocol name feel premium and specific to their goals
 - The stack should feel curated, not generic`;
 
@@ -4342,6 +4525,7 @@ Rules:
                           <div style={{ display:"flex",alignItems:"center",gap:10,flexWrap:"wrap",marginBottom:6 }}>
                             <span style={{ fontSize:16,fontWeight:800,color:"#f8fafc" }}>{c.name}</span>
                             <span style={{ fontSize:10,fontWeight:800,color:"#1a6ed8",background:"rgba(26,110,216,0.12)",border:"1px solid rgba(26,110,216,0.3)",borderRadius:20,padding:"3px 10px",textTransform:"uppercase",letterSpacing:1 }}>{c.role}</span>
+                            {c.recommendedSize && <span style={{ fontSize:11,fontWeight:800,color:"#f59e0b",background:"rgba(245,158,11,0.1)",border:"1px solid rgba(245,158,11,0.3)",borderRadius:20,padding:"3px 10px" }}>{c.recommendedSize}</span>}
                             {prod && <span style={{ fontSize:12,color:"#4ade80",fontWeight:700 }}>from ${prod.variants[0].p}</span>}
                           </div>
                           <div style={{ fontSize:13,color:"#94a3b8",lineHeight:1.6,marginBottom:6 }}>{c.reason}</div>
