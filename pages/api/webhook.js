@@ -270,58 +270,57 @@ export default async function handler(req, res) {
             const productSubtotal  = lineItems.data.reduce((sum, i) => sum + i.amount_total, 0) / 100;
             const commissionAmount = productSubtotal * 0.20;
 
-          // Insert commission record
-          await sb("ambassador_commissions", "POST", {
-            ambassador_id:     ambassadorId,
-            order_id:          session.payment_intent || session.id,
-            stripe_session_id: session.id,
-            customer_email:    customerEmail || "",
-            order_subtotal:    productSubtotal,
-            discount_amount:   productSubtotal * 0.10,
-            commission_amount: commissionAmount,
-            promo_code:        promoCode,
-            status:            "pending",
-          });
-          console.log(`✓ Commission logged: $${commissionAmount.toFixed(2)}`);
+            // Insert commission record
+            await sb("ambassador_commissions", "POST", {
+              ambassador_id:     ambassadorId,
+              order_id:          session.payment_intent || session.id,
+              stripe_session_id: session.id,
+              customer_email:    customerEmail || "",
+              order_subtotal:    productSubtotal,
+              discount_amount:   productSubtotal * 0.10,
+              commission_amount: commissionAmount,
+              promo_code:        promoCode,
+              status:            "pending",
+            });
+            console.log(`✓ Commission logged: $${commissionAmount.toFixed(2)}`);
 
-          // Update ambassador running total
-          try {
-            const ambData = await sb(`ambassadors?id=eq.${ambassadorId}&select=id,name,email,total_commission_earned`);
-            if (ambData?.length) {
-              const amb      = ambData[0];
-              const newTotal = Number(amb.total_commission_earned || 0) + commissionAmount;
-              await sb(`ambassadors?id=eq.${ambassadorId}`, "PATCH", { total_commission_earned: newTotal });
-              console.log(`✓ Ambassador total updated to $${newTotal.toFixed(2)}`);
+            // Update ambassador running total
+            try {
+              const ambData = await sb(`ambassadors?id=eq.${ambassadorId}&select=id,name,email,total_commission_earned`);
+              if (ambData?.length) {
+                const amb      = ambData[0];
+                const newTotal = Number(amb.total_commission_earned || 0) + commissionAmount;
+                await sb(`ambassadors?id=eq.${ambassadorId}`, "PATCH", { total_commission_earned: newTotal });
+                console.log(`✓ Ambassador total updated to $${newTotal.toFixed(2)}`);
 
-              // Send ambassador notification email
-              if (amb.email) {
-                try {
-                  await sendEmail({
-                    to: amb.email,
-                    subject: `💰 You earned $${commissionAmount.toFixed(2)} — Aeterion Commission`,
-                    html: buildAmbassadorEmail({
-                      ambassadorName:   amb.name,
-                      ambassadorEmail:  amb.email,
-                      customerEmail:    customerEmail,
-                      commissionAmount: commissionAmount,
-                      orderTotal:       session.amount_total,
-                      promoCode:        promoCode,
-                      orderNumber:      orderNumber,
-                    }),
-                  });
-                  console.log("✓ Ambassador email sent to:", amb.email);
-                } catch (e) {
-                  console.error("✗ Ambassador email FAILED:", e.message);
+                if (amb.email) {
+                  try {
+                    await sendEmail({
+                      to: amb.email,
+                      subject: `💰 You earned $${commissionAmount.toFixed(2)} — Aeterion Commission`,
+                      html: buildAmbassadorEmail({
+                        ambassadorName:   amb.name,
+                        ambassadorEmail:  amb.email,
+                        customerEmail:    customerEmail,
+                        commissionAmount: commissionAmount,
+                        orderTotal:       session.amount_total,
+                        promoCode:        promoCode,
+                        orderNumber:      orderNumber,
+                      }),
+                    });
+                    console.log("✓ Ambassador email sent to:", amb.email);
+                  } catch (e) {
+                    console.error("✗ Ambassador email FAILED:", e.message);
+                  }
                 }
               }
+            } catch (e) {
+              console.error("✗ Ambassador total update FAILED:", e.message);
             }
-          } catch (e) {
-            console.error("✗ Ambassador total update FAILED:", e.message);
-          }
+          } // end else (not duplicate)
         } catch (e) {
           console.error("✗ Commission insert FAILED:", e.message);
         }
-          } // end else (not duplicate)
       }
     }
 
