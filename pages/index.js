@@ -1127,6 +1127,7 @@ export default function App() {
   const [quizStep, setQuizStep] = useState(0);
   const [quizAnswers, setQuizAnswers] = useState({});
   const [quizResult, setQuizResult] = useState(null);
+  const [quizLoading, setQuizLoading] = useState(false);
 
   // ── AI Research Assistant ──
   const [chatOpen, setChatOpen] = useState(false);
@@ -4185,102 +4186,260 @@ export default function App() {
         </div>
       )}
 
-      {/* ══════════ BUILD YOUR STACK QUIZ ══════════ */}
+      {/* ══════════ BUILD YOUR STACK ══════════ */}
       {showQuiz && (() => {
+        const closeQuiz = () => { setShowQuiz(false); setQuizStep(0); setQuizAnswers({}); setQuizResult(null); setQuizLoading(false); };
+
         const questions = [
-          { q:"What is your primary research goal?", key:"goal", opts:[
-            {label:"🔥 Fat Loss / GLP-1", val:"fat"},
-            {label:"💪 Recovery & Healing", val:"recovery"},
-            {label:"📈 Growth Hormone / Body Comp", val:"growth"},
-            {label:"🧠 Cognitive Enhancement", val:"neuro"},
-            {label:"♾️ Longevity & Anti-Aging", val:"longevity"},
+          { q: "What is your primary research goal?", sub: "Choose the area you want to focus on most.", key: "goal", opts: [
+            { label: "Fat Loss & Metabolic", icon: "🔥", desc: "GLP-1s, fat oxidation, metabolic optimization", val: "fat" },
+            { label: "Recovery & Healing", icon: "🩹", desc: "Tissue repair, injury recovery, inflammation", val: "recovery" },
+            { label: "Muscle & Body Composition", icon: "💪", desc: "GH axis, IGF-1, anabolism, body recomp", val: "growth" },
+            { label: "Cognitive Enhancement", icon: "🧠", desc: "Focus, memory, neurogenesis, mood", val: "neuro" },
+            { label: "Longevity & Anti-Aging", icon: "♾️", desc: "Cellular health, telomeres, senescence", val: "longevity" },
           ]},
-          { q:"What is your experience level?", key:"exp", opts:[
-            {label:"🟢 Beginner — first time", val:"beginner"},
-            {label:"🟡 Intermediate — some experience", val:"mid"},
-            {label:"🔴 Advanced — experienced researcher", val:"advanced"},
+          { q: "Any secondary focus?", sub: "Optional — helps fine-tune your protocol.", key: "secondary", opts: [
+            { label: "Sleep & Recovery", icon: "😴", desc: "Sleep quality, overnight repair", val: "sleep" },
+            { label: "Joint & Tendon Health", icon: "🦴", desc: "Connective tissue, mobility", val: "joint" },
+            { label: "Immune Support", icon: "🛡️", desc: "Thymic peptides, immune modulation", val: "immune" },
+            { label: "Metabolic Health", icon: "⚡", desc: "Insulin sensitivity, mitochondria", val: "metabolic" },
+            { label: "No secondary focus", icon: "—", desc: "Keep it focused on my primary goal", val: "none" },
+          ]},
+          { q: "What is your experience level?", sub: "Be honest — this shapes complexity and intensity.", key: "exp", opts: [
+            { label: "First Protocol", icon: "🟢", desc: "New to research peptides, want to start simple", val: "beginner" },
+            { label: "Intermediate", icon: "🟡", desc: "Some experience, comfortable with protocols", val: "mid" },
+            { label: "Advanced Researcher", icon: "🔴", desc: "Extensive experience, want cutting-edge stacks", val: "advanced" },
+          ]},
+          { q: "How long is your research cycle?", sub: "Longer cycles allow more compounds and layering.", key: "cycle", opts: [
+            { label: "8 Weeks", icon: "📅", desc: "Short, focused protocol", val: "8wk" },
+            { label: "12 Weeks", icon: "📅", desc: "Standard research cycle", val: "12wk" },
+            { label: "16 Weeks", icon: "📅", desc: "Extended, comprehensive protocol", val: "16wk" },
+          ]},
+          { q: "What is your budget range?", sub: "We'll build the best stack within your range.", key: "budget", opts: [
+            { label: "Essentials", icon: "💲", desc: "$100 – $250 / cycle", val: "low" },
+            { label: "Standard", icon: "💲💲", desc: "$250 – $500 / cycle", val: "mid" },
+            { label: "Premium", icon: "💲💲💲", desc: "$500+ / cycle, no compromises", val: "high" },
           ]},
         ];
-        const stacks = {
-          fat:{
-            beginner:[{name:"Semaglutide",reason:"Best entry-level GLP-1, once weekly"},{name:"AOD9604",reason:"Targeted fat metabolism"}],
-            mid:[{name:"Tirzepatide",reason:"Dual GIP/GLP-1 — superior fat loss"},{name:"AOD9604",reason:"Synergistic fat burning"},{name:"L-Carnitine",reason:"Enhanced fatty acid transport"}],
-            advanced:[{name:"Retatrutide",reason:"Triple agonist, highest efficacy data"},{name:"Cagrilintide",reason:"Amylin pathway — additive effect"},{name:"5-AMINO-1MQ",reason:"NNMT inhibitor, metabolic restoration"}],
-          },
-          recovery:{
-            beginner:[{name:"BPC-157",reason:"Most studied healing peptide"},{name:"Bacteriostatic Water",reason:"Required for reconstitution"}],
-            mid:[{name:"BPC-157 + TB-500 Blend",reason:"Synergistic local + systemic healing"},{name:"GHK-Cu",reason:"Collagen synthesis and wound healing"}],
-            advanced:[{name:"GLOW Blend",reason:"BPC + GHK-Cu + TB-500 triple formula"},{name:"SS-31 (Elamipretide)",reason:"Mitochondrial protection"},{name:"Thymosin Alpha-1",reason:"Immune modulation + tissue repair"}],
-          },
-          growth:{
-            beginner:[{name:"Ipamorelin",reason:"Clean GH pulse, no cortisol spike"},{name:"CJC-1295 (no DAC)",reason:"Pairs perfectly with Ipamorelin"}],
-            mid:[{name:"Tesamorelin",reason:"Stabilized GHRH, reduces visceral fat"},{name:"HGH (Somatropin)",reason:"Full 191aa sequence, peak GH/IGF-1 elevation"}],
-            advanced:[{name:"IGF-1 LR3",reason:"Extended half-life IGF-1 analogue"},{name:"Follistatin 344",reason:"Myostatin inhibition"},{name:"MOTS-c",reason:"Mitochondrial peptide, exercise capacity"}],
-          },
-          neuro:{
-            beginner:[{name:"Semax",reason:"BDNF upregulation, focus and memory"},{name:"Selank",reason:"Anxiolytic + nootropic, no sedation"}],
-            mid:[{name:"Selank",reason:"Anxiolytic + nootropic without sedation"},{name:"Dihexa",reason:"Potent synaptogenesis"}],
-            advanced:[{name:"Dihexa",reason:"Most potent synaptogenesis compound"},{name:"PE-22-28",reason:"TREK-1 modulator, rapid antidepressant"},{name:"VIP (Vasoactive Intestinal Peptide)",reason:"Neuropeptide with broad cognitive and anti-inflammatory research"}],
-          },
-          longevity:{
-            beginner:[{name:"NAD+",reason:"Foundational longevity coenzyme"},{name:"MOTS-c",reason:"Mitochondrial peptide, metabolic health"}],
-            mid:[{name:"Epitalon",reason:"Telomerase activation research"},{name:"MOTS-c",reason:"Mitochondrial signaling"}],
-            advanced:[{name:"Epitalon",reason:"Telomerase activation, pineal bioregulator"},{name:"FOXO4-DRI",reason:"Senolytic — clears senescent cells"},{name:"Humanin",reason:"Mitochondria-derived neuroprotection"}],
-          },
+
+        const PRODUCT_CATALOG = PRODUCTS.map(p => `${p.name} (${p.cat}, $${p.variants[0].p})`).join(", ");
+
+        const generateStack = async (answers) => {
+          setQuizLoading(true);
+          try {
+            const prompt = `You are the Aeterion Labs stack builder. Based on a researcher's profile, generate a premium personalized peptide research protocol.
+
+Researcher Profile:
+- Primary Goal: ${answers.goal}
+- Secondary Focus: ${answers.secondary}
+- Experience Level: ${answers.exp}
+- Cycle Length: ${answers.cycle}
+- Budget: ${answers.budget}
+
+Available Aeterion Products: ${PRODUCT_CATALOG}
+
+Respond ONLY with a valid JSON object, no markdown, no backticks, no extra text:
+{
+  "protocolName": "A dramatic 3-4 word protocol name (e.g. The Recomp Protocol, The Longevity Stack, The Neural Edge)",
+  "tagline": "One compelling sentence describing what this stack is designed for",
+  "compounds": [
+    {
+      "name": "EXACT product name from catalog",
+      "role": "2-4 word role label (e.g. Foundation, Amplifier, Support)",
+      "reason": "1-2 sentence scientific rationale for including this compound",
+      "researchNote": "One brief note on published research protocols for this compound"
+    }
+  ],
+  "protocolTip": "One practical tip for running this research cycle"
+}
+
+Rules:
+- Only use products that exist EXACTLY in the Aeterion catalog above
+- Beginner: 2-3 compounds. Intermediate: 3-4. Advanced: 4-5
+- Match budget — low means cheaper compounds, high means premium/rare
+- Make the protocol name feel premium and specific to their goals
+- The stack should feel curated, not generic`;
+
+            const res = await fetch("https://api.anthropic.com/v1/messages", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                model: "claude-sonnet-4-20250514",
+                max_tokens: 1000,
+                messages: [{ role: "user", content: prompt }],
+              }),
+            });
+            const data = await res.json();
+            const text = data.content?.find(b => b.type === "text")?.text || "";
+            const clean = text.replace(/```json|```/g, "").trim();
+            const parsed = JSON.parse(clean);
+            setQuizResult(parsed);
+          } catch (e) {
+            // Fallback result if API fails
+            setQuizResult({
+              protocolName: "Custom Research Protocol",
+              tagline: "A tailored stack built around your research goals.",
+              compounds: [
+                { name: answers.goal === "fat" ? "Tirzepatide" : answers.goal === "recovery" ? "BPC-157 + TB-500 Blend" : answers.goal === "growth" ? "CJC-1295 + Ipamorelin Blend" : answers.goal === "neuro" ? "Semax" : "Epitalon", role: "Foundation", reason: "Core compound for your primary research goal.", researchNote: "Well-documented in published research protocols." },
+                { name: answers.goal === "fat" ? "AOD9604" : answers.goal === "recovery" ? "GHK-Cu" : answers.goal === "growth" ? "Ipamorelin" : answers.goal === "neuro" ? "Selank" : "MOTS-c", role: "Amplifier", reason: "Synergistic compound to enhance primary effects.", researchNote: "Commonly paired in research literature." },
+              ],
+              protocolTip: "Start with the foundation compound and introduce the amplifier after the first 2 weeks.",
+            });
+          }
+          setQuizLoading(false);
         };
-        return (
-          <div style={{ position:"fixed",inset:0,background:"rgba(0,0,0,0.75)",zIndex:9000,display:"flex",alignItems:"center",justifyContent:"center",padding:24 }}
-            onClick={e=>{ if(e.target===e.currentTarget){ setShowQuiz(false); setQuizStep(0); setQuizAnswers({}); setQuizResult(null); }}}>
-            <div style={{ background:"#0f172a",borderRadius:20,padding:"36px 32px",maxWidth:520,width:"100%",position:"relative",border:"1px solid #1e293b" }}>
-              <button onClick={()=>{ setShowQuiz(false); setQuizStep(0); setQuizAnswers({}); setQuizResult(null); }}
-                style={{ position:"absolute",top:16,right:18,background:"none",border:"none",color:"#64748b",fontSize:22,cursor:"pointer",lineHeight:1 }}>×</button>
-              {quizResult ? (
-                <div>
-                  <div style={{ fontSize:20,fontWeight:900,color:"#f8fafc",marginBottom:6 }}>🎯 Your Recommended Stack</div>
-                  <div style={{ fontSize:13,color:"#94a3b8",marginBottom:20 }}>Based on your goals, here's what we recommend:</div>
-                  {quizResult.map((rec,i) => (
-                    <div key={i} style={{ background:"#1e293b",borderRadius:12,padding:"14px 16px",marginBottom:10,display:"flex",justifyContent:"space-between",alignItems:"center" }}>
-                      <div>
-                        <div style={{ fontSize:14,fontWeight:700,color:"#f8fafc" }}>{rec.name}</div>
-                        <div style={{ fontSize:12,color:"#64748b",marginTop:2 }}>{rec.reason}</div>
+
+        // ── LOADING SCREEN ──
+        if (quizLoading) return (
+          <div style={{ position:"fixed",inset:0,background:"rgba(2,8,23,0.96)",zIndex:9000,display:"flex",alignItems:"center",justifyContent:"center" }}>
+            <div style={{ textAlign:"center" }}>
+              <div style={{ fontSize:48,marginBottom:24,animation:"spin 2s linear infinite" }}>⚗️</div>
+              <div style={{ fontSize:22,fontWeight:900,color:"#f8fafc",marginBottom:10,letterSpacing:"-0.5px" }}>Analyzing your profile…</div>
+              <div style={{ fontSize:14,color:"#64748b" }}>Building your personalized research protocol</div>
+              <div style={{ marginTop:32,display:"flex",gap:8,justifyContent:"center" }}>
+                {[0,1,2].map(i => (
+                  <div key={i} style={{ width:8,height:8,borderRadius:"50%",background:"#1a6ed8",animation:`pulse 1.4s ease-in-out ${i*0.2}s infinite` }}/>
+                ))}
+              </div>
+            </div>
+            <style>{`
+              @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+              @keyframes pulse { 0%,80%,100% { opacity:0.3; transform:scale(0.8); } 40% { opacity:1; transform:scale(1.2); } }
+            `}</style>
+          </div>
+        );
+
+        // ── RESULTS SCREEN ──
+        if (quizResult) {
+          const addAllToCart = () => {
+            let added = 0;
+            quizResult.compounds.forEach(c => {
+              const prod = PRODUCTS.find(p => p.name.toLowerCase() === c.name.toLowerCase());
+              if (prod) { addCart(prod, prod.variants[0], 1, prod.variants[0].p); added++; }
+            });
+            if (added > 0) { setCartOpen(true); closeQuiz(); }
+          };
+          return (
+            <div style={{ position:"fixed",inset:0,background:"rgba(2,8,23,0.97)",zIndex:9000,display:"flex",alignItems:"center",justifyContent:"center",padding:24,overflowY:"auto" }}
+              onClick={e=>{ if(e.target===e.currentTarget) closeQuiz(); }}>
+              <div style={{ maxWidth:600,width:"100%",position:"relative" }}>
+                {/* Header */}
+                <button onClick={closeQuiz} style={{ position:"absolute",top:-8,right:0,background:"none",border:"none",color:"#64748b",fontSize:24,cursor:"pointer",lineHeight:1 }}>×</button>
+                <div style={{ marginBottom:6 }}>
+                  <span style={{ fontSize:11,fontWeight:800,color:"#1a6ed8",letterSpacing:2,textTransform:"uppercase" }}>Your Protocol</span>
+                </div>
+                <div style={{ fontSize:32,fontWeight:900,color:"#f8fafc",marginBottom:8,letterSpacing:"-1px",lineHeight:1.1 }}>{quizResult.protocolName}</div>
+                <div style={{ fontSize:15,color:"#94a3b8",marginBottom:32,lineHeight:1.6 }}>{quizResult.tagline}</div>
+
+                {/* Compounds */}
+                <div style={{ display:"flex",flexDirection:"column",gap:14,marginBottom:24 }}>
+                  {quizResult.compounds?.map((c, i) => {
+                    const prod = PRODUCTS.find(p => p.name.toLowerCase() === c.name.toLowerCase());
+                    return (
+                      <div key={i} style={{ background:"#0f172a",border:"1px solid #1e293b",borderRadius:16,padding:"20px 22px",display:"flex",gap:16,alignItems:"flex-start" }}>
+                        <div style={{ background:"#1a6ed8",color:"#fff",borderRadius:10,width:36,height:36,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,fontSize:14,flexShrink:0,marginTop:2 }}>{i+1}</div>
+                        <div style={{ flex:1,minWidth:0 }}>
+                          <div style={{ display:"flex",alignItems:"center",gap:10,flexWrap:"wrap",marginBottom:6 }}>
+                            <span style={{ fontSize:16,fontWeight:800,color:"#f8fafc" }}>{c.name}</span>
+                            <span style={{ fontSize:10,fontWeight:800,color:"#1a6ed8",background:"rgba(26,110,216,0.12)",border:"1px solid rgba(26,110,216,0.3)",borderRadius:20,padding:"3px 10px",textTransform:"uppercase",letterSpacing:1 }}>{c.role}</span>
+                            {prod && <span style={{ fontSize:12,color:"#4ade80",fontWeight:700 }}>from ${prod.variants[0].p}</span>}
+                          </div>
+                          <div style={{ fontSize:13,color:"#94a3b8",lineHeight:1.6,marginBottom:6 }}>{c.reason}</div>
+                          <div style={{ fontSize:12,color:"#475569",fontStyle:"italic" }}>📖 {c.researchNote}</div>
+                        </div>
+                        {prod && (
+                          <button onClick={()=>{ addCart(prod, prod.variants[0], 1, prod.variants[0].p); setCartOpen(true); }}
+                            style={{ background:"#1e293b",border:"1px solid #334155",color:"#94a3b8",fontSize:11,fontWeight:700,padding:"8px 12px",borderRadius:8,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap",flexShrink:0 }}>
+                            + Cart
+                          </button>
+                        )}
                       </div>
-                      <button onClick={()=>{ setShowQuiz(false); setQ(rec.name); setCat("all"); setQuizStep(0); setQuizAnswers({}); setQuizResult(null); }}
-                        style={{ background:"#1a6ed8",border:"none",color:"#fff",fontWeight:700,fontSize:12,padding:"8px 14px",borderRadius:8,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap",marginLeft:12 }}>
-                        View →
-                      </button>
-                    </div>
-                  ))}
+                    );
+                  })}
+                </div>
+
+                {/* Protocol tip */}
+                {quizResult.protocolTip && (
+                  <div style={{ background:"rgba(26,110,216,0.08)",border:"1px solid rgba(26,110,216,0.2)",borderRadius:12,padding:"14px 18px",marginBottom:24,display:"flex",gap:12,alignItems:"flex-start" }}>
+                    <span style={{ fontSize:18 }}>💡</span>
+                    <div style={{ fontSize:13,color:"#94a3b8",lineHeight:1.6 }}><strong style={{ color:"#60a5fa" }}>Protocol Tip:</strong> {quizResult.protocolTip}</div>
+                  </div>
+                )}
+
+                {/* Disclaimer */}
+                <div style={{ fontSize:11,color:"#475569",marginBottom:24,lineHeight:1.6 }}>
+                  For research use only. Not intended for human use. Consult a licensed physician before beginning any research protocol.
+                </div>
+
+                {/* CTAs */}
+                <div style={{ display:"flex",gap:12,flexWrap:"wrap" }}>
+                  <button onClick={addAllToCart}
+                    style={{ flex:1,minWidth:200,background:"linear-gradient(135deg,#1a6ed8,#2563eb)",border:"none",color:"#fff",fontSize:15,fontWeight:800,padding:"16px 24px",borderRadius:12,cursor:"pointer",fontFamily:"inherit",letterSpacing:"-0.2px" }}>
+                    🛒 Add Full Stack to Cart
+                  </button>
                   <button onClick={()=>{ setQuizStep(0); setQuizAnswers({}); setQuizResult(null); }}
-                    style={{ marginTop:8,background:"none",border:"1px solid #334155",color:"#94a3b8",fontSize:12,padding:"8px 16px",borderRadius:8,cursor:"pointer",fontFamily:"inherit" }}>
-                    ← Start Over
+                    style={{ background:"#1e293b",border:"1px solid #334155",color:"#94a3b8",fontSize:13,fontWeight:700,padding:"16px 20px",borderRadius:12,cursor:"pointer",fontFamily:"inherit" }}>
+                    ↺ Rebuild
                   </button>
                 </div>
-              ) : (
-                <div>
-                  <div style={{ fontSize:12,color:"#64748b",marginBottom:8,fontWeight:700 }}>STEP {quizStep+1} OF {questions.length}</div>
-                  <div style={{ background:"#1e293b",borderRadius:8,height:4,marginBottom:20 }}>
-                    <div style={{ background:"#1a6ed8",borderRadius:8,height:4,width:`${((quizStep+1)/questions.length)*100}%`,transition:"width .3s" }}/>
-                  </div>
-                  <div style={{ fontSize:20,fontWeight:800,color:"#f8fafc",marginBottom:20 }}>{questions[quizStep].q}</div>
-                  <div style={{ display:"flex",flexDirection:"column",gap:10 }}>
-                    {questions[quizStep].opts.map(opt => (
-                      <button key={opt.val}
-                        onClick={()=>{
-                          const newA = {...quizAnswers,[questions[quizStep].key]:opt.val};
-                          setQuizAnswers(newA);
-                          if(quizStep+1>=questions.length){
-                            setQuizResult(stacks[newA.goal]?.[newA.exp] || stacks.fat.mid);
-                          } else { setQuizStep(quizStep+1); }
-                        }}
-                        style={{ background:"#1e293b",border:"1.5px solid #334155",color:"#f8fafc",fontSize:14,fontWeight:600,padding:"14px 18px",borderRadius:12,cursor:"pointer",fontFamily:"inherit",textAlign:"left" }}
-                        onMouseEnter={e=>e.currentTarget.style.borderColor="#1a6ed8"}
-                        onMouseLeave={e=>e.currentTarget.style.borderColor="#334155"}>
-                        {opt.label}
-                      </button>
-                    ))}
-                  </div>
-                  {quizStep>0 && <button onClick={()=>setQuizStep(quizStep-1)} style={{ marginTop:16,background:"none",border:"none",color:"#64748b",fontSize:12,cursor:"pointer",fontFamily:"inherit" }}>← Back</button>}
+              </div>
+            </div>
+          );
+        }
+
+        // ── QUESTION SCREEN ──
+        const q = questions[quizStep];
+        const totalSteps = questions.length;
+        return (
+          <div style={{ position:"fixed",inset:0,background:"rgba(2,8,23,0.97)",zIndex:9000,display:"flex",alignItems:"center",justifyContent:"center",padding:24 }}
+            onClick={e=>{ if(e.target===e.currentTarget) closeQuiz(); }}>
+            <div style={{ maxWidth:560,width:"100%",position:"relative" }}>
+              <button onClick={closeQuiz} style={{ position:"absolute",top:-8,right:0,background:"none",border:"none",color:"#64748b",fontSize:24,cursor:"pointer",lineHeight:1 }}>×</button>
+
+              {/* Progress */}
+              <div style={{ marginBottom:32 }}>
+                <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10 }}>
+                  <span style={{ fontSize:11,fontWeight:800,color:"#1a6ed8",letterSpacing:2,textTransform:"uppercase" }}>Build Your Stack</span>
+                  <span style={{ fontSize:11,color:"#475569",fontWeight:700 }}>{quizStep+1} / {totalSteps}</span>
                 </div>
+                <div style={{ background:"#1e293b",borderRadius:99,height:3 }}>
+                  <div style={{ background:"linear-gradient(90deg,#1a6ed8,#60a5fa)",borderRadius:99,height:3,width:`${((quizStep)/totalSteps)*100}%`,transition:"width .4s cubic-bezier(.4,0,.2,1)" }}/>
+                </div>
+              </div>
+
+              {/* Question */}
+              <div style={{ marginBottom:8 }}>
+                <div style={{ fontSize:26,fontWeight:900,color:"#f8fafc",letterSpacing:"-0.5px",lineHeight:1.2,marginBottom:8 }}>{q.q}</div>
+                <div style={{ fontSize:14,color:"#64748b" }}>{q.sub}</div>
+              </div>
+
+              {/* Options */}
+              <div style={{ display:"flex",flexDirection:"column",gap:10,marginTop:24 }}>
+                {q.opts.map(opt => (
+                  <button key={opt.val}
+                    onClick={()=>{
+                      const newA = {...quizAnswers, [q.key]: opt.val};
+                      setQuizAnswers(newA);
+                      if (quizStep + 1 >= totalSteps) {
+                        generateStack(newA);
+                      } else {
+                        setQuizStep(quizStep + 1);
+                      }
+                    }}
+                    style={{ background:"#0f172a",border:"1.5px solid #1e293b",color:"#f8fafc",fontSize:14,fontWeight:600,padding:"16px 20px",borderRadius:14,cursor:"pointer",fontFamily:"inherit",textAlign:"left",display:"flex",alignItems:"center",gap:14,transition:"border-color .15s,background .15s" }}
+                    onMouseEnter={e=>{ e.currentTarget.style.borderColor="#1a6ed8"; e.currentTarget.style.background="#0f1f3d"; }}
+                    onMouseLeave={e=>{ e.currentTarget.style.borderColor="#1e293b"; e.currentTarget.style.background="#0f172a"; }}>
+                    <span style={{ fontSize:22,flexShrink:0 }}>{opt.icon}</span>
+                    <div>
+                      <div style={{ fontWeight:700,marginBottom:2 }}>{opt.label}</div>
+                      <div style={{ fontSize:12,color:"#64748b",fontWeight:400 }}>{opt.desc}</div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              {quizStep > 0 && (
+                <button onClick={()=>setQuizStep(quizStep-1)} style={{ marginTop:20,background:"none",border:"none",color:"#475569",fontSize:13,cursor:"pointer",fontFamily:"inherit",fontWeight:600 }}>← Back</button>
               )}
             </div>
           </div>
