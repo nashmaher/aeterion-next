@@ -64,7 +64,7 @@ export default async function handler(req, res) {
       // ── Ambassador codes ──
       else {
         const sbKey = process.env.SUPABASE_SERVICE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-        const promoRes = await fetch(`${SB_URL}/rest/v1/ambassadors?promo_code=eq.${encodeURIComponent(normalized)}&status=eq.approved&select=id,promo_code,commission_rate`, {
+        const promoRes = await fetch(`${SB_URL}/rest/v1/ambassadors?promo_code=eq.${encodeURIComponent(normalized)}&status=eq.approved&select=id,promo_code,commission_rate,free_shipping`, {
           headers: { "apikey": sbKey, "Authorization": `Bearer ${sbKey}` }
         });
         const promoData = await promoRes.json();
@@ -92,34 +92,45 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "No items in cart" });
     }
 
-    // Calculate subtotal to determine shipping
-    const subtotalCents = items.reduce((sum, item) => sum + Math.round((item.lt / item.qty) * 100) * item.qty, 0);
-    const freeShipping = subtotalCents >= 25000; // $250+
+    const line_items = items.map(item => {
+      // NO STACKING: if promo code applied, use original unit price (no bulk discount)
+      // if no promo code, use the already bulk-discounted lt from frontend
+      const unitAmountCents = promoCode
+        ? Math.round(item.p * 100)                        // original price, no bulk
+        : Math.round((item.lt / item.qty) * 100);         // bulk-discounted price
 
-    const line_items = items.map(item => ({
-      price_data: {
-        currency: "usd",
-        product_data: {
-          name: `${item.name} (${item.size})`,
-          description: item.qty > 1
-            ? `${item.qty} vials — ${item.qty === 5 ? "8% bulk discount applied" : "18% bulk discount applied"}`
-            : "1 vial — Research use only",
-          metadata: {
-            product_id: String(item.id),
-            qty_ordered: String(item.qty),
+      return {
+        price_data: {
+          currency: "usd",
+          product_data: {
+            name: `${item.name} (${item.size})`,
+            description: promoCode
+              ? `${item.qty} vial${item.qty > 1 ? "s" : ""} — ${promoCode} discount applied`
+              : item.qty >= 10 ? `${item.qty} vials — 18% bulk discount applied`
+              : item.qty >= 5  ? `${item.qty} vials — 8% bulk discount applied`
+              : "1 vial — Research use only",
+            metadata: {
+              product_id: String(item.id),
+              qty_ordered: String(item.qty),
+            },
           },
+          unit_amount: unitAmountCents,
         },
-        unit_amount: Math.round((item.lt / item.qty) * 100),
-      },
-      quantity: item.qty,
-    }));
+        quantity: item.qty,
+      };
+    });
+
+    // Subtotal for shipping threshold (use original prices)
+    const subtotalCents = items.reduce((sum, item) => sum + Math.round(item.p * 100) * item.qty, 0);
+    const ambassadorFreeShipping = validatedAmbassador?.free_shipping === true;
+    const freeShipping = subtotalCents >= 25000 || ambassadorFreeShipping;
 
     const shippingOptions = freeShipping ? [
       {
         shipping_rate_data: {
           type: "fixed_amount",
           fixed_amount: { amount: 0, currency: "usd" },
-          display_name: "Free Shipping",
+          display_name: ambassadorFreeShipping ? "Free Shipping (Ambassador Perk)" : "Free Shipping",
           delivery_estimate: { minimum: { unit: "week", value: 1 }, maximum: { unit: "week", value: 2 } },
         },
       },
@@ -154,7 +165,7 @@ export default async function handler(req, res) {
       phone_number_collection: { enabled: true },
       metadata: {
         user_id: user_id || "",
-        promo_code: validatedAmbassador?.promo_code || "",
+        promo_code: promoCode ? promoCode.toUpperCase().trim() : "",
         ambassador_id: validatedAmbassador?.id || "",
       },
     };
