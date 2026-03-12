@@ -296,8 +296,6 @@ export default async function handler(req, res) {
     return res.status(200).json({ success: true, amount_paid: totalPaying });
   }
 
-  return res.status(400).json({ error: 'Unknown action.' });
-
   // ── LIST all commissions ───────────────────────────────
   if (action === 'list_commissions') {
     const { data, error } = await supabase
@@ -312,7 +310,6 @@ export default async function handler(req, res) {
   // ── DELETE ambassador ──────────────────────────────────
   if (action === 'delete_ambassador') {
     if (!ambassador_id) return res.status(400).json({ error: 'ambassador_id required.' });
-    // Also delete their commissions
     await supabase.from('ambassador_commissions').delete().eq('ambassador_id', ambassador_id);
     const { error } = await supabase.from('ambassadors').delete().eq('id', ambassador_id);
     if (error) return res.status(500).json({ error: error.message });
@@ -323,7 +320,6 @@ export default async function handler(req, res) {
   if (action === 'delete_commission') {
     const { commission_id } = req.body;
     if (!commission_id) return res.status(400).json({ error: 'commission_id required.' });
-    // Subtract from ambassador total before deleting
     const { data: comm } = await supabase
       .from('ambassador_commissions')
       .select('commission_amount, ambassador_id')
