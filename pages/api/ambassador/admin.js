@@ -297,4 +297,62 @@ export default async function handler(req, res) {
   }
 
   return res.status(400).json({ error: 'Unknown action.' });
+
+  // ── LIST all commissions ───────────────────────────────
+  if (action === 'list_commissions') {
+    const { data, error } = await supabase
+      .from('ambassador_commissions')
+      .select('*, ambassadors(name)')
+      .order('created_at', { ascending: false })
+      .limit(200);
+    if (error) return res.status(500).json({ error: error.message });
+    return res.status(200).json({ commissions: data });
+  }
+
+  // ── DELETE ambassador ──────────────────────────────────
+  if (action === 'delete_ambassador') {
+    if (!ambassador_id) return res.status(400).json({ error: 'ambassador_id required.' });
+    // Also delete their commissions
+    await supabase.from('ambassador_commissions').delete().eq('ambassador_id', ambassador_id);
+    const { error } = await supabase.from('ambassadors').delete().eq('id', ambassador_id);
+    if (error) return res.status(500).json({ error: error.message });
+    return res.status(200).json({ success: true });
+  }
+
+  // ── DELETE single commission ───────────────────────────
+  if (action === 'delete_commission') {
+    const { commission_id } = req.body;
+    if (!commission_id) return res.status(400).json({ error: 'commission_id required.' });
+    // Subtract from ambassador total before deleting
+    const { data: comm } = await supabase
+      .from('ambassador_commissions')
+      .select('commission_amount, ambassador_id')
+      .eq('id', commission_id)
+      .single();
+    if (comm) {
+      const { data: amb } = await supabase
+        .from('ambassadors')
+        .select('total_commission_earned')
+        .eq('id', comm.ambassador_id)
+        .single();
+      if (amb) {
+        const newTotal = Math.max(0, Number(amb.total_commission_earned) - Number(comm.commission_amount));
+        await supabase.from('ambassadors').update({ total_commission_earned: newTotal }).eq('id', comm.ambassador_id);
+      }
+    }
+    const { error } = await supabase.from('ambassador_commissions').delete().eq('id', commission_id);
+    if (error) return res.status(500).json({ error: error.message });
+    return res.status(200).json({ success: true });
+  }
+
+  // ── DELETE order ───────────────────────────────────────
+  if (action === 'delete_order') {
+    const { order_id } = req.body;
+    if (!order_id) return res.status(400).json({ error: 'order_id required.' });
+    const { error } = await supabase.from('orders').delete().eq('id', order_id);
+    if (error) return res.status(500).json({ error: error.message });
+    return res.status(200).json({ success: true });
+  }
+
+  return res.status(400).json({ error: 'Unknown action.' });
 }
