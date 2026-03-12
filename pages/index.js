@@ -1337,6 +1337,7 @@ export default function App() {
             size: i.size,
             qty:  i.qty,
             lt:   i.lt,
+            p:    i.variant?.p || (i.lt / (i.qty >= 10 ? 0.82 : i.qty >= 5 ? 0.92 : 1) / i.qty),
           })),
           user_id:    user?.id || null,
           user_email: user?.email || null,
