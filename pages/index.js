@@ -4401,12 +4401,21 @@ export default function App() {
           ]},
         ];
 
-        const PRODUCT_CATALOG = PRODUCTS.map(p => `${p.name} (${p.cat}, $${p.variants[0].p})`).join(", ");
+        const PRODUCT_CATALOG = PRODUCTS.map(p =>
+          `${p.name} [sizes: ${p.variants.map(v => `${v.s}=$${v.p}`).join(", ")}]`
+        ).join("\n");
+
+        const compoundCount = answers.exp === "beginner" ? "EXACTLY 2-3" : answers.exp === "mid" ? "EXACTLY 4" : "EXACTLY 5";
+        const sizeRule = answers.exp === "beginner"
+          ? "recommend the SMALLEST vial size available for each compound"
+          : answers.exp === "mid"
+          ? "recommend a MID-RANGE or LARGE vial size (e.g. 5mg, 10mg, 15mg) — NOT the smallest"
+          : "ALWAYS recommend the LARGEST vial size available for each compound — never the smallest";
 
         const generateStack = async (answers) => {
           setQuizLoading(true);
           try {
-            const prompt = `You are the Aeterion Labs stack builder. Based on a researcher's profile, generate a premium personalized peptide research protocol.
+            const prompt = `You are the Aeterion Labs stack builder. Generate a premium personalized peptide research protocol.
 
 Researcher Profile:
 - Primary Goal: ${answers.goal}
@@ -4415,33 +4424,31 @@ Researcher Profile:
 - Cycle Length: ${answers.cycle}
 - Budget: ${answers.budget}
 
-Available Aeterion Products: ${PRODUCT_CATALOG}
+Available Aeterion Products (with ALL available sizes):
+${PRODUCT_CATALOG}
 
-Respond ONLY with a valid JSON object, no markdown, no backticks, no extra text:
+STRICT RULES — you MUST follow these exactly:
+1. Compound count: ${compoundCount} compounds — this is non-negotiable
+2. Vial sizing: ${sizeRule}
+3. Only use product names that exist EXACTLY in the catalog above
+4. Match budget: low=cheaper compounds, high=premium/rare compounds and largest sizes
+5. The recommendedSize field MUST match one of the actual listed sizes for that product
+
+Respond ONLY with valid JSON, no markdown, no backticks:
 {
-  "protocolName": "A dramatic 3-4 word protocol name (e.g. The Recomp Protocol, The Longevity Stack, The Neural Edge)",
-  "tagline": "One compelling sentence describing what this stack is designed for",
+  "protocolName": "Dramatic 3-4 word protocol name",
+  "tagline": "One compelling sentence for this stack",
   "compounds": [
     {
       "name": "EXACT product name from catalog",
-      "recommendedSize": "the specific vial size from its variants (e.g. 10mg, 5mg+5mg)",
-      "role": "2-4 word role label (e.g. Foundation, Amplifier, Support)",
-      "reason": "1-2 sentence scientific rationale for including this compound",
-      "researchNote": "One brief note on published research protocols for this compound"
+      "recommendedSize": "EXACT size string from that product's size list above",
+      "role": "2-4 word role (Foundation / Amplifier / Support / Optimizer)",
+      "reason": "1-2 sentence scientific rationale",
+      "researchNote": "Brief note on published research protocols"
     }
   ],
-  "protocolTip": "One practical tip for running this research cycle"
-}
-
-Rules:
-- Only use products that exist EXACTLY in the Aeterion catalog above
-- Beginner: 2-3 compounds, recommend the SMALLEST available vial size
-- Intermediate: 3-4 compounds, recommend MID-RANGE vial sizes (e.g. 5mg, 10mg)
-- Advanced: 4-5 compounds, recommend the LARGEST available vial sizes (e.g. 10mg, 15mg, 20mg)
-- When referencing a product, always mention the specific size you recommend from its available variants
-- Match budget — low means cheaper/smaller compounds, high means premium/rare and larger sizes
-- Make the protocol name feel premium and specific to their goals
-- The stack should feel curated, not generic`;
+  "protocolTip": "One practical tip for this cycle"
+}`;
 
             const res = await fetch("https://api.anthropic.com/v1/messages", {
               method: "POST",
