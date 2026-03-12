@@ -1742,7 +1742,32 @@ export default function App() {
     const [notesInputs, setNotesInputs] = useState({});
 
     // ── Ambassador tab state ──
-    const [adminTab, setAdminTab] = useState("orders"); // "orders" | "ambassadors"
+    const [adminTab, setAdminTab] = useState("orders"); // "orders" | "ambassadors" | "commissions"
+    const [commissions, setCommissions] = useState([]);
+
+    const loadCommissions = async () => {
+      try {
+        const res = await fetch("/api/ambassador/admin", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ admin_token: adminToken, action: "list_commissions" }),
+        });
+        const data = await res.json();
+        if (data.commissions) setCommissions(data.commissions);
+      } catch {}
+    };
+
+    const deleteCommission = async (commissionId) => {
+      if (!window.confirm("Delete this commission record? This will adjust the ambassador's total.")) return;
+      const res = await fetch("/api/ambassador/admin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ admin_token: adminToken, action: "delete_commission", commission_id: commissionId }),
+      });
+      const data = await res.json();
+      if (data.success) await loadCommissions();
+      else alert("Delete failed: " + data.error);
+    };
     const [ambassadors, setAmbassadors] = useState([]);
     const [ambLoading, setAmbLoading] = useState(false);
     const [ambExpanded, setAmbExpanded] = useState(null);
@@ -1918,7 +1943,8 @@ export default function App() {
                 </span>
               )}
             </button>
-            <button onClick={() => adminTab === "orders" ? loadOrders() : loadAmbassadors()} style={{ background: "#334155", border: "none", color: "#94a3b8", padding: "8px 16px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: "inherit" }}>↻ Refresh</button>
+            <button onClick={() => { setAdminTab("commissions"); loadCommissions(); }} style={{ background: adminTab === "commissions" ? "#1a6ed8" : "#334155", border: "none", color: adminTab === "commissions" ? "#fff" : "#94a3b8", padding: "8px 16px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: "inherit", fontWeight: 700 }}>💰 Commissions</button>
+            <button onClick={() => adminTab === "orders" ? loadOrders() : adminTab === "commissions" ? loadCommissions() : loadAmbassadors()} style={{ background: "#334155", border: "none", color: "#94a3b8", padding: "8px 16px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: "inherit" }}>↻ Refresh</button>
             <button onClick={() => goTo("store")} style={{ ...btnPrimary({ padding: "8px 16px", fontSize: 13, borderRadius: 8 }) }}>← Store</button>
           </div>
         </div>
@@ -2143,6 +2169,13 @@ export default function App() {
                                     >
                                       Suspend
                                     </button>
+                                    <button
+                                      disabled={ambWorking === amb.id}
+                                      onClick={() => { if (window.confirm(`Permanently delete ${amb.name}? This also deletes all their commissions.`)) ambAction("delete_ambassador", amb.id); }}
+                                      style={{ padding: "9px 14px", background: "#1a0000", border: "1px solid #7f1d1d", color: "#f87171", borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", opacity: ambWorking === amb.id ? 0.5 : 1 }}
+                                    >
+                                      🗑 Delete
+                                    </button>
                                   </div>
                                 </div>
                               )}
@@ -2305,6 +2338,16 @@ export default function App() {
                           disabled={updating === order.id}
                           style={{ ...btnPrimary({ padding: "10px 14px", fontSize: 12, borderRadius: 8, alignSelf: "flex-start" }), opacity: updating === order.id ? 0.5 : 1 }}>Save</button>
                       </div>
+
+                      <button
+                        style={{ marginTop: 16, width: "100%", padding: "10px", background: "#1a0000", border: "1px solid #7f1d1d", color: "#f87171", borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}
+                        onClick={async () => {
+                          if (!window.confirm(`Delete order ${order.order_number}? This cannot be undone.`)) return;
+                          const r = await fetch("/api/ambassador/admin", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ admin_token: adminToken, action: "delete_order", order_id: order.id }) });
+                          const d = await r.json();
+                          if (d.success) { await loadOrders(); } else { alert("Delete failed: " + d.error); }
+                        }}
+                      >🗑 Delete Order</button>
                     </div>
                   </div>
                 )}
@@ -2315,6 +2358,43 @@ export default function App() {
         )}
         </div>
       </div>
+
+      {/* ── COMMISSIONS TAB ── */}
+      {adminTab === "commissions" && (
+        <div style={{ padding: "0 24px 24px" }}>
+          {commissions.length === 0 ? (
+            <div style={{ textAlign: "center", color: "#64748b", padding: 40 }}>No commission records found.</div>
+          ) : (
+            <div style={{ background: "#1e293b", borderRadius: 12, overflow: "hidden", border: "1px solid #334155" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                <thead>
+                  <tr style={{ background: "#0f172a" }}>
+                    {["Date", "Ambassador", "Customer", "Order Value", "Commission", "Code", "Status", ""].map(h => (
+                      <th key={h} style={{ padding: "12px 14px", fontSize: 11, fontWeight: 700, color: "#64748b", textAlign: "left", textTransform: "uppercase", letterSpacing: 1 }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {commissions.map((c, i) => (
+                    <tr key={c.id} style={{ borderTop: "1px solid #334155", background: i % 2 === 0 ? "#1e293b" : "#0f172a" }}>
+                      <td style={{ padding: "12px 14px", fontSize: 12, color: "#94a3b8" }}>{new Date(c.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</td>
+                      <td style={{ padding: "12px 14px", fontSize: 13, fontWeight: 700 }}>{c.ambassadors?.name || c.ambassador_id?.slice(0,8)}</td>
+                      <td style={{ padding: "12px 14px", fontSize: 12, color: "#94a3b8" }}>{c.customer_email}</td>
+                      <td style={{ padding: "12px 14px", fontSize: 13, fontWeight: 700 }}>${Number(c.order_subtotal).toFixed(2)}</td>
+                      <td style={{ padding: "12px 14px", fontSize: 13, fontWeight: 800, color: "#4ade80" }}>${Number(c.commission_amount).toFixed(2)}</td>
+                      <td style={{ padding: "12px 14px" }}><span style={{ background: "#1e3a5f", color: "#60a5fa", borderRadius: 6, padding: "3px 8px", fontSize: 11, fontWeight: 700 }}>{c.promo_code}</span></td>
+                      <td style={{ padding: "12px 14px" }}><span style={{ background: c.status === "paid" ? "#14532d" : "#422006", color: c.status === "paid" ? "#4ade80" : "#fb923c", borderRadius: 6, padding: "3px 8px", fontSize: 11, fontWeight: 700, textTransform: "capitalize" }}>{c.status}</span></td>
+                      <td style={{ padding: "12px 14px" }}>
+                        <button onClick={() => deleteCommission(c.id)} style={{ background: "#1a0000", border: "1px solid #7f1d1d", color: "#f87171", borderRadius: 6, padding: "5px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>🗑</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
     );
   };
 
