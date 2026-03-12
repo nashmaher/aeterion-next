@@ -1752,6 +1752,22 @@ export default function App() {
     const [trackingInputs, setTrackingInputs] = useState({});
     const [notesInputs, setNotesInputs] = useState({});
 
+    // Restore session on refresh
+    useEffect(() => {
+      try {
+        const saved = sessionStorage.getItem("aet_admin_token");
+        if (saved) {
+          setAdminToken(saved);
+          setAuthed(true);
+        }
+      } catch {}
+    }, []);
+
+    // Load data once authed
+    useEffect(() => {
+      if (authed && adminToken) loadOrders();
+    }, [authed, adminToken]);
+
     // ── Ambassador tab state ──
     const [adminTab, setAdminTab] = useState("orders"); // "orders" | "ambassadors" | "commissions"
     const [commissions, setCommissions] = useState([]);
@@ -1871,6 +1887,7 @@ export default function App() {
         if (data.token) {
           setAdminToken(data.token);
           setAuthed(true);
+          try { sessionStorage.setItem("aet_admin_token", data.token); } catch {}
           loadOrders();
         } else {
           setPwErr(true);
@@ -1957,6 +1974,7 @@ export default function App() {
             <button onClick={() => { setAdminTab("commissions"); loadCommissions(); }} style={{ background: adminTab === "commissions" ? "#1a6ed8" : "#334155", border: "none", color: adminTab === "commissions" ? "#fff" : "#94a3b8", padding: "8px 16px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: "inherit", fontWeight: 700 }}>💰 Commissions</button>
             <button onClick={() => adminTab === "orders" ? loadOrders() : adminTab === "commissions" ? loadCommissions() : loadAmbassadors()} style={{ background: "#334155", border: "none", color: "#94a3b8", padding: "8px 16px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: "inherit" }}>↻ Refresh</button>
             <button onClick={() => goTo("store")} style={{ ...btnPrimary({ padding: "8px 16px", fontSize: 13, borderRadius: 8 }) }}>← Store</button>
+            <button onClick={() => { try { sessionStorage.removeItem("aet_admin_token"); } catch {} setAuthed(false); setAdminToken(""); }} style={{ background: "#3b0000", border: "1px solid #7f1d1d", color: "#f87171", borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>Sign Out</button>
           </div>
         </div>
 
