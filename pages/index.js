@@ -2357,7 +2357,6 @@ export default function App() {
         </div>
         )}
         </div>
-      </div>
 
       {/* ── COMMISSIONS TAB ── */}
       {adminTab === "commissions" && (
@@ -2395,6 +2394,8 @@ export default function App() {
           )}
         </div>
       )}
+
+      </div>
     );
   };
 
