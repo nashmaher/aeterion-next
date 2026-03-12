@@ -256,9 +256,9 @@ export default async function handler(req, res) {
       // ── 4. AMBASSADOR COMMISSION ──
       if (promoCode && ambassadorId) {
         try {
-          // FIXED: use amount_total (what customer actually paid) as basis, not amount_subtotal
-          const paidTotal        = session.amount_total / 100;
-          const commissionAmount = paidTotal * 0.20;
+          // Commission based on product subtotal only (sum of line items, no shipping)
+          const productSubtotal  = lineItems.data.reduce((sum, i) => sum + i.amount_total, 0) / 100;
+          const commissionAmount = productSubtotal * 0.20;
 
           // Insert commission record
           await sb("ambassador_commissions", "POST", {
@@ -266,8 +266,8 @@ export default async function handler(req, res) {
             order_id:          session.payment_intent || session.id,
             stripe_session_id: session.id,
             customer_email:    customerEmail || "",
-            order_subtotal:    paidTotal,
-            discount_amount:   paidTotal * 0.10,
+            order_subtotal:    productSubtotal,
+            discount_amount:   productSubtotal * 0.10,
             commission_amount: commissionAmount,
             promo_code:        promoCode,
             status:            "pending",
