@@ -4405,15 +4405,14 @@ export default function App() {
           `${p.name} [sizes: ${p.variants.map(v => `${v.s}=$${v.p}`).join(", ")}]`
         ).join("\n");
 
-        const compoundCount = answers.exp === "beginner" ? "EXACTLY 2-3" : answers.exp === "mid" ? "EXACTLY 4" : "EXACTLY 5";
-        const sizeRule = answers.exp === "beginner"
-          ? "recommend the SMALLEST vial size available for each compound"
-          : answers.exp === "mid"
-          ? "recommend a MID-RANGE or LARGE vial size (e.g. 5mg, 10mg, 15mg) — NOT the smallest"
-          : "ALWAYS recommend the LARGEST vial size available for each compound — never the smallest";
-
         const generateStack = async (answers) => {
           setQuizLoading(true);
+          const compoundCount = answers.exp === "beginner" ? "EXACTLY 2-3" : answers.exp === "mid" ? "EXACTLY 4" : "EXACTLY 5";
+          const sizeRule = answers.exp === "beginner"
+            ? "recommend the SMALLEST vial size available for each compound"
+            : answers.exp === "mid"
+            ? "recommend a MID-RANGE or LARGE vial size (e.g. 5mg, 10mg, 15mg) — NOT the smallest"
+            : "ALWAYS recommend the LARGEST vial size available for each compound — never the smallest";
           try {
             const prompt = `You are the Aeterion Labs stack builder. Generate a premium personalized peptide research protocol.
 
