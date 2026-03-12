@@ -204,23 +204,28 @@ export default async function handler(req, res) {
       console.log("Promo code:", promoCode, "| Ambassador ID:", ambassadorId);
       console.log("Shipping address:", JSON.stringify(shippingAddress));
 
-      // ── 1. SAVE ORDER TO SUPABASE ──
+      // ── 1. SAVE ORDER TO SUPABASE (idempotent) ──
       try {
-        await sb("orders", "POST", {
-          id:               session.id,
-          order_number:     orderNumber,
-          customer_name:    customerName,
-          customer_email:   customerEmail,
-          customer_phone:   customerPhone,
-          shipping_address: shippingAddress || null,
-          items:            lineItems.data.map(i => ({ description: i.description, quantity: i.quantity, amount_total: i.amount_total })),
-          total:            session.amount_total,
-          status:           "processing",
-          user_id:          session.metadata?.user_id || null,
-          promo_code:       promoCode || null,
-          ambassador_id:    ambassadorId ? String(ambassadorId) : null,
-        });
-        console.log("✓ Order saved to Supabase:", orderNumber);
+        const existingOrder = await sb(`orders?id=eq.${session.id}&select=id`).catch(() => []);
+        if (existingOrder?.length) {
+          console.log(`⚠️ Order ${session.id} already exists — skipping insert`);
+        } else {
+          await sb("orders", "POST", {
+            id:               session.id,
+            order_number:     orderNumber,
+            customer_name:    customerName,
+            customer_email:   customerEmail,
+            customer_phone:   customerPhone,
+            shipping_address: shippingAddress || null,
+            items:            lineItems.data.map(i => ({ description: i.description, quantity: i.quantity, amount_total: i.amount_total })),
+            total:            session.amount_total,
+            status:           "processing",
+            user_id:          session.metadata?.user_id || null,
+            promo_code:       promoCode || null,
+            ambassador_id:    ambassadorId ? String(ambassadorId) : null,
+          });
+          console.log("✓ Order saved to Supabase:", orderNumber);
+        }
       } catch (e) {
         console.error("✗ Supabase order save FAILED:", e.message);
       }
@@ -256,9 +261,14 @@ export default async function handler(req, res) {
       // ── 4. AMBASSADOR COMMISSION ──
       if (promoCode && ambassadorId) {
         try {
-          // Commission based on product subtotal only (sum of line items, no shipping)
-          const productSubtotal  = lineItems.data.reduce((sum, i) => sum + i.amount_total, 0) / 100;
-          const commissionAmount = productSubtotal * 0.20;
+          // IDEMPOTENT: check if commission already recorded for this session
+          const existing = await sb(`ambassador_commissions?stripe_session_id=eq.${session.id}&select=id`);
+          if (existing?.length) {
+            console.log(`⚠️ Commission already recorded for session ${session.id} — skipping duplicate`);
+          } else {
+            // Commission based on product subtotal only (sum of line items, no shipping)
+            const productSubtotal  = lineItems.data.reduce((sum, i) => sum + i.amount_total, 0) / 100;
+            const commissionAmount = productSubtotal * 0.20;
 
           // Insert commission record
           await sb("ambassador_commissions", "POST", {
@@ -311,6 +321,7 @@ export default async function handler(req, res) {
         } catch (e) {
           console.error("✗ Commission insert FAILED:", e.message);
         }
+          } // end else (not duplicate)
       }
     }
 
