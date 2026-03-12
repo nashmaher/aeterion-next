@@ -1059,27 +1059,38 @@ const HOMEPAGE_SCHEMA = [
   }
 ];
 
-function ReviewForm({ pid, reviewDraft, setReviewDraft, onSubmit, onCancel, T, btnPrimary }) {
+function ReviewForm({ pid, onSubmit, onCancel, T, btnPrimary }) {
+  const [name, setName] = React.useState("");
+  const [rating, setRating] = React.useState(5);
+  const [text, setText] = React.useState("");
+
   return (
     <div style={{ background:T.bg, borderRadius:12, padding:"16px", marginBottom:16, border:`1px solid ${T.border}` }}>
       <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:10 }}>
-        <input placeholder="Your name (e.g. J.M.)" value={reviewDraft.name}
-          onChange={e => setReviewDraft(d => ({...d, name:e.target.value}))}
+        <input
+          placeholder="Your name (e.g. J.M.)"
+          value={name}
+          onChange={e => setName(e.target.value)}
+          autoComplete="off"
+          autoCorrect="off"
+          spellCheck={false}
           style={{ padding:"9px 12px", borderRadius:9, border:`1.5px solid ${T.border}`, fontSize:13, fontFamily:"inherit", outline:"none", background:T.white, color:T.text }} />
         <div style={{ display:"flex", alignItems:"center", gap:6, padding:"9px 12px", borderRadius:9, border:`1.5px solid ${T.border}`, background:T.white }}>
           <span style={{ fontSize:12, color:T.muted, marginRight:2 }}>Rating:</span>
           {[1,2,3,4,5].map(star => (
-            <span key={star} onClick={() => setReviewDraft(d => ({...d, rating:star}))}
-              style={{ fontSize:18, cursor:"pointer", color: star <= reviewDraft.rating ? "#f59e0b" : "#d1d5db", transition:"color .1s" }}>★</span>
+            <span key={star} onClick={() => setRating(star)}
+              style={{ fontSize:18, cursor:"pointer", color: star <= rating ? "#f59e0b" : "#d1d5db", transition:"color .1s" }}>★</span>
           ))}
         </div>
       </div>
-      <textarea placeholder="Share your research experience with this compound..." value={reviewDraft.text}
-        onChange={e => setReviewDraft(d => ({...d, text:e.target.value}))}
+      <textarea
+        placeholder="Share your research experience with this compound..."
+        value={text}
+        onChange={e => setText(e.target.value)}
         rows={3}
         style={{ width:"100%", padding:"9px 12px", borderRadius:9, border:`1.5px solid ${T.border}`, fontSize:13, fontFamily:"inherit", outline:"none", background:T.white, color:T.text, resize:"vertical", boxSizing:"border-box" }} />
       <div style={{ display:"flex", gap:8, marginTop:10 }}>
-        <button onClick={onSubmit} style={{ ...btnPrimary({ padding:"9px 20px", fontSize:13 }) }}>Submit Review</button>
+        <button onClick={() => { if (!name.trim() || !text.trim()) return; onSubmit({ name: name.trim(), rating, text: text.trim() }); }} style={{ ...btnPrimary({ padding:"9px 20px", fontSize:13 }) }}>Submit Review</button>
         <button onClick={onCancel} style={{ padding:"9px 16px", fontSize:13, borderRadius:9, border:`1.5px solid ${T.border}`, background:"none", color:T.muted, cursor:"pointer", fontFamily:"inherit" }}>Cancel</button>
       </div>
     </div>
@@ -1185,7 +1196,6 @@ export default function App() {
   };
   const [reviews, setReviews] = useState({});
   const [showReviewForm, setShowReviewForm] = useState(null); // productId
-  const [reviewDraft, setReviewDraft] = useState({ name: "", rating: 5, text: "" });
   const [abandonEmail, setAbandonEmail] = useState("");
   const [abandonPopup, setAbandonPopup] = useState(false);
   const [abandonStatus, setAbandonStatus] = useState("");
@@ -1540,19 +1550,15 @@ export default function App() {
                 {showReviewForm === pid && (
                   <ReviewForm
                     pid={pid}
-                    reviewDraft={reviewDraft}
-                    setReviewDraft={setReviewDraft}
                     T={T}
                     btnPrimary={btnPrimary}
-                    onCancel={() => { setShowReviewForm(null); setReviewDraft({ name:"", rating:5, text:"" }); }}
-                    onSubmit={() => {
-                      if (!reviewDraft.name.trim() || !reviewDraft.text.trim()) return;
-                      const newReview = { name:reviewDraft.name.trim(), rating:reviewDraft.rating, text:reviewDraft.text.trim(), date: new Date().toLocaleDateString("en-US",{month:"short",year:"numeric"}) };
+                    onCancel={() => setShowReviewForm(null)}
+                    onSubmit={({ name, rating, text }) => {
+                      const newReview = { name, rating, text, date: new Date().toLocaleDateString("en-US",{month:"short",year:"numeric"}) };
                       const updated = { ...reviews, [pid]: [newReview, ...(reviews[pid]||[])] };
                       setReviews(updated);
                       try { localStorage.setItem("aet_reviews", JSON.stringify(updated)); } catch {}
                       setShowReviewForm(null);
-                      setReviewDraft({ name:"", rating:5, text:"" });
                     }}
                   />
                 )}
