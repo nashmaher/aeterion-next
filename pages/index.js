@@ -205,15 +205,15 @@ const IMGS = {
 const DISC = { 1: 1, 5: 0.92, 10: 0.82 };
 
 const CATS = [
-  { id:"metabolic",   label:"GLP-1 / Metabolic",     icon:"⚡" },
-  { id:"growth",      label:"Growth Hormone",         icon:"📈" },
-  { id:"recovery",    label:"Recovery & Healing",     icon:"🔄" },
-  { id:"longevity",   label:"Longevity & Anti-Aging", icon:"♾️" },
-  { id:"neuro",       label:"Cognitive & Neuro",      icon:"🧠" },
-  { id:"body",        label:"Body Composition",        icon:"💪" },
-  { id:"hormonal",    label:"Hormonal",                icon:"⚗️" },
-  { id:"cosmetic",    label:"Cosmetic",                icon:"✨" },
-  { id:"ancillaries", label:"Ancillaries",             icon:"🧴" },
+  { id:"metabolic",   label:"GLP-1 / Metabolic",     icon:"" },
+  { id:"growth",      label:"Growth Hormone",         icon:"" },
+  { id:"recovery",    label:"Recovery & Healing",     icon:"" },
+  { id:"longevity",   label:"Longevity & Anti-Aging", icon:"" },
+  { id:"neuro",       label:"Cognitive & Neuro",      icon:"" },
+  { id:"body",        label:"Body Composition",        icon:"" },
+  { id:"hormonal",    label:"Hormonal",                icon:"" },
+  { id:"cosmetic",    label:"Cosmetic",                icon:"" },
+  { id:"ancillaries", label:"Ancillaries",             icon:"" },
 ];
 
 const P = (id, cat, name, variants, desc, badge = null, isNew = false, form = "injectable", highlights = [], research = null) => ({
@@ -1462,7 +1462,7 @@ export default function App() {
             if (fbtProducts.length === 0) return null;
             return (
               <div style={{ borderTop: `1px solid ${T.border}`, padding: isFullscreen ? "16px 18px 20px" : "22px 32px 24px", background: T.bg }}>
-                <div style={{ fontSize:11, fontWeight:800, color:T.blue, letterSpacing:2, textTransform:"uppercase", marginBottom:14 }}>🛒 Frequently Bought Together</div>
+                <div style={{ fontSize:11, fontWeight:800, color:T.blue, letterSpacing:2, textTransform:"uppercase", marginBottom:14 }}>Frequently Bought Together</div>
                 <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
                   {/* The current product */}
                   <div style={{ display:"flex", alignItems:"center", gap:10, background:T.white, border:`1.5px solid ${T.blue}`, borderRadius:12, padding:"10px 14px", flex:"1 1 160px", minWidth:140 }}>
@@ -1504,7 +1504,7 @@ export default function App() {
             const r = RESEARCH[modal.id];
             return (
               <div style={{ borderTop: `1px solid ${T.border}`, padding: isFullscreen ? "20px 18px 32px" : "28px 32px 36px" }}>
-                <div style={{ fontSize: 11, fontWeight: 800, color: T.blue, letterSpacing: 2, textTransform: "uppercase", marginBottom: 20 }}>🔬 Detailed Research Profile</div>
+                <div style={{ fontSize: 11, fontWeight: 800, color: T.blue, letterSpacing: 2, textTransform: "uppercase", marginBottom: 20 }}>Research Profile</div>
 
                 {/* Specs table */}
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px,1fr))", gap: 8, marginBottom: 24 }}>
@@ -1542,7 +1542,7 @@ export default function App() {
               <div style={{ borderTop: `1px solid ${T.border}`, padding: isFullscreen ? "16px 18px 28px" : "24px 32px 32px" }}>
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16 }}>
                   <div>
-                    <div style={{ fontSize:11, fontWeight:800, color:T.blue, letterSpacing:2, textTransform:"uppercase", marginBottom:4 }}>⭐ Researcher Reviews</div>
+                    <div style={{ fontSize:11, fontWeight:800, color:T.blue, letterSpacing:2, textTransform:"uppercase", marginBottom:4 }}>Researcher Reviews</div>
                     {revCount > 0
                       ? <StarRow avg={revAvg} count={revCount} />
                       : <div style={{ fontSize:12, color:T.muted }}>No reviews yet — be the first!</div>}
@@ -1601,7 +1601,7 @@ export default function App() {
 
         {cart.length === 0 ? (
           <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: T.muted, gap: 12 }}>
-            <div style={{ fontSize: 48 }}>🛒</div>
+            <div style={{ width: 64, height: 64, borderRadius: "50%", background: "#eff5ff", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", fontSize: 13, fontWeight: 800, color: "#1a6ed8" }}>CART</div>
             <div style={{ fontSize: 15, fontWeight: 600 }}>Your cart is empty</div>
             <button onClick={() => setCartOpen(false)} style={{ ...btnPrimary({ padding: "10px 22px", fontSize: 13 }), marginTop: 4 }}>Browse Products</button>
           </div>
@@ -1623,7 +1623,7 @@ export default function App() {
               ))}
             </div>
             <div style={{ padding: "16px 18px 20px", borderTop: `1px solid ${T.border}` }}>
-              <div style={{ background: T.greenSoft, border: "1px solid #bbf7d0", borderRadius: 10, padding: "8px 12px", marginBottom: 12, fontSize: 12, color: "#15803d", fontWeight: 600 }}>💰 Bulk savings applied automatically</div>
+              <div style={{ background: T.greenSoft, border: "1px solid #bbf7d0", borderRadius: 10, padding: "8px 12px", marginBottom: 12, fontSize: 12, color: "#15803d", fontWeight: 600 }}>Bulk savings applied automatically</div>
 
               {/* Promo Code Input */}
               <div style={{ marginBottom: 12 }}>
@@ -1679,7 +1679,7 @@ export default function App() {
                     </div>
                     {bulkSavings > 0 && (
                       <div style={{ display: "flex", justifyContent: "space-between", color: "#15803d", fontWeight: 600, marginBottom: 6 }}>
-                        <span>💰 Bulk Discount</span><span>−{fmt(bulkSavings)}</span>
+                        <span>Bulk Discount</span><span>−{fmt(bulkSavings)}</span>
                       </div>
                     )}
                     {promoSavings > 0 && (
@@ -1691,7 +1691,7 @@ export default function App() {
                       <span>Total</span><span>{fmt(finalTotal)}</span>
                     </div>
                     {total >= 250 && (
-                      <div style={{ marginTop: 8, fontSize: 11, color: "#15803d", fontWeight: 600 }}>🚚 Free shipping applied</div>
+                      <div style={{ marginTop: 8, fontSize: 11, color: "#15803d", fontWeight: 600 }}>Free shipping applied</div>
                     )}
                   </div>
                 );
@@ -1721,15 +1721,15 @@ export default function App() {
             <AeterionLogo size={36} showText={true} textColor={T.text}/>
           </div>
           <div style={{ padding: "12px 12px" }}>
-            {[{ id: "all", label: "All Products", icon: "🔬" }, ...CATS].map(c => (
+            {[{ id: "all", label: "All Products", icon: "" }, ...CATS].map(c => (
               <button key={c.id} onClick={() => { setCat(c.id); setQ(""); setMenuOpen(false); }} style={{ width: "100%", textAlign: "left", background: cat === c.id ? T.blueSoft : "none", border: "none", borderRadius: 10, padding: "11px 14px", cursor: "pointer", fontSize: 14, fontWeight: 600, color: cat === c.id ? T.blue : T.text, fontFamily: "inherit", display: "flex", alignItems: "center", gap: 10, marginBottom: 2 }}>
                 {c.icon} {c.label}
               </button>
             ))}
             <div style={{ borderTop: `1px solid ${T.border}`, margin: "12px 0" }} />
-            {[["📬","Contact Us","contact"],["📋","Legal & Policies","legal"],["ℹ️","About Us","about"],["❓","FAQ","faq"]].map(([ic,lb,pg]) => (
+            {[["Contact Us","contact"],["Legal & Policies","legal"],["About Us","about"],["FAQ","faq"]].map(([lb,pg]) => (
               <button key={pg} onClick={() => { goTo(pg); setMenuOpen(false); }} style={{ width: "100%", textAlign: "left", background: "none", border: "none", borderRadius: 10, padding: "11px 14px", cursor: "pointer", fontSize: 14, fontWeight: 600, color: T.text, fontFamily: "inherit", display: "flex", alignItems: "center", gap: 10, marginBottom: 2 }}>
-                {ic} {lb}
+                {lb}
               </button>
             ))}
           </div>
@@ -2634,9 +2634,9 @@ export default function App() {
             <div style={{ fontSize: 14, color: "rgba(255,255,255,0.7)", lineHeight: 1.7 }}>Create an account to track your orders, save your shipping address, and view your purchase history.</div>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            {[["✅","COA with every order"],["❄️","Cold-packed shipping"],["🔬","79 research compounds"],["🚚","Free shipping over $250"]].map(([icon,text]) => (
+            {[["COA with every order"],["Cold-packed shipping"],["79 research compounds"],["Free shipping over $250"]].map(([text]) => (
               <div key={text} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: "rgba(255,255,255,0.8)", fontWeight: 500 }}>
-                <span>{icon}</span><span>{text}</span>
+                <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#60a5fa", flexShrink: 0, display: "inline-block" }} /><span>{text}</span>
               </div>
             ))}
           </div>
@@ -2737,7 +2737,7 @@ export default function App() {
     if (success) return (
       <AuthLayout>
         <div style={{ textAlign: "center" }}>
-          <div style={{ width: 72, height: 72, background: "#f0fdf4", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 32, margin: "0 auto 24px" }}>📧</div>
+          <div style={{ width: 72, height: 72, background: "#f0fdf4", border: "3px solid #86efac", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 800, color: "#16a34a", margin: "0 auto 24px" }}>SENT</div>
           <div style={{ fontSize: 26, fontWeight: 900, color: T.text, marginBottom: 10 }}>Check your email</div>
           <div style={{ fontSize: 14, color: T.sub, lineHeight: 1.7, marginBottom: 32 }}>
             We sent a confirmation link to <strong>{email}</strong>. Click it to activate your account, then come back and sign in.
@@ -2819,7 +2819,7 @@ export default function App() {
       <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", background: T.bg, minHeight: "100vh", color: T.text }}>
         {/* Header */}
         <div style={{ background: T.blue, padding: "9px 24px", fontSize: 11.5, color: "rgba(255,255,255,0.9)", textAlign: "center", fontWeight: 500 }}>
-          🚚 Free shipping on orders over $250 &nbsp;·&nbsp; ✅ COA with every order
+          Free shipping on orders over $250 · COA with every order
         </div>
         <div style={{ background: "#fff", borderBottom: `1px solid ${T.border}`, padding: "14px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div onClick={() => goTo("store")} style={{ cursor: "pointer" }}>
@@ -2839,7 +2839,7 @@ export default function App() {
 
           {/* Tabs */}
           <div style={{ display: "flex", gap: 4, marginBottom: 28, background: "#f1f5f9", borderRadius: 12, padding: 4 }}>
-            {[["orders","📦 Orders"],["profile","👤 Profile & Address"]].map(([id, label]) => (
+            {[["orders","Orders"],["profile","Profile & Address"]].map(([id, label]) => (
               <button key={id} onClick={() => setTab(id)} style={{
                 flex: 1, padding: "10px", borderRadius: 10, border: "none", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
                 background: tab === id ? "#fff" : "transparent",
@@ -2855,7 +2855,7 @@ export default function App() {
             <div>
               {orders.length === 0 ? (
                 <div style={{ textAlign: "center", padding: "60px 24px", background: "#fff", borderRadius: 16, border: `1px solid ${T.border}` }}>
-                  <div style={{ fontSize: 40, marginBottom: 12 }}>📦</div>
+                  <div style={{ width: 56, height: 56, borderRadius: 12, background: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px", fontSize: 12, fontWeight: 700, color: "#64748b" }}>ORDERS</div>
                   <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>No orders yet</div>
                   <div style={{ fontSize: 13, color: T.sub, marginBottom: 20 }}>Your order history will appear here.</div>
                   <button onClick={() => goTo("store")} style={{ ...btnPrimary({ padding: "12px 28px", fontSize: 14, borderRadius: 10 }) }}>Start Shopping</button>
@@ -2924,7 +2924,7 @@ export default function App() {
                 <button onClick={saveProfile} disabled={saving} style={{ ...btnPrimary({ padding: "12px 28px", fontSize: 14, borderRadius: 10 }), opacity: saving ? 0.7 : 1 }}>
                   {saving ? "Saving…" : "Save Address"}
                 </button>
-                {saved && <span style={{ fontSize: 13, color: "#16a34a", fontWeight: 700 }}>✅ Saved!</span>}
+                {saved && <span style={{ fontSize: 13, color: "#16a34a", fontWeight: 700 }}>Saved!</span>}
               </div>
             </div>
           )}
@@ -2937,7 +2937,7 @@ export default function App() {
   const ContactPage = () => (
     <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", background: T.bg, minHeight: "100vh", color: T.text }}>
       <div style={{ background: T.blue, padding: "9px 24px", fontSize: 11.5, color: "rgba(255,255,255,0.9)", textAlign: "center", fontWeight: 500 }}>
-        🚚 Free shipping on orders over $250 &nbsp;·&nbsp; ✅ COA with every order
+        Free shipping on orders over $250 · COA with every order
       </div>
       <header style={{ background: T.white, borderBottom: `1px solid ${T.border}`, position: "sticky", top: 0, zIndex: 300, boxShadow: "0 1px 8px rgba(0,0,0,0.05)" }}>
         <div style={{ maxWidth: 1400, margin: "0 auto", padding: "13px 24px", display: "flex", alignItems: "center", gap: 20 }}>
@@ -2955,12 +2955,12 @@ export default function App() {
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "1fr 1fr", gap: 14, marginBottom: 32 }}>
-          {[["📧","Email","info@aeterionpeptides.com"],["💬","Response Time","Within 24 hours"],["🇺🇸","Location","USA Domestic"],["🕐","Hours","Mon–Fri, 9am–6pm EST"]].map(([ic,t,v]) => (
-            <div key={t} style={{ background: T.white, border: `1px solid ${T.border}`, borderRadius: 14, padding: "18px 20px", display: "flex", alignItems: "center", gap: 14, boxShadow: T.shadow }}>
-              <span style={{ fontSize: 22, flexShrink: 0 }}>{ic}</span>
+          {[["Email","info@aeterionpeptides.com"],["Response Time","Within 24 hours"],["Location","USA Domestic"],["Hours","Mon–Fri, 9am–6pm EST"]].map(([label,value]) => (
+            <div key={label} style={{ background: T.white, border: `1px solid ${T.border}`, borderRadius: 14, padding: "18px 20px", display: "flex", alignItems: "center", gap: 14, boxShadow: T.shadow }}>
+              <div style={{ width: 8, height: 8, borderRadius: "50%", background: T.blue, flexShrink: 0 }} />
               <div>
-                <div style={{ fontSize: 10, color: T.muted, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1 }}>{t}</div>
-                <div style={{ fontSize: 13, color: T.text, fontWeight: 600, marginTop: 2 }}>{v}</div>
+                <div style={{ fontSize: 10, color: T.muted, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1 }}>{label}</div>
+                <div style={{ fontSize: 13, color: T.text, fontWeight: 600, marginTop: 2 }}>{value}</div>
               </div>
             </div>
           ))}
@@ -2970,7 +2970,7 @@ export default function App() {
           <h2 style={{ fontSize: 20, fontWeight: 800, margin: "0 0 22px", color: T.text }}>Send a Message</h2>
           {contactSent ? (
             <div style={{ textAlign: "center", padding: "40px 0" }}>
-              <div style={{ fontSize: 48, marginBottom: 14 }}>✅</div>
+              <div style={{ width: 64, height: 64, borderRadius: "50%", background: "#f0fdf4", border: "3px solid #86efac", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 24px", fontWeight: 900, fontSize: 28, color: "#16a34a" }}>✓</div>
               <div style={{ fontSize: 18, fontWeight: 800, color: T.text, marginBottom: 8 }}>Message Sent!</div>
               <div style={{ fontSize: 14, color: T.sub, marginBottom: 24 }}>We'll get back to you within 24 hours.</div>
               <button onClick={() => setContactSent(false)} style={{ ...btnOutline({ padding: "10px 24px", fontSize: 13, borderRadius: 10 }) }}>Send Another</button>
@@ -3028,12 +3028,12 @@ export default function App() {
         "By purchasing any product from aeterionpeptides.com, you affirm that you are a qualified researcher, scientist, or laboratory professional purchasing these compounds solely for scientific research purposes. You must be at least 18 years of age to purchase.",
         "Aeterion Peptides makes no claims that any of its products are safe, effective, or appropriate for use in humans or animals. We expressly disclaim any responsibility for any harm, injury, or adverse outcome resulting from misuse of our products.",
       ]},
-      { id: "terms", title: "Terms of Service", icon: "📋", content: [
+      { id: "terms", title: "Terms of Service", icon: "", content: [
         "By accessing and using aeterionpeptides.com, you agree to be bound by these Terms of Service. All sales are final. Orders cannot be cancelled once processed. We reserve the right to refuse service to anyone for any reason.",
         "All pricing is in USD and subject to change without notice. Bulk discount tiers (5 units: 8% off; 10 units: 18% off) are applied automatically at checkout and cannot be combined with other promotional offers.",
         "Aeterion Peptides reserves the right to modify these terms at any time. Continued use of the website constitutes acceptance of the modified terms. We reserve the right to limit quantities per order at our discretion.",
       ]},
-      { id: "shipping", title: "Shipping Policy", icon: "🚚", content: [
+      { id: "shipping", title: "Shipping Policy", icon: "", content: [
         "We ship domestically within the USA only. Orders are processed within 1–2 business days of payment confirmation, Monday through Friday. Delivery typically takes 1–2 weeks. Free shipping is offered on orders exceeding $250.00 USD before taxes.",
         "Aeterion Peptides is not responsible for delays caused by carrier issues, weather events, or customs processing. Tracking information will be provided via email once your order ships. We do not ship to PO boxes.",
         "All peptide compounds are shipped with appropriate cold-packing to preserve integrity during transit. Lyophilized (freeze-dried) compounds are stable at room temperature for short transit periods but should be stored at -20°C upon receipt.",
@@ -3043,12 +3043,12 @@ export default function App() {
         "If you receive a product that is damaged, incorrect, or does not match the Certificate of Analysis, please contact info@aeterionpeptides.com within 48 hours of delivery with photographic evidence and your order number.",
         "Aeterion Peptides will investigate all legitimate claims and may, at its sole discretion, offer replacement product or store credit. We reserve the right to request the return of allegedly defective product before issuing any remedy.",
       ]},
-      { id: "privacy", title: "Privacy Policy", icon: "🔒", content: [
+      { id: "privacy", title: "Privacy Policy", icon: "", content: [
         "We collect personal information (name, email, shipping address, payment data) solely for the purpose of processing and fulfilling your order. We do not sell, rent, or share your personal information with third parties, except as necessary to complete your transaction (e.g., payment processors, shipping carriers).",
         "Payment processing is handled by Stripe, a PCI-DSS compliant payment processor. Aeterion Peptides does not store your full credit card information on our servers. All transactions are encrypted via TLS/SSL.",
         "We may retain your order history and contact information for customer service purposes. You may request deletion of your data by contacting info@aeterionpeptides.com. We comply with applicable U.S. privacy laws.",
       ]},
-      { id: "coa", title: "Certificate of Analysis", icon: "🧪", content: [
+      { id: "coa", title: "Certificate of Analysis", icon: "", content: [
         "Every product sold by Aeterion Peptides is independently tested by a third-party laboratory using High Performance Liquid Chromatography (HPLC) and/or Mass Spectrometry (MS). A Certificate of Analysis (COA) confirming purity, identity, and batch number is included with every order.",
         "Our standard minimum purity threshold for all research peptides is ≥98%. Many compounds meet or exceed ≥99% purity. COA documents are batch-specific and reflect the actual product shipped with your order.",
         "If you require a copy of the COA for a previous order, please contact info@aeterionpeptides.com with your order number and we will provide the relevant documentation within 24 hours.",
@@ -3058,7 +3058,7 @@ export default function App() {
     return (
       <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", background: T.bg, minHeight: "100vh", color: T.text }}>
         <div style={{ background: T.blue, padding: "9px 24px", fontSize: 11.5, color: "rgba(255,255,255,0.9)", textAlign: "center", fontWeight: 500 }}>
-          🚚 Free shipping on orders over $250 &nbsp;·&nbsp; ✅ COA with every order
+          Free shipping on orders over $250 · COA with every order
         </div>
         <header style={{ background: T.white, borderBottom: `1px solid ${T.border}`, position: "sticky", top: 0, zIndex: 300, boxShadow: "0 1px 8px rgba(0,0,0,0.05)" }}>
           <div style={{ maxWidth: 1400, margin: "0 auto", padding: "13px 24px", display: "flex", alignItems: "center", gap: 20 }}>
@@ -3137,11 +3137,11 @@ export default function App() {
         </div>
 
         {[
-          { icon: "🔬", title: "Who We Are", body: "Aeterion Labs is a US-based supplier of research-grade peptides, GLP-1 compounds, SARMs, nootropics, and analytical compounds. We serve independent researchers, university laboratory teams, and life science professionals who require consistent, verified-purity compounds for their work. Every product in our catalog has been independently tested by a third-party laboratory before being offered for sale." },
-          { icon: "🧪", title: "Our Quality Standard", body: "Every batch undergoes HPLC purity testing to ≥98–99% and mass spectrometry identity confirmation before it reaches our inventory. We provide a batch-specific Certificate of Analysis (COA) with every order — not a generic product COA, but documentation tied to the exact lot you receive. We don't ship compounds that don't meet our purity threshold. Full stop." },
-          { icon: "❄️", title: "Cold-Chain Fulfillment", body: "Lyophilized peptides are temperature-sensitive. Our fulfillment process uses cold-pack shipping for all peptide orders to preserve compound integrity from our facility to your lab. Orders are processed within 1–2 business days of confirmed payment, with tracking provided automatically via email. Delivery typically takes 1–2 weeks." },
-          { icon: "📋", title: "Research Use Only", body: "All Aeterion Labs products are sold strictly for laboratory research purposes only. They are not intended for human consumption, medical treatment, or diagnostic use, and have not been evaluated by the FDA for these purposes. Our customers are researchers and scientists using these compounds to advance scientific understanding — not for personal use." },
-          { icon: "📬", title: "Get in Touch", body: "Questions about a specific compound, wholesale pricing, bulk orders, or COA documentation? Our team responds within 24 hours. Email us at info@aeterionpeptides.com — or use the contact form on our site." },
+          { icon: "", title: "Who We Are", body: "Aeterion Labs is a US-based supplier of research-grade peptides, GLP-1 compounds, SARMs, nootropics, and analytical compounds. We serve independent researchers, university laboratory teams, and life science professionals who require consistent, verified-purity compounds for their work. Every product in our catalog has been independently tested by a third-party laboratory before being offered for sale." },
+          { icon: "", title: "Our Quality Standard", body: "Every batch undergoes HPLC purity testing to ≥98–99% and mass spectrometry identity confirmation before it reaches our inventory. We provide a batch-specific Certificate of Analysis (COA) with every order — not a generic product COA, but documentation tied to the exact lot you receive. We don't ship compounds that don't meet our purity threshold. Full stop." },
+          { icon: "", title: "Cold-Chain Fulfillment", body: "Lyophilized peptides are temperature-sensitive. Our fulfillment process uses cold-pack shipping for all peptide orders to preserve compound integrity from our facility to your lab. Orders are processed within 1–2 business days of confirmed payment, with tracking provided automatically via email. Delivery typically takes 1–2 weeks." },
+          { icon: "", title: "Research Use Only", body: "All Aeterion Labs products are sold strictly for laboratory research purposes only. They are not intended for human consumption, medical treatment, or diagnostic use, and have not been evaluated by the FDA for these purposes. Our customers are researchers and scientists using these compounds to advance scientific understanding — not for personal use." },
+          { icon: "", title: "Get in Touch", body: "Questions about a specific compound, wholesale pricing, bulk orders, or COA documentation? Our team responds within 24 hours. Email us at info@aeterionpeptides.com — or use the contact form on our site." },
         ].map(({ icon, title, body }) => (
           <div key={title} style={{ background: T.white, border: `1px solid ${T.border}`, borderRadius: 16, padding: "28px 32px", marginBottom: 20 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
@@ -3210,7 +3210,7 @@ export default function App() {
             </div>
           ))}
           <div style={{ marginTop: 36, background: T.blueSoft, borderRadius: 16, padding: "28px 32px", textAlign: "center", border: `1px solid ${T.blue}22` }}>
-            <div style={{ fontSize: 22, marginBottom: 8 }}>💬</div>
+            
             <h3 style={{ margin: "0 0 8px", fontSize: 18, fontWeight: 800, color: T.text }}>Still have questions?</h3>
             <p style={{ margin: "0 0 18px", fontSize: 14, color: T.sub }}>Our team responds within 24 hours.</p>
             <button onClick={() => goTo("contact")} style={{ ...btnPrimary({ padding: "11px 28px", fontSize: 14, borderRadius: 10 }) }}>Contact Us →</button>
@@ -3327,7 +3327,7 @@ export default function App() {
             <div style={{ background:T.white, borderRadius:20, border:`1px solid ${T.border}`, padding: mob ? "24px 20px" : "32px 28px", boxShadow:T.shadow }}>
               {sent ? (
                 <div style={{ textAlign:"center", padding:"40px 0" }}>
-                  <div style={{ fontSize:48, marginBottom:16 }}>✅</div>
+                  <div style={{ width: 64, height: 64, borderRadius: "50%", background: "#f0fdf4", border: "3px solid #86efac", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", fontWeight: 900, fontSize: 28, color: "#16a34a" }}>✓</div>
                   <div style={{ fontSize:22, fontWeight:900, color:T.text, marginBottom:10 }}>Application Received</div>
                   <div style={{ fontSize:14, color:T.sub, lineHeight:1.7, marginBottom:28 }}>
                     Thanks <strong>{form.name}</strong>! Our wholesale team will review your application and reach out within 1 business day.
@@ -3409,7 +3409,7 @@ export default function App() {
     <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", background: T.bg, minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
       <div style={{ background: "#fff", borderRadius: 24, boxShadow: "0 8px 40px rgba(0,0,0,0.1)", padding: mob ? "40px 24px" : "60px 64px", maxWidth: 560, width: "100%", textAlign: "center" }}>
         {/* Checkmark */}
-        <div style={{ width: 80, height: 80, borderRadius: "50%", background: "#f0fdf4", border: "3px solid #86efac", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 24px", fontSize: 36 }}>✅</div>
+        <div style={{ width: 80, height: 80, borderRadius: "50%", background: "#f0fdf4", border: "3px solid #86efac", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 24px", fontSize: 32, fontWeight: 900, color: "#16a34a" }}>✓</div>
         {/* Aeterion logo text */}
         <div style={{ fontSize: 13, fontWeight: 700, color: T.blue, letterSpacing: 2, textTransform: "uppercase", marginBottom: 12 }}>Aeterion Labs</div>
         {/* Main message */}
@@ -3421,10 +3421,10 @@ export default function App() {
         {/* Info boxes */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 32 }}>
           {[
-            { icon: "📦", label: "Processing Time", value: "1–2 business days" },
-            { icon: "🚚", label: "Shipping", value: "1–2 weeks" },
-            { icon: "✅", label: "COA Included", value: "With every order" },
-            { icon: "❄️", label: "Storage", value: "Ships cold-packed" },
+            { icon: "", label: "Processing Time", value: "1–2 business days" },
+            { icon: "", label: "Shipping", value: "1–2 weeks" },
+            { icon: "", label: "COA Included", value: "With every order" },
+            { icon: "", label: "Storage", value: "Ships cold-packed" },
           ].map(({ icon, label, value }) => (
             <div key={label} style={{ background: T.bg, borderRadius: 12, padding: "14px 12px", border: `1px solid ${T.border}` }}>
               <div style={{ fontSize: 22, marginBottom: 4 }}>{icon}</div>
@@ -3460,7 +3460,7 @@ export default function App() {
         `}</style>
       </Head>
       <div style={{ background: T.blue, padding: "8px 16px", fontSize: 11, color: "rgba(255,255,255,0.9)", textAlign: "center" }}>
-        🚚 Free shipping $250+ · ✅ COA with every order · 📦 1-2 day processing
+        Free shipping $250+ · COA with every order · 1–2 day processing
       </div>
 
       <header style={{ background: T.white, borderBottom: `1px solid ${T.border}`, padding: "12px 16px", display: "flex", alignItems: "center", gap: 10, position: "sticky", top: 0, zIndex: 300, boxShadow: "0 1px 6px rgba(0,0,0,0.06)" }}>
@@ -3471,7 +3471,7 @@ export default function App() {
         </div>
         <button onClick={() => setSearchOpen(s => !s)} style={{ background: "none", border: "none", cursor: "pointer", padding: 4, fontSize: 18, color: T.sub }}>🔍</button>
         <button onClick={() => setCartOpen(true)} style={{ position: "relative", background: "none", border: "none", cursor: "pointer", padding: 4, fontSize: 18, color: T.sub }}>
-          🛒
+          Cart
           {count > 0 && <span style={{ position: "absolute", top: -2, right: -2, background: T.blue, color: "#fff", borderRadius: "50%", width: 16, height: 16, fontSize: 9, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800 }}>{count}</span>}
         </button>
       </header>
@@ -3489,7 +3489,7 @@ export default function App() {
           <div style={{ position: "absolute", top: -40, right: -30, width: 180, height: 180, borderRadius: "50%", background: "rgba(255,255,255,0.06)", pointerEvents: "none" }} />
           <div style={{ position: "absolute", bottom: -20, left: -20, width: 120, height: 120, borderRadius: "50%", background: "rgba(255,255,255,0.05)", pointerEvents: "none" }} />
           <div style={{ position: "relative" }}>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.16)", borderRadius: 24, padding: "5px 16px", fontSize: 10, color: "rgba(255,255,255,0.95)", fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 16, border: "1px solid rgba(255,255,255,0.2)" }}>✅ 72 Research Compounds · COA Included</div>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.16)", borderRadius: 24, padding: "5px 16px", fontSize: 10, color: "rgba(255,255,255,0.95)", fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 16, border: "1px solid rgba(255,255,255,0.2)" }}>72 Research Compounds · COA Included</div>
             <h1 style={{ color: "#fff", fontSize: 30, fontWeight: 900, margin: "0 0 10px", lineHeight: 1.15, letterSpacing: -0.5 }}>Buy Research Peptides Online<br />GLP-1, BPC-157, TB-500 & More</h1>
             <p style={{ color: "rgba(255,255,255,0.82)", fontSize: 13, lineHeight: 1.75, margin: "0 0 22px" }}>GLP-1s · SARMs · Nootropics · Longevity<br />Every order ships with a Certificate of Analysis.</p>
             <div style={{ display: "flex", gap: 10, justifyContent: "center", marginBottom: 28 }}>
@@ -3497,7 +3497,7 @@ export default function App() {
               <button onClick={() => setCat("metabolic")} style={{ background: "rgba(255,255,255,0.15)", color: "#fff", border: "1.5px solid rgba(255,255,255,0.4)", borderRadius: 24, padding: "12px 22px", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>GLP-1 →</button>
             </div>
             <div style={{ display: "flex", gap: 0, justifyContent: "center", background: "rgba(255,255,255,0.1)", borderRadius: 16, padding: "12px 0", border: "1px solid rgba(255,255,255,0.12)" }}>
-              {[["72","Products"],["≥99%","Purity"],["1-2d","Processing"],["COA","Included"],["🇺🇸","USA Ships"]].map(([v,l], idx, arr) => (
+              {[["72","Products"],["≥99%","Purity"],["1-2d","Processing"],["COA","Included"],["USA","Ships"]].map(([v,l], idx, arr) => (
                 <div key={l} style={{ flex: 1, textAlign: "center", borderRight: idx < arr.length-1 ? "1px solid rgba(255,255,255,0.15)" : "none" }}>
                   <div style={{ fontSize: 17, fontWeight: 900, color: "#fff" }}>{v}</div>
                   <div style={{ fontSize: 9, color: "rgba(255,255,255,0.85)", letterSpacing: 1, textTransform: "uppercase", marginTop: 2 }}>{l}</div>
@@ -3509,7 +3509,7 @@ export default function App() {
       )}
 
       <div style={{ background: T.greenSoft, borderBottom: "1px solid #bbf7d0", padding: "9px 16px", display: "flex", gap: 16, justifyContent: "center", alignItems: "center" }}>
-        <span style={{ fontSize: 11, color: "#15803d", fontWeight: 700 }}>💰 BULK SAVINGS</span>
+        <span style={{ fontSize: 11, color: "#15803d", fontWeight: 700 }}>BULK SAVINGS</span>
         <span style={{ fontSize: 11, color: "#15803d" }}>5 vials <b>-8%</b></span>
         <span style={{ fontSize: 11, color: "#15803d" }}>10 vials <b>-18%</b></span>
       </div>
@@ -3524,18 +3524,18 @@ export default function App() {
         <div style={{ display:"flex", alignItems:"center", height:"100%" }}>
           <div className="trust-ticker">
             {[...Array(2)].flatMap(() => [
-              ["🔬", "COA with every order"],
-              ["🧊", "Cold-chain shipping"],
-              ["✅", "≥99% HPLC purity"],
-              ["⚡", "Same-day dispatch"],
-              ["🔒", "Secure checkout"],
-              ["📦", "Discreet packaging"],
-              ["🧪", "Research grade only"],
-              ["💬", "Be our first reviewer — get 10% off your next order"],
-            ]).map(([icon, text], i) => (
-              <div key={i} style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"0 18px", borderRight:"1px solid rgba(255,255,255,0.07)", whiteSpace:"nowrap", height:34 }}>
-                <span style={{ fontSize:11 }}>{icon}</span>
-                <span style={{ fontSize:11, color:"rgba(255,255,255,0.75)", fontWeight:600 }}>{text}</span>
+              "COA with every order",
+              "Cold-chain shipping",
+              "≥99% HPLC purity",
+              "Same-day dispatch",
+              "Secure checkout",
+              "Discreet packaging",
+              "Research grade only",
+              "New store — be our first reviewer and get 10% off your next order",
+            ]).map((text, i) => (
+              <div key={i} style={{ display:"inline-flex", alignItems:"center", gap:10, padding:"0 20px", borderRight:"1px solid rgba(255,255,255,0.07)", whiteSpace:"nowrap", height:34 }}>
+                <span style={{ width:4, height:4, borderRadius:"50%", background:"#1a6ed8", flexShrink:0, display:"inline-block" }} />
+                <span style={{ fontSize:11, color:"rgba(255,255,255,0.7)", fontWeight:600, letterSpacing:"0.2px" }}>{text}</span>
               </div>
             ))}
           </div>
@@ -3543,7 +3543,7 @@ export default function App() {
       </div>
 
       <div id="mob-cat" style={{ background: T.white, borderBottom: `1px solid ${T.border}`, padding: "10px 14px 12px", overflowX: "auto", display: "flex", gap: 8, WebkitOverflowScrolling: "touch", scrollbarWidth: "none" }}>
-        {[{id:"all",label:"All",icon:"🔬"}, ...CATS].map(c => (
+        {[{id:"all",label:"All",icon:""}, ...CATS].map(c => (
           <button key={c.id} onClick={() => { setCat(c.id); setQ(""); }} style={{
             flexShrink: 0, padding: "8px 15px", borderRadius: 24, border: "1.5px solid", fontSize: 12, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit",
             borderColor: cat === c.id ? T.blue : T.border,
@@ -3583,7 +3583,7 @@ export default function App() {
         )) : (
           products.length === 0 ?
             <div style={{ textAlign: "center", padding: "60px 0", color: T.muted }}>
-              <div style={{ fontSize: 44 }}>🔬</div>
+              <div style={{ width: 56, height: 56, borderRadius: 14, background: "linear-gradient(135deg,#1a6ed8,#3b82f6)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", fontSize: 13, fontWeight: 800, color: "#fff", letterSpacing: 0.5 }}>AI</div>
               <div style={{ marginTop: 12, fontSize: 14 }}>No products found</div>
               <button onClick={() => { setQ(""); setCat("all"); }} style={{ ...btnPrimary({ marginTop: 12, padding: "9px 20px", fontSize: 13 }) }}>Clear</button>
             </div> :
@@ -3597,11 +3597,11 @@ export default function App() {
 
       <nav style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: T.white, borderTop: `1px solid ${T.border}`, display: "flex", zIndex: 400, boxShadow: "0 -2px 10px rgba(0,0,0,0.06)" }}>
         {[
-          {icon:"🏠",lb:"Home",fn:()=>{setCat("all");setQ("");window.scrollTo({top:0,behavior:"smooth"});}},
-          {icon:"🔬",lb:"Catalog",fn:()=>setMenuOpen(true)},
-          {icon:"🔍",lb:"Search",fn:()=>setSearchOpen(s=>!s)},
-          {icon:"👤",lb:user?"Account":"Sign In",fn:()=>goTo(user?"account":"login")},
-          {icon:"🛒",lb:count>0?`Cart(${count})`:"Cart",fn:()=>setCartOpen(true)},
+          {icon:"",lb:"Home",fn:()=>{setCat("all");setQ("");window.scrollTo({top:0,behavior:"smooth"});}},
+          {icon:"",lb:"Catalog",fn:()=>setMenuOpen(true)},
+          {icon:"",lb:"Search",fn:()=>setSearchOpen(s=>!s)},
+          {icon:"",lb:user?"Account":"Sign In",fn:()=>goTo(user?"account":"login")},
+          {icon:"",lb:count>0?`Cart (${count})`:"Cart",fn:()=>setCartOpen(true)},
         ].map(({icon,lb,fn}) => (
           <button key={lb} onClick={fn} style={{ flex: 1, background: "none", border: "none", cursor: "pointer", padding: "9px 4px 7px", display: "flex", flexDirection: "column", alignItems: "center", gap: 2, fontFamily: "inherit" }}>
             <span style={{ fontSize: 18 }}>{icon}</span>
@@ -3641,7 +3641,7 @@ export default function App() {
               }}
               title="AI Research Assistant"
             >
-              {chatOpen ? "✕" : "🔬"}
+              "AI"
             </button>}
 
             {/* Mobile pull tab — always visible on mobile, hides/shows entire widget */}
@@ -3674,7 +3674,7 @@ export default function App() {
                 pointerEvents: "none",
                 animation: "bubble-bounce 2.5s ease-in-out infinite",
               }}>
-                <span>🔬 AI Research Assistant</span>
+                <span>AI Research Assistant</span>
                 <button onClick={() => setBubbleDismissed(true)} style={{ marginLeft: 8, background: "none", border: "none", color: "rgba(255,255,255,0.7)", cursor: "pointer", fontSize: 13, lineHeight: 1, padding: "0 0 0 4px" }}>✕</button>
                 <div style={{ position: "absolute", bottom: -6, right: 16, width: 0, height: 0, borderLeft: "6px solid transparent", borderRight: "6px solid transparent", borderTop: "6px solid #1a6ed8" }} />
               </div>
@@ -3696,7 +3696,7 @@ export default function App() {
                 {/* Header */}
                 <div style={{ padding: "16px 18px 14px", borderBottom: "1px solid #1e293b", background: "#0f172a" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <div style={{ width: 34, height: 34, borderRadius: "50%", background: "linear-gradient(135deg,#1a6ed8,#3b82f6)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>🔬</div>
+                    <div style={{ width: 34, height: 34, borderRadius: "50%", background: "linear-gradient(135deg,#1a6ed8,#3b82f6)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>AI</div>
                     <div>
                       <div style={{ fontSize: 14, fontWeight: 800, color: "#f8fafc" }}>Research Assistant</div>
                       <div style={{ fontSize: 11, color: "#4ade80", fontWeight: 600, display: "flex", alignItems: "center", gap: 4 }}>
@@ -3785,7 +3785,7 @@ export default function App() {
           <div style={{ background:"#0f172a",borderRadius:20,padding:"36px 28px",maxWidth:420,width:"100%",position:"relative",border:"1px solid #1e293b",textAlign:"center" }}>
             <button onClick={()=>{ setEmailPopup(false); localStorage.setItem("aet_popup_v2","1"); setEmailPopupDone(true); }}
               style={{ position:"absolute",top:14,right:16,background:"none",border:"none",color:"#64748b",fontSize:24,cursor:"pointer",lineHeight:1 }}>×</button>
-            <div style={{ fontSize:36,marginBottom:8 }}>🧪</div>
+            <div style={{ width: 48, height: 48, borderRadius: 12, background: "linear-gradient(135deg,#1a6ed8,#3b82f6)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 12, fontSize: 11, fontWeight: 800, color: "#fff" }}>STACK</div>
             <div style={{ fontSize:20,fontWeight:900,color:"#f8fafc",marginBottom:8 }}>10% Off Your First Order</div>
             <div style={{ fontSize:13,color:"#94a3b8",marginBottom:22,lineHeight:1.6 }}>
               Join thousands of researchers. Get exclusive access to new compounds, lab notes, and a <strong style={{ color:"#4ade80" }}>10% discount</strong> on your first order.
@@ -3839,7 +3839,7 @@ export default function App() {
         `}</style>
       </Head>
       <div style={{ background: T.blue, padding: "9px 24px", fontSize: 11.5, color: "rgba(255,255,255,0.9)", textAlign: "center", fontWeight: 500 }}>
-        🚚 Free shipping on orders over $250 &nbsp;·&nbsp; ✅ COA with every order &nbsp;·&nbsp; 🛡️ Third-party tested &nbsp;·&nbsp; 🇺🇸 Ships from USA
+        Free shipping on orders over $250 · COA with every order &nbsp;·&nbsp; Third-party tested · Ships from USA
       </div>
 
       <header style={{ background: T.white, borderBottom: `1px solid ${T.border}`, position: "sticky", top: 0, zIndex: 300, boxShadow: "0 1px 8px rgba(0,0,0,0.05)" }}>
@@ -3858,7 +3858,7 @@ export default function App() {
 
           {user ? (
             <button onClick={() => goTo("account")} style={{ background: T.blueSoft, border: `1.5px solid ${T.blue}`, borderRadius: 10, padding: "8px 14px", fontSize: 13, fontWeight: 700, cursor: "pointer", color: T.blue, fontFamily: "inherit", display: "flex", alignItems: "center", gap: 6 }}>
-              👤 {user.full_name?.split(" ")[0] || "Account"}
+              {user.full_name?.split(" ")[0] || "Account"}
             </button>
           ) : (
             <button onClick={() => goTo("login")} style={{ background: T.blueSoft, border: `1.5px solid ${T.blue}`, borderRadius: 10, padding: "8px 14px", fontSize: 13, fontWeight: 700, cursor: "pointer", color: T.blue, fontFamily: "inherit" }}>
@@ -3866,14 +3866,14 @@ export default function App() {
             </button>
           )}
           <button onClick={() => setCartOpen(true)} style={{ ...btnPrimary({ marginLeft: "auto", padding: "10px 20px", fontSize: 14, borderRadius: 12, display: "flex", alignItems: "center", gap: 8, boxShadow: "0 3px 10px rgba(26,110,216,0.22)" }) }}>
-            🛒 Cart
+            Cart
             {count > 0 && <span style={{ background: "#fff", color: T.blue, borderRadius: "50%", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 900 }}>{count}</span>}
             {count > 0 && <span style={{ fontWeight: 700 }}>{fmt(total)}</span>}
           </button>
         </div>
 
         <div style={{ borderTop: `1px solid ${T.border}`, maxWidth: 1400, margin: "0 auto", padding: "0 24px", display: "flex", overflowX: "auto" }}>
-          <button onClick={() => { setCat("all"); setQ(""); window.scrollTo({ top: 0, behavior: "smooth" }); }} style={{ background: "none", border: "none", padding: "11px 16px", cursor: "pointer", fontSize: 12.5, fontWeight: 600, whiteSpace: "nowrap", fontFamily: "inherit", color: cat === "all" ? T.blue : T.sub, borderBottom: cat === "all" ? `2.5px solid ${T.blue}` : "2.5px solid transparent" }}>🔬 All Products</button>
+          <button onClick={() => { setCat("all"); setQ(""); window.scrollTo({ top: 0, behavior: "smooth" }); }} style={{ background: "none", border: "none", padding: "11px 16px", cursor: "pointer", fontSize: 12.5, fontWeight: 600, whiteSpace: "nowrap", fontFamily: "inherit", color: cat === "all" ? T.blue : T.sub, borderBottom: cat === "all" ? `2.5px solid ${T.blue}` : "2.5px solid transparent" }}>All Products</button>
           {CATS.map(c => (
             <button key={c.id} onClick={() => { setCat(c.id); setQ(""); }} style={{ background: "none", border: "none", padding: "11px 16px", cursor: "pointer", fontSize: 12.5, fontWeight: 600, whiteSpace: "nowrap", fontFamily: "inherit", color: cat === c.id ? T.blue : T.sub, borderBottom: cat === c.id ? `2.5px solid ${T.blue}` : "2.5px solid transparent", display: "flex", alignItems: "center", gap: 5 }}>{c.icon} {c.label}</button>
           ))}
@@ -3895,7 +3895,7 @@ export default function App() {
             <div style={{ display: "flex", gap: 14, justifyContent: "center", marginBottom: 44 }}>
               <button onClick={() => document.getElementById("catalog")?.scrollIntoView({ behavior: "smooth" })} style={{ background: "#fff", color: T.blue, border: "none", borderRadius: 12, padding: "14px 32px", fontSize: 15, fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 18px rgba(0,0,0,0.15)", fontFamily: "inherit" }}>Shop All Products</button>
               <a href="#cat-metabolic" onClick={e => { e.preventDefault(); setCat("metabolic"); window.scrollTo({top:0,behavior:"smooth"}); }} style={{ background: "transparent", color: "#fff", border: "2px solid rgba(255,255,255,0.45)", borderRadius: 12, padding: "14px 32px", fontSize: 15, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", textDecoration: "none", display: "inline-flex", alignItems: "center" }}>GLP-1 / Metabolic →</a>
-              <button onClick={() => setShowQuiz(true)} style={{ background: "rgba(255,255,255,0.12)", color: "#fff", border: "2px solid rgba(255,255,255,0.3)", borderRadius: 12, padding: "14px 32px", fontSize: 15, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", backdropFilter: "blur(8px)" }}>🧪 Build My Stack</button>
+              <button onClick={() => setShowQuiz(true)} style={{ background: "rgba(255,255,255,0.12)", color: "#fff", border: "2px solid rgba(255,255,255,0.3)", borderRadius: 12, padding: "14px 32px", fontSize: 15, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", backdropFilter: "blur(8px)" }}>Build My Stack</button>
             </div>
             <div style={{ display: "flex", gap: 48, justifyContent: "center", flexWrap: "wrap" }}>
               {[["72","Compounds"],["≥99%","Avg Purity"],["1-2d","Processing"],["COA","Every Order"],["8–18%","Bulk Savings"]].map(([v,l]) => (
@@ -3912,9 +3912,9 @@ export default function App() {
       {cat === "all" && !q && (
         <div style={{ background: T.white, borderBottom: `1px solid ${T.border}`, padding: "14px 24px" }}>
           <div style={{ maxWidth: 1400, margin: "0 auto", display: "flex", justifyContent: "space-around", flexWrap: "wrap", gap: 8 }}>
-            {[["🏆","Lowest Prices","Competitive research pricing"],["🚚","Free Shipping","Orders over $250"],["🛡️","3rd-Party Tested","Independent HPLC"],["🧾","COA Included","With every order"],["🇺🇸","Ships USA","1-2 day processing"],["💬","24/7 Support","Expert assistance"]].map(([ic,t,s]) => (
+            {[["Lowest Prices","Competitive research pricing"],["Free Shipping","Orders over $250"],["3rd-Party Tested","Independent HPLC"],["COA Included","With every order"],["Ships USA","1–2 day processing"],["24/7 Support","Expert assistance"]].map(([t,s]) => (
               <div key={t} style={{ display: "flex", alignItems: "center", gap: 10, padding: "6px 12px" }}>
-                <span style={{ fontSize: 20 }}>{ic}</span>
+                <div style={{ width: 6, height: 6, borderRadius: "50%", background: T.blue, flexShrink: 0 }} />
                 <div><div style={{ fontSize: 12, fontWeight: 700, color: T.text }}>{t}</div><div style={{ fontSize: 10, color: T.muted }}>{s}</div></div>
               </div>
             ))}
@@ -3924,7 +3924,7 @@ export default function App() {
 
       <div style={{ background: T.greenSoft, borderBottom: "1px solid #bbf7d0", padding: "10px 24px", textAlign: "center" }}>
         <div style={{ display: "flex", gap: 28, justifyContent: "center", alignItems: "center", flexWrap: "wrap" }}>
-          <span style={{ fontSize: 12, color: "#15803d", fontWeight: 700 }}>💰 BULK SAVINGS</span>
+          <span style={{ fontSize: 12, color: "#15803d", fontWeight: 700 }}>BULK SAVINGS</span>
           <span style={{ fontSize: 12, color: "#166534" }}>Buy 5 vials → <b>8% off</b></span>
           <span style={{ fontSize: 12, color: "#166534" }}>Buy 10 vials → <b>18% off</b></span>
           <span style={{ fontSize: 11, color: T.green }}>Applied automatically at checkout</span>
@@ -3941,19 +3941,19 @@ export default function App() {
         <div style={{ display:"flex", alignItems:"center", height:"100%" }}>
           <div className="trust-ticker-d">
             {[...Array(2)].flatMap(() => [
-              ["🔬", "COA included with every order"],
-              ["🧊", "Cold-chain shipping on all peptides"],
-              ["✅", "≥99% purity verified by HPLC"],
-              ["⚡", "Same-day dispatch on orders before 2pm"],
-              ["🔒", "256-bit encrypted checkout"],
-              ["📦", "Discreet, unmarked packaging"],
-              ["🧪", "Research grade compounds only"],
-              ["💬", "New store — be our first reviewer and get 10% off your next order"],
-              ["🚀", "Free shipping on orders over $150"],
-            ]).map(([icon, text], i) => (
-              <div key={i} style={{ display:"inline-flex", alignItems:"center", gap:10, padding:"0 28px", borderRight:"1px solid rgba(255,255,255,0.07)", whiteSpace:"nowrap", height:38 }}>
-                <span style={{ fontSize:13 }}>{icon}</span>
-                <span style={{ fontSize:12, color:"rgba(255,255,255,0.8)", fontWeight:600 }}>{text}</span>
+              "Certificate of Analysis with every order",
+              "Cold-chain shipping on all peptides",
+              "≥99% purity verified by HPLC",
+              "Same-day dispatch on orders before 2pm",
+              "256-bit encrypted checkout",
+              "Discreet, unmarked packaging",
+              "Research grade compounds only",
+              "New store — be our first reviewer and get 10% off your next order",
+              "Free shipping on orders over $150",
+            ]).map((text, i) => (
+              <div key={i} style={{ display:"inline-flex", alignItems:"center", gap:12, padding:"0 28px", borderRight:"1px solid rgba(255,255,255,0.07)", whiteSpace:"nowrap", height:38 }}>
+                <span style={{ width:4, height:4, borderRadius:"50%", background:"#1a6ed8", flexShrink:0, display:"inline-block" }} />
+                <span style={{ fontSize:12, color:"rgba(255,255,255,0.75)", fontWeight:600, letterSpacing:"0.2px" }}>{text}</span>
               </div>
             ))}
           </div>
@@ -3973,7 +3973,7 @@ export default function App() {
                 style={{ width: "100%", textAlign: "left", background: cat === "all" ? T.blueSoft : "none", border: "none", padding: "9px 16px", cursor: "pointer", fontSize: 13, fontWeight: cat === "all" ? 700 : 500, color: cat === "all" ? T.blue : T.text, fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, transition: "background .12s" }}
                 onMouseEnter={e => { if (cat !== "all") e.currentTarget.style.background = T.bg; }}
                 onMouseLeave={e => { if (cat !== "all") e.currentTarget.style.background = "none"; }}>
-                <span>🔬 All Products</span>
+                <span>All Products</span>
                 <span style={{ fontSize: 11, color: T.muted, fontWeight: 600 }}>{PRODUCTS.length}</span>
               </button>
               {CATS.map(c => {
@@ -4033,7 +4033,7 @@ export default function App() {
         )) : (
           products.length === 0 ?
             <div style={{ textAlign: "center", padding: "80px 0", color: T.muted }}>
-              <div style={{ fontSize: 50 }}>🔬</div>
+              <div style={{ width: 60, height: 60, borderRadius: 16, background: "linear-gradient(135deg,#1a6ed8,#3b82f6)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px", fontSize: 13, fontWeight: 800, color: "#fff" }}>AI</div>
               <div style={{ marginTop: 14, fontSize: 16, fontWeight: 600 }}>No results found</div>
               <button onClick={() => { setQ(""); setCat("all"); }} style={{ ...btnPrimary({ marginTop: 14, padding: "9px 20px", fontSize: 13 }) }}>Clear search</button>
             </div> :
@@ -4050,9 +4050,9 @@ export default function App() {
               <p style={{ fontSize: 14, color: T.sub, maxWidth: 500, margin: "0 auto", lineHeight: 1.8 }}>Every batch independently tested. Every order ships with a Certificate of Analysis. No exceptions.</p>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(260px,1fr))", gap: 16 }}>
-              {[["🧪","Third-Party Lab Tested","Every compound undergoes independent HPLC testing before shipment."],["❄️","Cold-Chain Shipping","Lyophilized peptides shipped cold-packed to preserve integrity."],["🔬","≥98–99% Purity","No fillers, no underdosing. Every compound at stated concentration."],["🇺🇸","USA Domestic Shipping","All orders ship from within the USA. Processing 1–2 business days."],["📋","COA with Every Order","Batch numbers and full COA documents with every shipment."],["💬","24/7 Research Support","Protocol questions? Our expert team is always available."]].map(([ic,t,b]) => (
+              {[["Third-Party Lab Tested","Every compound undergoes independent HPLC testing before shipment."],["Cold-Chain Shipping","Lyophilized peptides shipped cold-packed to preserve integrity."],["≥98–99% Purity","No fillers, no underdosing. Every compound at stated concentration."],["USA Domestic Shipping","All orders ship from within the USA. Processing 1–2 business days."],["COA with Every Order","Batch numbers and full COA documents with every shipment."],["24/7 Research Support","Protocol questions? Our expert team is always available."]].map(([t,b]) => (
                 <div key={t} style={{ background: T.bg, border: `1px solid ${T.border}`, borderRadius: 14, padding: "22px" }}>
-                  <div style={{ fontSize: 28, marginBottom: 10 }}>{ic}</div>
+                  <div style={{ width: 10, height: 10, borderRadius: "50%", background: T.blue, marginBottom: 14 }} />
                   <h3 style={{ margin: "0 0 6px", fontSize: 14, fontWeight: 700, color: T.text }}>{t}</h3>
                   <p style={{ margin: 0, fontSize: 12, color: T.sub, lineHeight: 1.75 }}>{b}</p>
                 </div>
@@ -4075,7 +4075,7 @@ export default function App() {
                 <AeterionLogo size={38} showText={true} dark={true}/>
               </div>
               <p style={{ fontSize: 12, lineHeight: 1.9, margin: "0 0 12px", maxWidth: 280, color: "rgba(255,255,255,0.5)" }}>Premium supplier of research peptides, SARMs, and analytical compounds. COA with every order.</p>
-              <a href="mailto:info@aeterionpeptides.com" style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", textDecoration: "none" }}>📧 info@aeterionpeptides.com</a>
+              <a href="mailto:info@aeterionpeptides.com" style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", textDecoration: "none" }}>info@aeterionpeptides.com</a>
             </div>
             {[["Products",CATS.map(c=>c.label)],["Company",["About","Contact","FAQ","Wholesale","Military Discounts","Become an Ambassador"]],["Legal",["Terms of Service","Privacy Policy","Return Policy","Disclaimer"]]].map(([t,links]) => (
               <div key={t}>
@@ -4128,7 +4128,7 @@ export default function App() {
               }}
               title="AI Research Assistant"
             >
-              {chatOpen ? "✕" : "🔬"}
+              "AI"
             </button>}
 
             {/* Mobile pull tab — always visible on mobile, hides/shows entire widget */}
@@ -4161,7 +4161,7 @@ export default function App() {
                 pointerEvents: "none",
                 animation: "bubble-bounce 2.5s ease-in-out infinite",
               }}>
-                <span>🔬 AI Research Assistant</span>
+                <span>AI Research Assistant</span>
                 <button onClick={() => setBubbleDismissed(true)} style={{ marginLeft: 8, background: "none", border: "none", color: "rgba(255,255,255,0.7)", cursor: "pointer", fontSize: 13, lineHeight: 1, padding: "0 0 0 4px" }}>✕</button>
                 <div style={{ position: "absolute", bottom: -6, right: 16, width: 0, height: 0, borderLeft: "6px solid transparent", borderRight: "6px solid transparent", borderTop: "6px solid #1a6ed8" }} />
               </div>
@@ -4183,7 +4183,7 @@ export default function App() {
                 {/* Header */}
                 <div style={{ padding: "16px 18px 14px", borderBottom: "1px solid #1e293b", background: "#0f172a" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <div style={{ width: 34, height: 34, borderRadius: "50%", background: "linear-gradient(135deg,#1a6ed8,#3b82f6)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>🔬</div>
+                    <div style={{ width: 34, height: 34, borderRadius: "50%", background: "linear-gradient(135deg,#1a6ed8,#3b82f6)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>AI</div>
                     <div>
                       <div style={{ fontSize: 14, fontWeight: 800, color: "#f8fafc" }}>Research Assistant</div>
                       <div style={{ fontSize: 11, color: "#4ade80", fontWeight: 600, display: "flex", alignItems: "center", gap: 4 }}>
@@ -4272,7 +4272,7 @@ export default function App() {
           <div style={{ background:"#0f172a",borderRadius:20,padding:"40px 36px",maxWidth:460,width:"100%",position:"relative",border:"1px solid #1e293b",textAlign:"center" }}>
             <button onClick={()=>{ setEmailPopup(false); localStorage.setItem("aet_popup_v2","1"); setEmailPopupDone(true); }}
               style={{ position:"absolute",top:16,right:18,background:"none",border:"none",color:"#64748b",fontSize:22,cursor:"pointer",lineHeight:1 }}>×</button>
-            <div style={{ fontSize:36,marginBottom:8 }}>🧪</div>
+            <div style={{ width: 48, height: 48, borderRadius: 12, background: "linear-gradient(135deg,#1a6ed8,#3b82f6)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 12, fontSize: 11, fontWeight: 800, color: "#fff" }}>STACK</div>
             <div style={{ fontSize:22,fontWeight:900,color:"#f8fafc",marginBottom:8 }}>10% Off Your First Order</div>
             <div style={{ fontSize:14,color:"#94a3b8",marginBottom:24,lineHeight:1.6 }}>
               Join thousands of researchers. Get exclusive access to new compounds, lab notes, and a <strong style={{ color:"#4ade80" }}>10% discount</strong> on your first order.
@@ -4313,7 +4313,7 @@ export default function App() {
           <div style={{ background:"#0f172a",borderRadius:20,padding:"36px 32px",maxWidth:440,width:"100%",position:"relative",border:"1px solid #1e293b",textAlign:"center" }}>
             <button onClick={()=>{ setAbandonPopup(false); localStorage.setItem("aet_abandon_done","1"); }}
               style={{ position:"absolute",top:16,right:18,background:"none",border:"none",color:"#64748b",fontSize:22,cursor:"pointer",lineHeight:1 }}>×</button>
-            <div style={{ fontSize:36,marginBottom:10 }}>🛒</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#64748b", letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>Your cart is empty</div>
             <div style={{ fontSize:20,fontWeight:900,color:"#f8fafc",marginBottom:8 }}>Still thinking it over?</div>
             <div style={{ fontSize:14,color:"#94a3b8",marginBottom:20,lineHeight:1.6 }}>
               You have <strong style={{ color:"#f8fafc" }}>{cart.length} item{cart.length!==1?"s":""}</strong> in your cart. Enter your email and we'll send you a reminder — plus an <strong style={{ color:"#4ade80" }}>extra 5% off</strong>.
@@ -4357,33 +4357,33 @@ export default function App() {
 
         const questions = [
           { q: "What is your primary research goal?", sub: "Choose the area you want to focus on most.", key: "goal", opts: [
-            { label: "Fat Loss & Metabolic", icon: "🔥", desc: "GLP-1s, fat oxidation, metabolic optimization", val: "fat" },
-            { label: "Recovery & Healing", icon: "🩹", desc: "Tissue repair, injury recovery, inflammation", val: "recovery" },
-            { label: "Muscle & Body Composition", icon: "💪", desc: "GH axis, IGF-1, anabolism, body recomp", val: "growth" },
-            { label: "Cognitive Enhancement", icon: "🧠", desc: "Focus, memory, neurogenesis, mood", val: "neuro" },
-            { label: "Longevity & Anti-Aging", icon: "♾️", desc: "Cellular health, telomeres, senescence", val: "longevity" },
+            { label: "Fat Loss & Metabolic", icon: "", desc: "GLP-1s, fat oxidation, metabolic optimization", val: "fat" },
+            { label: "Recovery & Healing", icon: "", desc: "Tissue repair, injury recovery, inflammation", val: "recovery" },
+            { label: "Muscle & Body Composition", icon: "", desc: "GH axis, IGF-1, anabolism, body recomp", val: "growth" },
+            { label: "Cognitive Enhancement", icon: "", desc: "Focus, memory, neurogenesis, mood", val: "neuro" },
+            { label: "Longevity & Anti-Aging", icon: "", desc: "Cellular health, telomeres, senescence", val: "longevity" },
           ]},
           { q: "Any secondary focus?", sub: "Optional — helps fine-tune your protocol.", key: "secondary", opts: [
-            { label: "Sleep & Recovery", icon: "😴", desc: "Sleep quality, overnight repair", val: "sleep" },
-            { label: "Joint & Tendon Health", icon: "🦴", desc: "Connective tissue, mobility", val: "joint" },
-            { label: "Immune Support", icon: "🛡️", desc: "Thymic peptides, immune modulation", val: "immune" },
-            { label: "Metabolic Health", icon: "⚡", desc: "Insulin sensitivity, mitochondria", val: "metabolic" },
-            { label: "No secondary focus", icon: "—", desc: "Keep it focused on my primary goal", val: "none" },
+            { label: "Sleep & Recovery", icon: "", desc: "Sleep quality, overnight repair", val: "sleep" },
+            { label: "Joint & Tendon Health", icon: "", desc: "Connective tissue, mobility", val: "joint" },
+            { label: "Immune Support", icon: "", desc: "Thymic peptides, immune modulation", val: "immune" },
+            { label: "Metabolic Health", icon: "", desc: "Insulin sensitivity, mitochondria", val: "metabolic" },
+            { label: "No secondary focus", icon: "", desc: "Keep it focused on my primary goal", val: "none" },
           ]},
           { q: "What is your experience level?", sub: "Be honest — this shapes complexity and intensity.", key: "exp", opts: [
-            { label: "First Protocol", icon: "🟢", desc: "New to research peptides, want to start simple", val: "beginner" },
-            { label: "Intermediate", icon: "🟡", desc: "Some experience, comfortable with protocols", val: "mid" },
-            { label: "Advanced Researcher", icon: "🔴", desc: "Extensive experience, want cutting-edge stacks", val: "advanced" },
+            { label: "First Protocol", icon: "", desc: "New to research peptides, want to start simple", val: "beginner" },
+            { label: "Intermediate", icon: "", desc: "Some experience, comfortable with protocols", val: "mid" },
+            { label: "Advanced Researcher", icon: "", desc: "Extensive experience, want cutting-edge stacks", val: "advanced" },
           ]},
           { q: "How long is your research cycle?", sub: "Longer cycles allow more compounds and layering.", key: "cycle", opts: [
-            { label: "8 Weeks", icon: "📅", desc: "Short, focused protocol", val: "8wk" },
-            { label: "12 Weeks", icon: "📅", desc: "Standard research cycle", val: "12wk" },
-            { label: "16 Weeks", icon: "📅", desc: "Extended, comprehensive protocol", val: "16wk" },
+            { label: "8 Weeks", icon: "", desc: "Short, focused protocol", val: "8wk" },
+            { label: "12 Weeks", icon: "", desc: "Standard research cycle", val: "12wk" },
+            { label: "16 Weeks", icon: "", desc: "Extended, comprehensive protocol", val: "16wk" },
           ]},
           { q: "What is your budget range?", sub: "We'll build the best stack within your range.", key: "budget", opts: [
-            { label: "Essentials", icon: "💲", desc: "$100 – $250 / cycle", val: "low" },
-            { label: "Standard", icon: "💲💲", desc: "$250 – $500 / cycle", val: "mid" },
-            { label: "Premium", icon: "💲💲💲", desc: "$500+ / cycle, no compromises", val: "high" },
+            { label: "Essentials", icon: "", desc: "$100 – $250 / cycle", val: "low" },
+            { label: "Standard", icon: "", desc: "$250 – $500 / cycle", val: "mid" },
+            { label: "Premium", icon: "", desc: "$500+ / cycle, no compromises", val: "high" },
           ]},
         ];
 
@@ -4551,7 +4551,7 @@ Respond ONLY with valid JSON, no markdown, no backticks:
                 <div style={{ display:"flex",gap:12,flexWrap:"wrap" }}>
                   <button onClick={addAllToCart}
                     style={{ flex:1,minWidth:200,background:"linear-gradient(135deg,#1a6ed8,#2563eb)",border:"none",color:"#fff",fontSize:15,fontWeight:800,padding:"16px 24px",borderRadius:12,cursor:"pointer",fontFamily:"inherit",letterSpacing:"-0.2px" }}>
-                    🛒 Add Full Stack to Cart
+                    Add Full Stack to Cart
                   </button>
                   <button onClick={()=>{ setQuizStep(0); setQuizAnswers({}); setQuizResult(null); }}
                     style={{ background:"#1e293b",border:"1px solid #334155",color:"#94a3b8",fontSize:13,fontWeight:700,padding:"16px 20px",borderRadius:12,cursor:"pointer",fontFamily:"inherit" }}>
@@ -4605,7 +4605,7 @@ Respond ONLY with valid JSON, no markdown, no backticks:
                     style={{ background:"#0f172a",border:"1.5px solid #1e293b",color:"#f8fafc",fontSize:14,fontWeight:600,padding:"16px 20px",borderRadius:14,cursor:"pointer",fontFamily:"inherit",textAlign:"left",display:"flex",alignItems:"center",gap:14,transition:"border-color .15s,background .15s" }}
                     onMouseEnter={e=>{ e.currentTarget.style.borderColor="#1a6ed8"; e.currentTarget.style.background="#0f1f3d"; }}
                     onMouseLeave={e=>{ e.currentTarget.style.borderColor="#1e293b"; e.currentTarget.style.background="#0f172a"; }}>
-                    <span style={{ fontSize:22,flexShrink:0 }}>{opt.icon}</span>
+                    <div style={{ width:6,height:6,borderRadius:"50%",background:"#1a6ed8",flexShrink:0 }} />
                     <div>
                       <div style={{ fontWeight:700,marginBottom:2 }}>{opt.label}</div>
                       <div style={{ fontSize:12,color:"#64748b",fontWeight:400 }}>{opt.desc}</div>
