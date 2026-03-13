@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import Head from "next/head";
 
 /* ─── Supabase live inventory ─── */
@@ -3446,269 +3446,11 @@ export default function App() {
     </div>
   );
 
-  /* ════════════════════ QUIZ MODAL (shared mobile + desktop) ════════════════════ */
-  const QuizModal = () => {
-    const closeQuiz = () => { setShowQuiz(false); setQuizStep(0); setQuizAnswers({}); setQuizResult(null); setQuizLoading(false); };
-    const openedAt = React.useRef(Date.now()).current;
-    const safeClose = (e) => { if (Date.now() - openedAt < 400) return; if (e.target === e.currentTarget) closeQuiz(); };
-
-    const SECONDARY_OPTS = {
-      fat: [
-        { label: "GI & Gut Health", desc: "Gut motility, digestion, microbiome support", val: "gut" },
-        { label: "Energy & Mitochondria", desc: "NAD+, AMPK, cellular energy output", val: "energy" },
-        { label: "Inflammation Control", desc: "Systemic anti-inflammatory support", val: "inflammation" },
-        { label: "Sleep & Recovery", desc: "Sleep quality, cortisol regulation", val: "sleep" },
-        { label: "No secondary focus", desc: "Keep it focused on my primary goal", val: "none" },
-      ],
-      recovery: [
-        { label: "Immune Modulation", desc: "Thymic peptides, immune resilience", val: "immune" },
-        { label: "Collagen & Skin", desc: "GHK-Cu, wound repair, skin integrity", val: "collagen" },
-        { label: "Gut Protection", desc: "GI lining, motility, permeability", val: "gut" },
-        { label: "Sleep Optimization", desc: "Overnight recovery, sleep architecture", val: "sleep" },
-        { label: "No secondary focus", desc: "Keep it focused on my primary goal", val: "none" },
-      ],
-      growth: [
-        { label: "Fat Oxidation", desc: "Lipolysis, visceral fat reduction", val: "fat" },
-        { label: "Joint & Tendon Health", desc: "Connective tissue support for heavy training", val: "joint" },
-        { label: "Recovery Acceleration", desc: "Faster repair between sessions", val: "recovery" },
-        { label: "Sleep & GH Pulse", desc: "Optimize overnight GH release", val: "sleep" },
-        { label: "No secondary focus", desc: "Keep it focused on my primary goal", val: "none" },
-      ],
-      neuro: [
-        { label: "Anxiety & Stress", desc: "Anxiolytic peptides, HPA regulation", val: "anxiety" },
-        { label: "Neuroprotection", desc: "BDNF, neurodegeneration defense", val: "neuroProtect" },
-        { label: "Sleep Architecture", desc: "REM quality, delta sleep peptides", val: "sleep" },
-        { label: "Mood & Motivation", desc: "Dopaminergic pathways, drive", val: "mood" },
-        { label: "No secondary focus", desc: "Keep it focused on my primary goal", val: "none" },
-      ],
-      longevity: [
-        { label: "Metabolic Health", desc: "Insulin sensitivity, mitochondrial efficiency", val: "metabolic" },
-        { label: "Immune Resilience", desc: "Thymic restoration, immune aging", val: "immune" },
-        { label: "Cardiovascular", desc: "Cardioprotective peptides, heart health", val: "cardio" },
-        { label: "Skin & Regeneration", desc: "Collagen, wound healing, GHK-Cu", val: "skin" },
-        { label: "No secondary focus", desc: "Keep it focused on my primary goal", val: "none" },
-      ],
-      default: [
-        { label: "Sleep & Recovery", desc: "Sleep quality, overnight repair", val: "sleep" },
-        { label: "Joint & Tendon Health", desc: "Connective tissue, mobility", val: "joint" },
-        { label: "Immune Support", desc: "Thymic peptides, immune modulation", val: "immune" },
-        { label: "Metabolic Health", desc: "Insulin sensitivity, mitochondria", val: "metabolic" },
-        { label: "No secondary focus", desc: "Keep it focused on my primary goal", val: "none" },
-      ],
-    };
-
-    const questions = [
-      { q: "What is your primary research goal?", sub: "Choose the area you want to focus on most.", key: "goal", opts: [
-        { label: "Fat Loss & Metabolic", desc: "GLP-1s, fat oxidation, metabolic optimization", val: "fat" },
-        { label: "Recovery & Healing", desc: "Tissue repair, injury recovery, inflammation", val: "recovery" },
-        { label: "Muscle & Body Composition", desc: "GH axis, IGF-1, anabolism, body recomp", val: "growth" },
-        { label: "Cognitive Enhancement", desc: "Focus, memory, neurogenesis, mood", val: "neuro" },
-        { label: "Longevity & Anti-Aging", desc: "Cellular health, telomeres, senescence", val: "longevity" },
-      ]},
-      { q: "Any secondary focus?", sub: "Optional — helps fine-tune your protocol.", key: "secondary",
-        opts: SECONDARY_OPTS[quizAnswers.goal] || SECONDARY_OPTS.default },
-      { q: "What is your experience level?", sub: "Be honest — this shapes complexity and intensity.", key: "exp", opts: [
-        { label: "First Protocol", desc: "New to research peptides, want to start simple", val: "beginner" },
-        { label: "Intermediate", desc: "Some experience, comfortable with protocols", val: "mid" },
-        { label: "Advanced Researcher", desc: "Extensive experience, want cutting-edge stacks", val: "advanced" },
-      ]},
-      { q: "How long is your research cycle?", sub: "Longer cycles allow more compounds and layering.", key: "cycle", opts: [
-        { label: "8 Weeks", desc: "Short, focused protocol", val: "8wk" },
-        { label: "12 Weeks", desc: "Standard research cycle", val: "12wk" },
-        { label: "16 Weeks", desc: "Extended, comprehensive protocol", val: "16wk" },
-      ]},
-      { q: "What is your budget range?", sub: "We'll build the best stack within your range.", key: "budget", opts: [
-        { label: "Essentials", desc: "$100 – $250 / cycle", val: "low" },
-        { label: "Standard", desc: "$250 – $500 / cycle", val: "mid" },
-        { label: "Premium", desc: "$500+ / cycle, no compromises", val: "high" },
-      ]},
-    ];
-
-    const PRODUCT_CATALOG = PRODUCTS.map(p =>
-      `${p.name} [sizes: ${p.variants.map(v => `${v.s}=$${v.p}`).join(", ")}]`
-    ).join("\n");
-
-    const generateStack = async (answers) => {
-      setQuizLoading(true);
-      const compoundCount = answers.exp === "beginner" ? "EXACTLY 2-3" : answers.exp === "mid" ? "EXACTLY 4" : "EXACTLY 5";
-      const sizeRule = answers.exp === "beginner"
-        ? "recommend the SMALLEST vial size available for each compound"
-        : answers.exp === "mid"
-        ? "recommend a MID-RANGE or LARGE vial size (e.g. 5mg, 10mg, 15mg) — NOT the smallest"
-        : "ALWAYS recommend the LARGEST vial size available for each compound — never the smallest";
-      try {
-        const prompt = `You are the Aeterion Labs stack builder. Generate a premium personalized peptide research protocol.
-
-Researcher Profile:
-- Primary Goal: ${answers.goal}
-- Secondary Focus: ${answers.secondary}
-- Experience Level: ${answers.exp}
-- Cycle Length: ${answers.cycle}
-- Budget: ${answers.budget}
-
-Available Aeterion Products (with ALL available sizes):
-${PRODUCT_CATALOG}
-
-STRICT RULES:
-1. Compound count: ${compoundCount} — non-negotiable
-2. Vial sizing: ${sizeRule}
-3. Only use product names that exist EXACTLY in the catalog above
-4. Match budget: low=cheaper compounds, high=premium/rare compounds and largest sizes
-5. The recommendedSize field MUST match one of the actual listed sizes for that product
-
-Respond ONLY with valid JSON, no markdown, no backticks:
-{
-  "protocolName": "Dramatic 3-4 word protocol name",
-  "tagline": "One compelling sentence for this stack",
-  "compounds": [
-    {
-      "name": "EXACT product name from catalog",
-      "recommendedSize": "EXACT size string from that product's size list above",
-      "role": "2-4 word role (Foundation / Amplifier / Support / Optimizer)",
-      "reason": "1-2 sentence scientific rationale",
-      "researchNote": "Brief note on published research protocols"
-    }
-  ],
-  "protocolTip": "One practical tip for this cycle"
-}`;
-        const res = await fetch("https://api.anthropic.com/v1/messages", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000, messages: [{ role: "user", content: prompt }] }),
-        });
-        const data = await res.json();
-        const text = data.content?.[0]?.text || "";
-        const clean = text.replace(/```json|```/g, "").trim();
-        setQuizResult(JSON.parse(clean));
-      } catch {
-        setQuizResult({
-          protocolName: "Foundation Protocol",
-          tagline: "A solid starting point for your research goals.",
-          compounds: [{ name: "BPC-157", recommendedSize: "5mg", role: "Foundation", reason: "Versatile healing peptide with broad research backing.", researchNote: "Well-tolerated in beginner protocols." }],
-          protocolTip: "Start with the foundation compound and introduce others after the first 2 weeks.",
-        });
-      }
-      setQuizLoading(false);
-    };
-
-    if (quizLoading) return (
-      <div style={{ position:"fixed",inset:0,background:"rgba(2,8,23,0.97)",zIndex:9000,display:"flex",alignItems:"center",justifyContent:"center" }}>
-        <div style={{ textAlign:"center" }}>
-          <div style={{ fontSize:48,marginBottom:24,animation:"spin 2s linear infinite" }}>⚗️</div>
-          <div style={{ fontSize:22,fontWeight:900,color:"#f8fafc",marginBottom:10 }}>Analyzing your profile…</div>
-          <div style={{ fontSize:14,color:"#64748b" }}>Building your personalized research protocol</div>
-          <div style={{ marginTop:32,display:"flex",gap:8,justifyContent:"center" }}>
-            {[0,1,2].map(i => <div key={i} style={{ width:8,height:8,borderRadius:"50%",background:"#1a6ed8",animation:`pulse 1.4s ease-in-out ${i*0.2}s infinite` }}/>)}
-          </div>
-        </div>
-        <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}@keyframes pulse{0%,80%,100%{opacity:.3;transform:scale(.8)}40%{opacity:1;transform:scale(1.2)}}`}</style>
-      </div>
-    );
-
-    if (quizResult) {
-      const addAllToCart = () => {
-        let added = 0;
-        quizResult.compounds.forEach(c => {
-          const prod = PRODUCTS.find(p => p.name.toLowerCase() === c.name.toLowerCase());
-          if (prod) { addCart(prod, prod.variants[0], 1, prod.variants[0].p); added++; }
-        });
-        if (added > 0) { setCartOpen(true); closeQuiz(); }
-      };
-      return (
-        <div style={{ position:"fixed",inset:0,background:"rgba(2,8,23,0.97)",zIndex:9000,display:"flex",alignItems:"flex-start",justifyContent:"center",overflowY:"auto",WebkitOverflowScrolling:"touch" }}
-          onClick={safeClose}>
-          <div style={{ maxWidth:600,width:"100%",position:"relative",padding:"48px 24px" }}>
-            <button onClick={closeQuiz} style={{ position:"absolute",top:8,right:0,background:"none",border:"none",color:"#64748b",fontSize:24,cursor:"pointer" }}>×</button>
-            <div style={{ marginBottom:6 }}><span style={{ fontSize:11,fontWeight:800,color:"#1a6ed8",letterSpacing:2,textTransform:"uppercase" }}>Your Protocol</span></div>
-            <div style={{ fontSize:32,fontWeight:900,color:"#f8fafc",marginBottom:8,letterSpacing:"-1px",lineHeight:1.1 }}>{quizResult.protocolName}</div>
-            <div style={{ fontSize:15,color:"#94a3b8",marginBottom:32,lineHeight:1.6 }}>{quizResult.tagline}</div>
-            <div style={{ display:"flex",flexDirection:"column",gap:14,marginBottom:24 }}>
-              {quizResult.compounds?.map((c, i) => {
-                const prod = PRODUCTS.find(p => p.name.toLowerCase() === c.name.toLowerCase());
-                return (
-                  <div key={i} style={{ background:"#0f172a",border:"1px solid #1e293b",borderRadius:16,padding:"20px 22px",display:"flex",gap:16,alignItems:"flex-start" }}>
-                    <div style={{ background:"#1a6ed8",color:"#fff",borderRadius:10,width:36,height:36,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,fontSize:14,flexShrink:0,marginTop:2 }}>{i+1}</div>
-                    <div style={{ flex:1,minWidth:0 }}>
-                      <div style={{ display:"flex",alignItems:"center",gap:10,flexWrap:"wrap",marginBottom:6 }}>
-                        <span style={{ fontSize:16,fontWeight:800,color:"#f8fafc" }}>{c.name}</span>
-                        <span style={{ fontSize:10,fontWeight:800,color:"#1a6ed8",background:"rgba(26,110,216,0.12)",border:"1px solid rgba(26,110,216,0.3)",borderRadius:20,padding:"3px 10px",textTransform:"uppercase",letterSpacing:1 }}>{c.role}</span>
-                        {c.recommendedSize && <span style={{ fontSize:11,fontWeight:800,color:"#f59e0b",background:"rgba(245,158,11,0.1)",border:"1px solid rgba(245,158,11,0.3)",borderRadius:20,padding:"3px 10px" }}>{c.recommendedSize}</span>}
-                        {prod && <span style={{ fontSize:12,color:"#4ade80",fontWeight:700 }}>from ${prod.variants[0].p}</span>}
-                      </div>
-                      <div style={{ fontSize:13,color:"#94a3b8",lineHeight:1.6,marginBottom:6 }}>{c.reason}</div>
-                      <div style={{ fontSize:12,color:"#475569",fontStyle:"italic" }}>{c.researchNote}</div>
-                    </div>
-                    {prod && (
-                      <button onClick={()=>{ addCart(prod, prod.variants[0], 1, prod.variants[0].p); setCartOpen(true); }}
-                        style={{ background:"#1e293b",border:"1px solid #334155",color:"#94a3b8",fontSize:11,fontWeight:700,padding:"8px 12px",borderRadius:8,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap",flexShrink:0 }}>
-                        + Cart
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-            {quizResult.protocolTip && (
-              <div style={{ background:"rgba(26,110,216,0.08)",border:"1px solid rgba(26,110,216,0.2)",borderRadius:12,padding:"14px 18px",marginBottom:24,fontSize:13,color:"#94a3b8",lineHeight:1.6 }}>
-                <strong style={{ color:"#60a5fa" }}>Protocol Tip:</strong> {quizResult.protocolTip}
-              </div>
-            )}
-            <div style={{ fontSize:11,color:"#475569",marginBottom:24,lineHeight:1.6 }}>For research use only. Not intended for human use.</div>
-            <div style={{ display:"flex",gap:12,flexWrap:"wrap" }}>
-              <button onClick={addAllToCart} style={{ flex:1,minWidth:200,background:"linear-gradient(135deg,#1a6ed8,#2563eb)",border:"none",color:"#fff",fontSize:15,fontWeight:800,padding:"16px 24px",borderRadius:12,cursor:"pointer",fontFamily:"inherit" }}>Add Full Stack to Cart</button>
-              <button onClick={()=>{ setQuizStep(0); setQuizAnswers({}); setQuizResult(null); }} style={{ background:"#1e293b",border:"1px solid #334155",color:"#94a3b8",fontSize:13,fontWeight:700,padding:"16px 20px",borderRadius:12,cursor:"pointer",fontFamily:"inherit" }}>↺ Rebuild</button>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    const q = questions[quizStep];
-    const totalSteps = questions.length;
-    return (
-      <div style={{ position:"fixed",inset:0,background:"rgba(2,8,23,0.97)",zIndex:9000,display:"flex",alignItems:"flex-start",justifyContent:"center",overflowY:"auto",WebkitOverflowScrolling:"touch" }}
-        onClick={safeClose}>
-        <div style={{ maxWidth:560,width:"100%",position:"relative",padding:"48px 24px" }}>
-          <button onClick={closeQuiz} style={{ position:"absolute",top:8,right:0,background:"none",border:"none",color:"#64748b",fontSize:24,cursor:"pointer" }}>×</button>
-          <div style={{ marginBottom:32 }}>
-            <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10 }}>
-              <span style={{ fontSize:11,fontWeight:800,color:"#1a6ed8",letterSpacing:2,textTransform:"uppercase" }}>Build Your Stack</span>
-              <span style={{ fontSize:11,color:"#475569",fontWeight:700 }}>{quizStep+1} / {totalSteps}</span>
-            </div>
-            <div style={{ background:"#1e293b",borderRadius:99,height:3 }}>
-              <div style={{ background:"linear-gradient(90deg,#1a6ed8,#60a5fa)",borderRadius:99,height:3,width:`${(quizStep/totalSteps)*100}%`,transition:"width .4s cubic-bezier(.4,0,.2,1)" }}/>
-            </div>
-          </div>
-          <div style={{ marginBottom:8 }}>
-            <div style={{ fontSize:26,fontWeight:900,color:"#f8fafc",letterSpacing:"-0.5px",lineHeight:1.2,marginBottom:8 }}>{q.q}</div>
-            <div style={{ fontSize:14,color:"#64748b" }}>{q.sub}</div>
-          </div>
-          <div style={{ display:"flex",flexDirection:"column",gap:10,marginTop:24 }}>
-            {q.opts.map(opt => (
-              <button key={opt.val}
-                onClick={()=>{
-                  const newA = {...quizAnswers, [q.key]: opt.val};
-                  setQuizAnswers(newA);
-                  if (quizStep + 1 >= totalSteps) { generateStack(newA); }
-                  else { setQuizStep(quizStep + 1); }
-                }}
-                style={{ background:"#0f172a",border:"1.5px solid #1e293b",color:"#f8fafc",fontSize:14,fontWeight:600,padding:"16px 20px",borderRadius:14,cursor:"pointer",fontFamily:"inherit",textAlign:"left",display:"flex",alignItems:"center",gap:14,transition:"border-color .15s,background .15s" }}
-                onMouseEnter={e=>{ e.currentTarget.style.borderColor="#1a6ed8"; e.currentTarget.style.background="#0f1f3d"; }}
-                onMouseLeave={e=>{ e.currentTarget.style.borderColor="#1e293b"; e.currentTarget.style.background="#0f172a"; }}>
-                <div style={{ width:6,height:6,borderRadius:"50%",background:"#1a6ed8",flexShrink:0 }} />
-                <div>
-                  <div style={{ fontWeight:700,marginBottom:2 }}>{opt.label}</div>
-                  <div style={{ fontSize:12,color:"#64748b",fontWeight:400 }}>{opt.desc}</div>
-                </div>
-              </button>
-            ))}
-          </div>
-          {quizStep > 0 && (
-            <button onClick={()=>setQuizStep(quizStep-1)} style={{ marginTop:20,background:"none",border:"none",color:"#475569",fontSize:13,cursor:"pointer",fontFamily:"inherit",fontWeight:600 }}>← Back</button>
-          )}
-        </div>
-      </div>
-    );
+  /* ════════════════════ QUIZ MODAL props (passed to top-level component) ════════════════════ */
+  const quizModalProps = {
+    quizStep, setQuizStep, quizAnswers, setQuizAnswers,
+    quizResult, setQuizResult, quizLoading, setQuizLoading,
+    setShowQuiz, addCart, setCartOpen,
   };
 
   if (mob) return (
@@ -4116,7 +3858,7 @@ Respond ONLY with valid JSON, no markdown, no backticks:
       )}
 
       {/* ══════════ BUILD YOUR STACK (mobile) ══════════ */}
-      {showQuiz && <QuizModal />}
+      {showQuiz && <QuizModal {...quizModalProps} />}
 
     </div>
   );
@@ -4652,8 +4394,282 @@ Respond ONLY with valid JSON, no markdown, no backticks:
       )}
 
       {/* ══════════ BUILD YOUR STACK ══════════ */}
-      {showQuiz && <QuizModal />}
+      {showQuiz && <QuizModal {...quizModalProps} />}
 
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   TOP-LEVEL QuizModal — lifted out of the main component to fix the
+   React Rules of Hooks violation (useRef inside a nested component).
+   Receives all state as props instead of closing over parent state.
+════════════════════════════════════════════════════════════════════ */
+function QuizModal({
+  quizStep, setQuizStep, quizAnswers, setQuizAnswers,
+  quizResult, setQuizResult, quizLoading, setQuizLoading,
+  setShowQuiz, addCart, setCartOpen,
+}) {
+  const openedAt = useRef(Date.now()).current;
+
+  const closeQuiz = () => { setShowQuiz(false); setQuizStep(0); setQuizAnswers({}); setQuizResult(null); setQuizLoading(false); };
+  const safeClose = (e) => { if (Date.now() - openedAt < 400) return; if (e.target === e.currentTarget) closeQuiz(); };
+
+  const SECONDARY_OPTS = {
+    fat: [
+      { label: "GI & Gut Health", desc: "Gut motility, digestion, microbiome support", val: "gut" },
+      { label: "Energy & Mitochondria", desc: "NAD+, AMPK, cellular energy output", val: "energy" },
+      { label: "Inflammation Control", desc: "Systemic anti-inflammatory support", val: "inflammation" },
+      { label: "Sleep & Recovery", desc: "Sleep quality, cortisol regulation", val: "sleep" },
+      { label: "No secondary focus", desc: "Keep it focused on my primary goal", val: "none" },
+    ],
+    recovery: [
+      { label: "Immune Modulation", desc: "Thymic peptides, immune resilience", val: "immune" },
+      { label: "Collagen & Skin", desc: "GHK-Cu, wound repair, skin integrity", val: "collagen" },
+      { label: "Gut Protection", desc: "GI lining, motility, permeability", val: "gut" },
+      { label: "Sleep Optimization", desc: "Overnight recovery, sleep architecture", val: "sleep" },
+      { label: "No secondary focus", desc: "Keep it focused on my primary goal", val: "none" },
+    ],
+    growth: [
+      { label: "Fat Oxidation", desc: "Lipolysis, visceral fat reduction", val: "fat" },
+      { label: "Joint & Tendon Health", desc: "Connective tissue support for heavy training", val: "joint" },
+      { label: "Recovery Acceleration", desc: "Faster repair between sessions", val: "recovery" },
+      { label: "Sleep & GH Pulse", desc: "Optimize overnight GH release", val: "sleep" },
+      { label: "No secondary focus", desc: "Keep it focused on my primary goal", val: "none" },
+    ],
+    neuro: [
+      { label: "Anxiety & Stress", desc: "Anxiolytic peptides, HPA regulation", val: "anxiety" },
+      { label: "Neuroprotection", desc: "BDNF, neurodegeneration defense", val: "neuroProtect" },
+      { label: "Sleep Architecture", desc: "REM quality, delta sleep peptides", val: "sleep" },
+      { label: "Mood & Motivation", desc: "Dopaminergic pathways, drive", val: "mood" },
+      { label: "No secondary focus", desc: "Keep it focused on my primary goal", val: "none" },
+    ],
+    longevity: [
+      { label: "Metabolic Health", desc: "Insulin sensitivity, mitochondrial efficiency", val: "metabolic" },
+      { label: "Immune Resilience", desc: "Thymic restoration, immune aging", val: "immune" },
+      { label: "Cardiovascular", desc: "Cardioprotective peptides, heart health", val: "cardio" },
+      { label: "Skin & Regeneration", desc: "Collagen, wound healing, GHK-Cu", val: "skin" },
+      { label: "No secondary focus", desc: "Keep it focused on my primary goal", val: "none" },
+    ],
+    default: [
+      { label: "Sleep & Recovery", desc: "Sleep quality, overnight repair", val: "sleep" },
+      { label: "Joint & Tendon Health", desc: "Connective tissue, mobility", val: "joint" },
+      { label: "Immune Support", desc: "Thymic peptides, immune modulation", val: "immune" },
+      { label: "Metabolic Health", desc: "Insulin sensitivity, mitochondria", val: "metabolic" },
+      { label: "No secondary focus", desc: "Keep it focused on my primary goal", val: "none" },
+    ],
+  };
+
+  const questions = [
+    { q: "What is your primary research goal?", sub: "Choose the area you want to focus on most.", key: "goal", opts: [
+      { label: "Fat Loss & Metabolic", desc: "GLP-1s, fat oxidation, metabolic optimization", val: "fat" },
+      { label: "Recovery & Healing", desc: "Tissue repair, injury recovery, inflammation", val: "recovery" },
+      { label: "Muscle & Body Composition", desc: "GH axis, IGF-1, anabolism, body recomp", val: "growth" },
+      { label: "Cognitive Enhancement", desc: "Focus, memory, neurogenesis, mood", val: "neuro" },
+      { label: "Longevity & Anti-Aging", desc: "Cellular health, telomeres, senescence", val: "longevity" },
+    ]},
+    { q: "Any secondary focus?", sub: "Optional — helps fine-tune your protocol.", key: "secondary",
+      opts: SECONDARY_OPTS[quizAnswers.goal] || SECONDARY_OPTS.default },
+    { q: "What is your experience level?", sub: "Be honest — this shapes complexity and intensity.", key: "exp", opts: [
+      { label: "First Protocol", desc: "New to research peptides, want to start simple", val: "beginner" },
+      { label: "Intermediate", desc: "Some experience, comfortable with protocols", val: "mid" },
+      { label: "Advanced Researcher", desc: "Extensive experience, want cutting-edge stacks", val: "advanced" },
+    ]},
+    { q: "How long is your research cycle?", sub: "Longer cycles allow more compounds and layering.", key: "cycle", opts: [
+      { label: "8 Weeks", desc: "Short, focused protocol", val: "8wk" },
+      { label: "12 Weeks", desc: "Standard research cycle", val: "12wk" },
+      { label: "16 Weeks", desc: "Extended, comprehensive protocol", val: "16wk" },
+    ]},
+    { q: "What is your budget range?", sub: "We'll build the best stack within your range.", key: "budget", opts: [
+      { label: "Essentials", desc: "$100 – $250 / cycle", val: "low" },
+      { label: "Standard", desc: "$250 – $500 / cycle", val: "mid" },
+      { label: "Premium", desc: "$500+ / cycle, no compromises", val: "high" },
+    ]},
+  ];
+
+  const PRODUCT_CATALOG = PRODUCTS.map(p =>
+    `${p.name} [sizes: ${p.variants.map(v => `${v.s}=$${v.p}`).join(", ")}]`
+  ).join("\n");
+
+  const generateStack = async (answers) => {
+    setQuizLoading(true);
+    const compoundCount = answers.exp === "beginner" ? "EXACTLY 2-3" : answers.exp === "mid" ? "EXACTLY 4" : "EXACTLY 5";
+    const sizeRule = answers.exp === "beginner"
+      ? "recommend the SMALLEST vial size available for each compound"
+      : answers.exp === "mid"
+      ? "recommend a MID-RANGE or LARGE vial size (e.g. 5mg, 10mg, 15mg) — NOT the smallest"
+      : "ALWAYS recommend the LARGEST vial size available for each compound — never the smallest";
+    try {
+      const prompt = `You are the Aeterion Labs stack builder. Generate a premium personalized peptide research protocol.
+
+Researcher Profile:
+- Primary Goal: ${answers.goal}
+- Secondary Focus: ${answers.secondary}
+- Experience Level: ${answers.exp}
+- Cycle Length: ${answers.cycle}
+- Budget: ${answers.budget}
+
+Available Aeterion Products (with ALL available sizes):
+${PRODUCT_CATALOG}
+
+STRICT RULES:
+1. Compound count: ${compoundCount} — non-negotiable
+2. Vial sizing: ${sizeRule}
+3. Only use product names that exist EXACTLY in the catalog above
+4. Match budget: low=cheaper compounds, high=premium/rare compounds and largest sizes
+5. The recommendedSize field MUST match one of the actual listed sizes for that product
+
+Respond ONLY with valid JSON, no markdown, no backticks:
+{
+  "protocolName": "Dramatic 3-4 word protocol name",
+  "tagline": "One compelling sentence for this stack",
+  "compounds": [
+    {
+      "name": "EXACT product name from catalog",
+      "recommendedSize": "EXACT size string from that product's size list above",
+      "role": "2-4 word role (Foundation / Amplifier / Support / Optimizer)",
+      "reason": "1-2 sentence scientific rationale",
+      "researchNote": "Brief note on published research protocols"
+    }
+  ],
+  "protocolTip": "One practical tip for this cycle"
+}`;
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000, messages: [{ role: "user", content: prompt }] }),
+      });
+      const data = await res.json();
+      const text = data.content?.[0]?.text || "";
+      const clean = text.replace(/```json|```/g, "").trim();
+      setQuizResult(JSON.parse(clean));
+    } catch {
+      setQuizResult({
+        protocolName: "Foundation Protocol",
+        tagline: "A solid starting point for your research goals.",
+        compounds: [{ name: "BPC-157", recommendedSize: "5mg", role: "Foundation", reason: "Versatile healing peptide with broad research backing.", researchNote: "Well-tolerated in beginner protocols." }],
+        protocolTip: "Start with the foundation compound and introduce others after the first 2 weeks.",
+      });
+    }
+    setQuizLoading(false);
+  };
+
+  if (quizLoading) return (
+    <div style={{ position:"fixed",inset:0,background:"rgba(2,8,23,0.97)",zIndex:9000,display:"flex",alignItems:"center",justifyContent:"center" }}>
+      <div style={{ textAlign:"center" }}>
+        <div style={{ fontSize:48,marginBottom:24,animation:"spin 2s linear infinite" }}>⚗️</div>
+        <div style={{ fontSize:22,fontWeight:900,color:"#f8fafc",marginBottom:10 }}>Analyzing your profile…</div>
+        <div style={{ fontSize:14,color:"#64748b" }}>Building your personalized research protocol</div>
+        <div style={{ marginTop:32,display:"flex",gap:8,justifyContent:"center" }}>
+          {[0,1,2].map(i => <div key={i} style={{ width:8,height:8,borderRadius:"50%",background:"#1a6ed8",animation:`pulse 1.4s ease-in-out ${i*0.2}s infinite` }}/>)}
+        </div>
+      </div>
+      <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}@keyframes pulse{0%,80%,100%{opacity:.3;transform:scale(.8)}40%{opacity:1;transform:scale(1.2)}}`}</style>
+    </div>
+  );
+
+  if (quizResult) {
+    const addAllToCart = () => {
+      let added = 0;
+      quizResult.compounds.forEach(c => {
+        const prod = PRODUCTS.find(p => p.name.toLowerCase() === c.name.toLowerCase());
+        if (prod) { addCart(prod, prod.variants[0], 1, prod.variants[0].p); added++; }
+      });
+      if (added > 0) { setCartOpen(true); closeQuiz(); }
+    };
+    return (
+      <div style={{ position:"fixed",inset:0,background:"rgba(2,8,23,0.97)",zIndex:9000,display:"flex",alignItems:"flex-start",justifyContent:"center",overflowY:"auto",WebkitOverflowScrolling:"touch" }}
+        onClick={safeClose}>
+        <div style={{ maxWidth:600,width:"100%",position:"relative",padding:"48px 24px" }}>
+          <button onClick={closeQuiz} style={{ position:"absolute",top:8,right:0,background:"none",border:"none",color:"#64748b",fontSize:24,cursor:"pointer" }}>×</button>
+          <div style={{ marginBottom:6 }}><span style={{ fontSize:11,fontWeight:800,color:"#1a6ed8",letterSpacing:2,textTransform:"uppercase" }}>Your Protocol</span></div>
+          <div style={{ fontSize:32,fontWeight:900,color:"#f8fafc",marginBottom:8,letterSpacing:"-1px",lineHeight:1.1 }}>{quizResult.protocolName}</div>
+          <div style={{ fontSize:15,color:"#94a3b8",marginBottom:32,lineHeight:1.6 }}>{quizResult.tagline}</div>
+          <div style={{ display:"flex",flexDirection:"column",gap:14,marginBottom:24 }}>
+            {quizResult.compounds?.map((c, i) => {
+              const prod = PRODUCTS.find(p => p.name.toLowerCase() === c.name.toLowerCase());
+              return (
+                <div key={i} style={{ background:"#0f172a",border:"1px solid #1e293b",borderRadius:16,padding:"20px 22px",display:"flex",gap:16,alignItems:"flex-start" }}>
+                  <div style={{ background:"#1a6ed8",color:"#fff",borderRadius:10,width:36,height:36,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,fontSize:14,flexShrink:0,marginTop:2 }}>{i+1}</div>
+                  <div style={{ flex:1,minWidth:0 }}>
+                    <div style={{ display:"flex",alignItems:"center",gap:10,flexWrap:"wrap",marginBottom:6 }}>
+                      <span style={{ fontSize:16,fontWeight:800,color:"#f8fafc" }}>{c.name}</span>
+                      <span style={{ fontSize:10,fontWeight:800,color:"#1a6ed8",background:"rgba(26,110,216,0.12)",border:"1px solid rgba(26,110,216,0.3)",borderRadius:20,padding:"3px 10px",textTransform:"uppercase",letterSpacing:1 }}>{c.role}</span>
+                      {c.recommendedSize && <span style={{ fontSize:11,fontWeight:800,color:"#f59e0b",background:"rgba(245,158,11,0.1)",border:"1px solid rgba(245,158,11,0.3)",borderRadius:20,padding:"3px 10px" }}>{c.recommendedSize}</span>}
+                      {prod && <span style={{ fontSize:12,color:"#4ade80",fontWeight:700 }}>from ${prod.variants[0].p}</span>}
+                    </div>
+                    <div style={{ fontSize:13,color:"#94a3b8",lineHeight:1.6,marginBottom:6 }}>{c.reason}</div>
+                    <div style={{ fontSize:12,color:"#475569",fontStyle:"italic" }}>{c.researchNote}</div>
+                  </div>
+                  {prod && (
+                    <button onClick={()=>{ addCart(prod, prod.variants[0], 1, prod.variants[0].p); setCartOpen(true); }}
+                      style={{ background:"#1e293b",border:"1px solid #334155",color:"#94a3b8",fontSize:11,fontWeight:700,padding:"8px 12px",borderRadius:8,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap",flexShrink:0 }}>
+                      + Cart
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          {quizResult.protocolTip && (
+            <div style={{ background:"rgba(26,110,216,0.08)",border:"1px solid rgba(26,110,216,0.2)",borderRadius:12,padding:"14px 18px",marginBottom:24,fontSize:13,color:"#94a3b8",lineHeight:1.6 }}>
+              <strong style={{ color:"#60a5fa" }}>Protocol Tip:</strong> {quizResult.protocolTip}
+            </div>
+          )}
+          <div style={{ fontSize:11,color:"#475569",marginBottom:24,lineHeight:1.6 }}>For research use only. Not intended for human use.</div>
+          <div style={{ display:"flex",gap:12,flexWrap:"wrap" }}>
+            <button onClick={addAllToCart} style={{ flex:1,minWidth:200,background:"linear-gradient(135deg,#1a6ed8,#2563eb)",border:"none",color:"#fff",fontSize:15,fontWeight:800,padding:"16px 24px",borderRadius:12,cursor:"pointer",fontFamily:"inherit" }}>Add Full Stack to Cart</button>
+            <button onClick={()=>{ setQuizStep(0); setQuizAnswers({}); setQuizResult(null); }} style={{ background:"#1e293b",border:"1px solid #334155",color:"#94a3b8",fontSize:13,fontWeight:700,padding:"16px 20px",borderRadius:12,cursor:"pointer",fontFamily:"inherit" }}>↺ Rebuild</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const q = questions[quizStep];
+  const totalSteps = questions.length;
+  return (
+    <div style={{ position:"fixed",inset:0,background:"rgba(2,8,23,0.97)",zIndex:9000,display:"flex",alignItems:"flex-start",justifyContent:"center",overflowY:"auto",WebkitOverflowScrolling:"touch" }}
+      onClick={safeClose}>
+      <div style={{ maxWidth:560,width:"100%",position:"relative",padding:"48px 24px" }}>
+        <button onClick={closeQuiz} style={{ position:"absolute",top:8,right:0,background:"none",border:"none",color:"#64748b",fontSize:24,cursor:"pointer" }}>×</button>
+        <div style={{ marginBottom:32 }}>
+          <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10 }}>
+            <span style={{ fontSize:11,fontWeight:800,color:"#1a6ed8",letterSpacing:2,textTransform:"uppercase" }}>Build Your Stack</span>
+            <span style={{ fontSize:11,color:"#475569",fontWeight:700 }}>{quizStep+1} / {totalSteps}</span>
+          </div>
+          <div style={{ background:"#1e293b",borderRadius:99,height:3 }}>
+            <div style={{ background:"linear-gradient(90deg,#1a6ed8,#60a5fa)",borderRadius:99,height:3,width:`${(quizStep/totalSteps)*100}%`,transition:"width .4s cubic-bezier(.4,0,.2,1)" }}/>
+          </div>
+        </div>
+        <div style={{ marginBottom:8 }}>
+          <div style={{ fontSize:26,fontWeight:900,color:"#f8fafc",letterSpacing:"-0.5px",lineHeight:1.2,marginBottom:8 }}>{q.q}</div>
+          <div style={{ fontSize:14,color:"#64748b" }}>{q.sub}</div>
+        </div>
+        <div style={{ display:"flex",flexDirection:"column",gap:10,marginTop:24 }}>
+          {q.opts.map(opt => (
+            <button key={opt.val}
+              onClick={()=>{
+                const newA = {...quizAnswers, [q.key]: opt.val};
+                setQuizAnswers(newA);
+                if (quizStep + 1 >= totalSteps) { generateStack(newA); }
+                else { setQuizStep(quizStep + 1); }
+              }}
+              style={{ background:"#0f172a",border:"1.5px solid #1e293b",color:"#f8fafc",fontSize:14,fontWeight:600,padding:"16px 20px",borderRadius:14,cursor:"pointer",fontFamily:"inherit",textAlign:"left",display:"flex",alignItems:"center",gap:14,transition:"border-color .15s,background .15s" }}
+              onMouseEnter={e=>{ e.currentTarget.style.borderColor="#1a6ed8"; e.currentTarget.style.background="#0f1f3d"; }}
+              onMouseLeave={e=>{ e.currentTarget.style.borderColor="#1e293b"; e.currentTarget.style.background="#0f172a"; }}>
+              <div style={{ width:6,height:6,borderRadius:"50%",background:"#1a6ed8",flexShrink:0 }} />
+              <div>
+                <div style={{ fontWeight:700,marginBottom:2 }}>{opt.label}</div>
+                <div style={{ fontSize:12,color:"#64748b",fontWeight:400 }}>{opt.desc}</div>
+              </div>
+            </button>
+          ))}
+        </div>
+        {quizStep > 0 && (
+          <button onClick={()=>setQuizStep(quizStep-1)} style={{ marginTop:20,background:"none",border:"none",color:"#475569",fontSize:13,cursor:"pointer",fontFamily:"inherit",fontWeight:600 }}>← Back</button>
+        )}
+      </div>
     </div>
   );
 }
