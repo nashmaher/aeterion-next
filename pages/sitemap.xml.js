@@ -1,64 +1,60 @@
 // pages/sitemap.xml.js
-// Dynamic sitemap including static pages, all 72 product pages, and blog posts
-// Served at /sitemap.xml — the standard path Google expects
+// Generates a dynamic sitemap including all product pages and static routes
 
-import { PRODUCTS_WITH_SLUGS } from '../lib/products';
-
-const BASE = 'https://www.aeterionpeptides.com';
-const today = () => new Date().toISOString().split('T')[0];
-
-const STATIC_PAGES = [
-  { url: '/',           changefreq: 'daily',   priority: '1.0' },
-  { url: '/blog',       changefreq: 'daily',   priority: '0.8' },
-  { url: '/ambassador', changefreq: 'monthly', priority: '0.5' },
+const PRODUCTS = [
+  "bpc-157","tb-500","semaglutide","tirzepatide","retatrutide","cagrilintide",
+  "igf-1-lr3","igf-1-des","mechano-growth-factor","pegylated-mgf",
+  "cjc-1295-dac","cjc-1295-no-dac","ipamorelin","ghrp-2","ghrp-6","sermorelin",
+  "mk-677","hexarelin","tesamorelin","aod-9604",
+  "mk-2866-ostarine","rad-140","lgd-4033","gw-501516","sr9009","yk-11","s4-andarine",
+  "epithalon","thymosin-alpha-1","ll-37","selank","semax","dihexa","pe-22-28",
+  "nad-plus","nad-nasal","ghk-cu","ta1-thymosin","foxo4-dri",
+  "melanotan-2","pt-141","kisspeptin","5-amino-1mq",
+  "testosterone-cypionate","testosterone-enanthate","gonadorelin","triptorelin",
+  "copper-peptide-serum","ghk-cu-cream","palmitoyl-tripeptide",
+  "bacteriostatic-water","peptide-reconstitution-kit","syringes"
 ];
 
-function SitemapXml() { return null; }
+const BASE_URL = "https://www.aeterionpeptides.com";
 
-export async function getServerSideProps({ res }) {
-  const now = today();
+function generateSitemap() {
+  const staticRoutes = [
+    { url: "/", priority: "1.0", changefreq: "daily" },
+    { url: "/blog", priority: "0.8", changefreq: "weekly" },
+    { url: "/about", priority: "0.6", changefreq: "monthly" },
+    { url: "/faq", priority: "0.7", changefreq: "monthly" },
+    { url: "/contact", priority: "0.5", changefreq: "monthly" },
+    { url: "/legal", priority: "0.3", changefreq: "yearly" },
+  ];
 
-  // Fetch blog posts from Supabase
-  let blogPosts = [];
-  try {
-    const sbUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const sbKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_KEY;
-    const r = await fetch(
-      `${sbUrl}/rest/v1/blog_posts?select=slug,updated_at&published=eq.true`,
-      { headers: { apikey: sbKey, Authorization: `Bearer ${sbKey}` } }
-    );
-    const data = await r.json();
-    if (Array.isArray(data)) blogPosts = data;
-  } catch {}
+  const productRoutes = PRODUCTS.map(slug => ({
+    url: `/?product=${slug}`,
+    priority: "0.9",
+    changefreq: "weekly",
+  }));
 
-  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+  const allRoutes = [...staticRoutes, ...productRoutes];
+  const today = new Date().toISOString().split("T")[0];
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${STATIC_PAGES.map(p => `  <url>
-    <loc>${BASE}${p.url}</loc>
-    <lastmod>${now}</lastmod>
-    <changefreq>${p.changefreq}</changefreq>
-    <priority>${p.priority}</priority>
-  </url>`).join('\n')}
-${PRODUCTS_WITH_SLUGS.map(p => `  <url>
-    <loc>${BASE}/products/${p.slug}</loc>
-    <lastmod>${now}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>${['semaglutide','tirzepatide','retatrutide','bpc-157','tb-500-thymosin-beta-4','ipamorelin','mk-677-ibutamoren'].includes(p.slug) ? '0.9' : '0.8'}</priority>
-  </url>`).join('\n')}
-${blogPosts.map(p => `  <url>
-    <loc>${BASE}/blog/${p.slug}</loc>
-    <lastmod>${(p.updated_at || now).split('T')[0]}</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>`).join('\n')}
+${allRoutes.map(({ url, priority, changefreq }) => `  <url>
+    <loc>${BASE_URL}${url}</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>${changefreq}</changefreq>
+    <priority>${priority}</priority>
+  </url>`).join("\n")}
 </urlset>`;
-
-  res.setHeader('Content-Type', 'application/xml');
-  res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate');
-  res.write(xml);
-  res.end();
-
-  return { props: {} };
 }
 
-export default SitemapXml;
+export default function Sitemap() {
+  return null;
+}
+
+export async function getServerSideProps({ res }) {
+  res.setHeader("Content-Type", "application/xml");
+  res.setHeader("Cache-Control", "public, s-maxage=86400, stale-while-revalidate");
+  res.write(generateSitemap());
+  res.end();
+  return { props: {} };
+}
