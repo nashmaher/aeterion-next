@@ -1547,13 +1547,14 @@ export default function App() {
                       ? <StarRow avg={revAvg} count={revCount} />
                       : <div style={{ fontSize:12, color:T.muted }}>No reviews yet — be the first!</div>}
                   </div>
-                  <button onClick={() => setShowReviewForm(showReviewForm === pid ? null : pid)}
+                  <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowReviewForm(showReviewForm === pid ? null : pid); setTimeout(() => { document.getElementById(`review-form-${pid}`)?.scrollIntoView({ behavior: "smooth", block: "nearest" }); }, 50); }}
                     style={{ background:T.blueSoft, border:`1.5px solid ${T.blue}`, color:T.blue, fontWeight:700, fontSize:12, padding:"8px 16px", borderRadius:10, cursor:"pointer", fontFamily:"inherit" }}>
                     {showReviewForm === pid ? "Cancel" : "+ Leave a Review"}
                   </button>
                 </div>
 
                 {showReviewForm === pid && (
+                  <div id={`review-form-${pid}`}>
                   <ReviewForm
                     pid={pid}
                     T={T}
@@ -1567,6 +1568,7 @@ export default function App() {
                       setShowReviewForm(null);
                     }}
                   />
+                  </div>
                 )}
 
                 {revList.slice(0,5).map((rev, i) => (
@@ -3595,17 +3597,29 @@ export default function App() {
 
       </main>
 
-      <nav style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: T.white, borderTop: `1px solid ${T.border}`, display: "flex", zIndex: 400, boxShadow: "0 -2px 10px rgba(0,0,0,0.06)" }}>
+      <nav style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: T.white, borderTop: `2px solid ${T.border}`, display: "flex", zIndex: 400, boxShadow: "0 -4px 16px rgba(0,0,0,0.08)", paddingBottom: "env(safe-area-inset-bottom)" }}>
         {[
-          {icon:"",lb:"Home",fn:()=>{setCat("all");setQ("");window.scrollTo({top:0,behavior:"smooth"});}},
-          {icon:"",lb:"Catalog",fn:()=>setMenuOpen(true)},
-          {icon:"",lb:"Search",fn:()=>setSearchOpen(s=>!s)},
-          {icon:"",lb:user?"Account":"Sign In",fn:()=>goTo(user?"account":"login")},
-          {icon:"",lb:count>0?`Cart (${count})`:"Cart",fn:()=>setCartOpen(true)},
-        ].map(({icon,lb,fn}) => (
-          <button key={lb} onClick={fn} style={{ flex: 1, background: "none", border: "none", cursor: "pointer", padding: "9px 4px 7px", display: "flex", flexDirection: "column", alignItems: "center", gap: 2, fontFamily: "inherit" }}>
-            <span style={{ fontSize: 18 }}>{icon}</span>
-            <span style={{ fontSize: 9, color: T.muted, fontWeight: 600 }}>{lb}</span>
+          {lb:"Home",     fn:()=>{setCat("all");setQ("");window.scrollTo({top:0,behavior:"smooth"});}},
+          {lb:"Catalog",  fn:()=>setMenuOpen(true)},
+          {lb:"Search",   fn:()=>setSearchOpen(s=>!s)},
+          {lb:user?"Account":"Sign In", fn:()=>goTo(user?"account":"login")},
+          {lb:count>0?`Cart (${count})`:"Cart", fn:()=>setCartOpen(true), active:count>0},
+        ].map(({lb,fn,active}) => (
+          <button key={lb} onClick={fn} style={{
+            flex: 1,
+            background: active ? T.blue : "none",
+            border: "none",
+            cursor: "pointer",
+            padding: "12px 4px 10px",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 0,
+            fontFamily: "inherit",
+            borderTop: active ? `2px solid ${T.blue}` : "2px solid transparent",
+            marginTop: -2,
+          }}>
+            <span style={{ fontSize: 12, color: active ? "#fff" : T.text, fontWeight: 700, letterSpacing: "-0.2px", lineHeight: 1.3, textAlign: "center" }}>{lb}</span>
           </button>
         ))}
       </nav>
@@ -4354,6 +4368,53 @@ export default function App() {
       {/* ══════════ BUILD YOUR STACK ══════════ */}
       {showQuiz && (() => {
         const closeQuiz = () => { setShowQuiz(false); setQuizStep(0); setQuizAnswers({}); setQuizResult(null); setQuizLoading(false); };
+        const quizOpenedAt = Date.now();
+        const safeClose = (e) => { if (Date.now() - quizOpenedAt < 400) return; if(e.target===e.currentTarget) closeQuiz(); };
+
+        const SECONDARY_OPTS = {
+          fat: [
+            { label: "GI & Gut Health", icon: "", desc: "Gut motility, digestion, microbiome support", val: "gut" },
+            { label: "Energy & Mitochondria", icon: "", desc: "NAD+, AMPK, cellular energy output", val: "energy" },
+            { label: "Inflammation Control", icon: "", desc: "Systemic anti-inflammatory support", val: "inflammation" },
+            { label: "Sleep & Recovery", icon: "", desc: "Sleep quality, cortisol regulation", val: "sleep" },
+            { label: "No secondary focus", icon: "", desc: "Keep it focused on my primary goal", val: "none" },
+          ],
+          recovery: [
+            { label: "Immune Modulation", icon: "", desc: "Thymic peptides, immune resilience", val: "immune" },
+            { label: "Collagen & Skin", icon: "", desc: "GHK-Cu, wound repair, skin integrity", val: "collagen" },
+            { label: "Gut Protection", icon: "", desc: "GI lining, motility, permeability", val: "gut" },
+            { label: "Sleep Optimization", icon: "", desc: "Overnight recovery, sleep architecture", val: "sleep" },
+            { label: "No secondary focus", icon: "", desc: "Keep it focused on my primary goal", val: "none" },
+          ],
+          growth: [
+            { label: "Fat Oxidation", icon: "", desc: "Lipolysis, visceral fat reduction", val: "fat" },
+            { label: "Joint & Tendon Health", icon: "", desc: "Connective tissue support for heavy training", val: "joint" },
+            { label: "Recovery Acceleration", icon: "", desc: "Faster repair between sessions", val: "recovery" },
+            { label: "Sleep & GH Pulse", icon: "", desc: "Optimize overnight GH release", val: "sleep" },
+            { label: "No secondary focus", icon: "", desc: "Keep it focused on my primary goal", val: "none" },
+          ],
+          neuro: [
+            { label: "Anxiety & Stress", icon: "", desc: "Anxiolytic peptides, HPA regulation", val: "anxiety" },
+            { label: "Neuroprotection", icon: "", desc: "BDNF, neurodegeneration defense", val: "neuroProtect" },
+            { label: "Sleep Architecture", icon: "", desc: "REM quality, delta sleep peptides", val: "sleep" },
+            { label: "Mood & Motivation", icon: "", desc: "Dopaminergic pathways, drive", val: "mood" },
+            { label: "No secondary focus", icon: "", desc: "Keep it focused on my primary goal", val: "none" },
+          ],
+          longevity: [
+            { label: "Metabolic Health", icon: "", desc: "Insulin sensitivity, mitochondrial efficiency", val: "metabolic" },
+            { label: "Immune Resilience", icon: "", desc: "Thymic restoration, immune aging", val: "immune" },
+            { label: "Cardiovascular", icon: "", desc: "Cardioprotective peptides, heart health", val: "cardio" },
+            { label: "Skin & Regeneration", icon: "", desc: "Collagen, wound healing, GHK-Cu", val: "skin" },
+            { label: "No secondary focus", icon: "", desc: "Keep it focused on my primary goal", val: "none" },
+          ],
+          default: [
+            { label: "Sleep & Recovery", icon: "", desc: "Sleep quality, overnight repair", val: "sleep" },
+            { label: "Joint & Tendon Health", icon: "", desc: "Connective tissue, mobility", val: "joint" },
+            { label: "Immune Support", icon: "", desc: "Thymic peptides, immune modulation", val: "immune" },
+            { label: "Metabolic Health", icon: "", desc: "Insulin sensitivity, mitochondria", val: "metabolic" },
+            { label: "No secondary focus", icon: "", desc: "Keep it focused on my primary goal", val: "none" },
+          ],
+        };
 
         const questions = [
           { q: "What is your primary research goal?", sub: "Choose the area you want to focus on most.", key: "goal", opts: [
@@ -4363,13 +4424,8 @@ export default function App() {
             { label: "Cognitive Enhancement", icon: "", desc: "Focus, memory, neurogenesis, mood", val: "neuro" },
             { label: "Longevity & Anti-Aging", icon: "", desc: "Cellular health, telomeres, senescence", val: "longevity" },
           ]},
-          { q: "Any secondary focus?", sub: "Optional — helps fine-tune your protocol.", key: "secondary", opts: [
-            { label: "Sleep & Recovery", icon: "", desc: "Sleep quality, overnight repair", val: "sleep" },
-            { label: "Joint & Tendon Health", icon: "", desc: "Connective tissue, mobility", val: "joint" },
-            { label: "Immune Support", icon: "", desc: "Thymic peptides, immune modulation", val: "immune" },
-            { label: "Metabolic Health", icon: "", desc: "Insulin sensitivity, mitochondria", val: "metabolic" },
-            { label: "No secondary focus", icon: "", desc: "Keep it focused on my primary goal", val: "none" },
-          ]},
+          { q: "Any secondary focus?", sub: "Optional — helps fine-tune your protocol.", key: "secondary",
+            opts: SECONDARY_OPTS[quizAnswers.goal] || SECONDARY_OPTS.default },
           { q: "What is your experience level?", sub: "Be honest — this shapes complexity and intensity.", key: "exp", opts: [
             { label: "First Protocol", icon: "", desc: "New to research peptides, want to start simple", val: "beginner" },
             { label: "Intermediate", icon: "", desc: "Some experience, comfortable with protocols", val: "mid" },
@@ -4495,9 +4551,9 @@ Respond ONLY with valid JSON, no markdown, no backticks:
             if (added > 0) { setCartOpen(true); closeQuiz(); }
           };
           return (
-            <div style={{ position:"fixed",inset:0,background:"rgba(2,8,23,0.97)",zIndex:9000,display:"flex",alignItems:"center",justifyContent:"center",padding:24,overflowY:"auto" }}
-              onClick={e=>{ if(e.target===e.currentTarget) closeQuiz(); }}>
-              <div style={{ maxWidth:600,width:"100%",position:"relative" }}>
+            <div style={{ position:"fixed",inset:0,background:"rgba(2,8,23,0.97)",zIndex:9000,display:"flex",alignItems:"flex-start",justifyContent:"center",overflowY:"auto",WebkitOverflowScrolling:"touch" }}
+              onClick={safeClose}>
+              <div style={{ maxWidth:600,width:"100%",position:"relative",padding:"48px 24px 48px" }}>
                 {/* Header */}
                 <button onClick={closeQuiz} style={{ position:"absolute",top:-8,right:0,background:"none",border:"none",color:"#64748b",fontSize:24,cursor:"pointer",lineHeight:1 }}>×</button>
                 <div style={{ marginBottom:6 }}>
@@ -4567,9 +4623,9 @@ Respond ONLY with valid JSON, no markdown, no backticks:
         const q = questions[quizStep];
         const totalSteps = questions.length;
         return (
-          <div style={{ position:"fixed",inset:0,background:"rgba(2,8,23,0.97)",zIndex:9000,display:"flex",alignItems:"center",justifyContent:"center",padding:24 }}
-            onClick={e=>{ if(e.target===e.currentTarget) closeQuiz(); }}>
-            <div style={{ maxWidth:560,width:"100%",position:"relative" }}>
+          <div style={{ position:"fixed",inset:0,background:"rgba(2,8,23,0.97)",zIndex:9000,display:"flex",alignItems:"flex-start",justifyContent:"center",overflowY:"auto",WebkitOverflowScrolling:"touch" }}
+            onClick={safeClose}>
+            <div style={{ maxWidth:560,width:"100%",position:"relative",padding:"48px 24px 48px",minHeight:"100%" }}>
               <button onClick={closeQuiz} style={{ position:"absolute",top:-8,right:0,background:"none",border:"none",color:"#64748b",fontSize:24,cursor:"pointer",lineHeight:1 }}>×</button>
 
               {/* Progress */}
