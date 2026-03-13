@@ -1701,7 +1701,7 @@ export default function App() {
       <div style={{ position: "fixed", top: 0, right: cartOpen ? 0 : (mob ? "-100%" : -420), width: mob ? "100%" : 420, height: "100%", background: "#fff", zIndex: 510, display: "flex", flexDirection: "column", boxShadow: "-8px 0 48px rgba(0,0,0,0.18), -1px 0 0 rgba(0,0,0,0.06)", transition: "right .3s ease" }}>
         <div style={{ padding: "20px 22px", borderBottom: "1px solid #e8ecf0", display: "flex", justifyContent: "space-between", alignItems: "center", background: "#fff" }}>
           <div style={{ fontWeight: 900, fontSize: 18, color: "#111827", letterSpacing: "-0.3px" }}>Your Cart {count > 0 && <span style={{ color: T.blue }}>({count})</span>}</div>
-          <button onClick={() => setCartOpen(false)} style={{ background: "#f1f5f9", border: "none", width: 32, height: 32, borderRadius: "50%", fontSize: 16, cursor: "pointer", color: "#64748b", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700 }}>×</button>
+          <button onClick={() => setCartOpen(false)} aria-label="Close cart" style={{ background: "#f1f5f9", border: "none", width: 32, height: 32, borderRadius: "50%", fontSize: 16, cursor: "pointer", color: "#64748b", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700 }}>×</button>
         </div>
 
         {cart.length === 0 ? (
@@ -3818,7 +3818,7 @@ export default function App() {
                 animation: "bubble-bounce 2.5s ease-in-out infinite",
               }}>
                 <span>AI Research Assistant</span>
-                <button onClick={() => setBubbleDismissed(true)} style={{ marginLeft: 8, background: "none", border: "none", color: "rgba(255,255,255,0.7)", cursor: "pointer", fontSize: 13, lineHeight: 1, padding: "0 0 0 4px" }}>✕</button>
+                <button onClick={() => setBubbleDismissed(true)} aria-label="Dismiss" style={{ marginLeft: 8, background: "none", border: "none", color: "#ffffff", cursor: "pointer", fontSize: 13, lineHeight: 1, padding: "0 0 0 4px" }}>✕</button>
                 <div style={{ position: "absolute", bottom: -6, right: 16, width: 0, height: 0, borderLeft: "6px solid transparent", borderRight: "6px solid transparent", borderTop: "6px solid #1a6ed8" }} />
               </div>
             )}
@@ -3930,8 +3930,8 @@ export default function App() {
             {/* Top handle + close */}
             <div style={{ display:"flex",alignItems:"center",justifyContent:"center",padding:"16px 20px 0",position:"relative" }}>
               <div style={{ width:36,height:4,borderRadius:2,background:"rgba(255,255,255,0.15)" }} />
-              <button onClick={()=>{ setEmailPopup(false); localStorage.setItem("aet_popup_v2","1"); setEmailPopupDone(true); }}
-                style={{ position:"absolute",right:16,top:12,background:"rgba(255,255,255,0.07)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"50%",width:28,height:28,color:"#64748b",fontSize:15,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700 }}>×</button>
+              <button onClick={()=>{ setEmailPopup(false); localStorage.setItem("aet_popup_v2","1"); setEmailPopupDone(true); }} aria-label="Close"
+                style={{ position:"absolute",right:16,top:12,background:"rgba(255,255,255,0.07)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"50%",width:28,height:28,color:"#94a3b8",fontSize:15,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700 }}>×</button>
             </div>
 
             {/* Blue accent stripe */}
@@ -4346,7 +4346,7 @@ export default function App() {
                 animation: "bubble-bounce 2.5s ease-in-out infinite",
               }}>
                 <span>AI Research Assistant</span>
-                <button onClick={() => setBubbleDismissed(true)} style={{ marginLeft: 8, background: "none", border: "none", color: "rgba(255,255,255,0.7)", cursor: "pointer", fontSize: 13, lineHeight: 1, padding: "0 0 0 4px" }}>✕</button>
+                <button onClick={() => setBubbleDismissed(true)} aria-label="Dismiss" style={{ marginLeft: 8, background: "none", border: "none", color: "#ffffff", cursor: "pointer", fontSize: 13, lineHeight: 1, padding: "0 0 0 4px" }}>✕</button>
                 <div style={{ position: "absolute", bottom: -6, right: 16, width: 0, height: 0, borderLeft: "6px solid transparent", borderRight: "6px solid transparent", borderTop: "6px solid #1a6ed8" }} />
               </div>
             )}
@@ -4455,7 +4455,7 @@ export default function App() {
           onClick={e => { if(e.target===e.currentTarget){ setEmailPopup(false); localStorage.setItem("aet_popup_v2","1"); setEmailPopupDone(true); }}}>
           <div style={{ background:"#0a1628",maxWidth:480,width:"100%",borderRadius:24,padding:"44px 40px",position:"relative",border:"1px solid rgba(99,179,237,0.15)",boxShadow:"0 32px 80px rgba(0,0,0,0.6),0 0 0 1px rgba(99,179,237,0.05)" }}>
             <div style={{ position:"absolute",top:0,left:40,right:40,height:3,background:"linear-gradient(90deg,transparent,#1a6ed8,#63b3ed,transparent)",borderRadius:"0 0 3px 3px" }} />
-            <button onClick={()=>{ setEmailPopup(false); localStorage.setItem("aet_popup_v2","1"); setEmailPopupDone(true); }}
+            <button onClick={()=>{ setEmailPopup(false); localStorage.setItem("aet_popup_v2","1"); setEmailPopupDone(true); }} aria-label="Close"
               style={{ position:"absolute",top:18,right:20,background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"50%",width:32,height:32,color:"#94a3b8",fontSize:16,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }}
               onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,0.12)"}
               onMouseLeave={e=>e.currentTarget.style.background="rgba(255,255,255,0.06)"}>×</button>
@@ -4525,8 +4525,8 @@ export default function App() {
         <div style={{ position:"fixed",inset:0,background:"rgba(0,0,0,0.75)",zIndex:9001,display:"flex",alignItems:"center",justifyContent:"center",padding:24 }}
           onClick={e=>{ if(e.target===e.currentTarget){ setAbandonPopup(false); localStorage.setItem("aet_abandon_done","1"); }}}>
           <div style={{ background:"#0f172a",borderRadius:20,padding:"36px 32px",maxWidth:440,width:"100%",position:"relative",border:"1px solid #1e293b",textAlign:"center" }}>
-            <button onClick={()=>{ setAbandonPopup(false); localStorage.setItem("aet_abandon_done","1"); }}
-              style={{ position:"absolute",top:16,right:18,background:"none",border:"none",color:"#64748b",fontSize:22,cursor:"pointer",lineHeight:1 }}>×</button>
+            <button onClick={()=>{ setAbandonPopup(false); localStorage.setItem("aet_abandon_done","1"); }} aria-label="Close"
+              style={{ position:"absolute",top:16,right:18,background:"none",border:"none",color:"#94a3b8",fontSize:22,cursor:"pointer",lineHeight:1 }}>×</button>
             <div style={{ fontSize: 13, fontWeight: 700, color: "#64748b", letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>Your cart is empty</div>
             <div style={{ fontSize:20,fontWeight:900,color:"#f8fafc",marginBottom:8 }}>Still thinking it over?</div>
             <div style={{ fontSize:14,color:"#94a3b8",marginBottom:20,lineHeight:1.6 }}>
@@ -4790,7 +4790,7 @@ Output this exact JSON structure with ${minCount === maxCount ? minCount : `${mi
       <div style={{ position:"fixed",inset:0,background:"rgba(2,8,23,0.97)",zIndex:9000,display:"flex",alignItems:"flex-start",justifyContent:"center",overflowY:"auto",WebkitOverflowScrolling:"touch" }}
         onClick={safeClose}>
         <div style={{ maxWidth:600,width:"100%",position:"relative",padding:"48px 24px" }}>
-          <button onClick={closeQuiz} style={{ position:"absolute",top:8,right:0,background:"none",border:"none",color:"#64748b",fontSize:24,cursor:"pointer" }}>×</button>
+          <button onClick={closeQuiz} aria-label="Close quiz" style={{ position:"absolute",top:8,right:0,background:"none",border:"none",color:"#94a3b8",fontSize:24,cursor:"pointer" }}>×</button>
           <div style={{ marginBottom:6 }}><span style={{ fontSize:11,fontWeight:800,color:"#1a6ed8",letterSpacing:2,textTransform:"uppercase" }}>Your Protocol</span></div>
           <div style={{ fontSize:32,fontWeight:900,color:"#f8fafc",marginBottom:8,letterSpacing:"-1px",lineHeight:1.1 }}>{quizResult.protocolName}</div>
           <div style={{ fontSize:15,color:"#94a3b8",marginBottom:32,lineHeight:1.6 }}>{quizResult.tagline}</div>

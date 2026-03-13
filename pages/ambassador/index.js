@@ -324,7 +324,7 @@ function Dashboard({ ambassador, onLogout }) {
           gap: 20,
         }}>
           <div>
-            <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, marginBottom: 8, fontWeight: 500 }}>
+            <div style={{ color: '#ffffff', fontSize: 13, marginBottom: 8, fontWeight: 500 }}>
               YOUR PROMO CODE
             </div>
             <div style={{ color: T.white, fontSize: 36, fontWeight: 800, letterSpacing: '0.08em' }}>
