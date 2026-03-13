@@ -67,6 +67,33 @@ async function sbGetMyOrders(token, userId) {
   return res.json();
 }
 
+async function sbFetchReviews() {
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/reviews?select=*&order=created_at.desc`, {
+      headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}` }
+    });
+    if (!res.ok) return {};
+    const rows = await res.json();
+    // Group by product_id → { [productId]: [{name, rating, text, date},...] }
+    return rows.reduce((acc, r) => {
+      const pid = r.product_id;
+      if (!acc[pid]) acc[pid] = [];
+      acc[pid].push({ name: r.name, rating: r.rating, text: r.text, date: r.date });
+      return acc;
+    }, {});
+  } catch { return {}; }
+}
+
+async function sbSubmitReview({ productId, name, rating, text, email }) {
+  try {
+    await fetch(`${SB_URL}/rest/v1/reviews`, {
+      method: "POST",
+      headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}`, "Content-Type": "application/json", "Prefer": "return=minimal" },
+      body: JSON.stringify({ product_id: productId, name, rating, text, email: email || null, date: new Date().toLocaleDateString("en-US", { month: "short", year: "numeric" }) }),
+    });
+  } catch {}
+}
+
 // Persist session
 let _session = null;
 function getSession() {
@@ -1063,9 +1090,19 @@ function ReviewForm({ pid, onSubmit, onCancel, T, btnPrimary }) {
   const [name, setName] = useState("");
   const [rating, setRating] = useState(5);
   const [text, setText] = useState("");
+  const [email, setEmail] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async () => {
+    if (!name.trim() || !text.trim()) return;
+    setSubmitting(true);
+    await onSubmit({ name: name.trim(), rating, text: text.trim(), email: email.trim() });
+    setSubmitting(false);
+  };
 
   return (
     <div style={{ background:T.bg, borderRadius:12, padding:"16px", marginBottom:16, border:`1px solid ${T.border}` }}>
+      <div style={{ fontSize:12, fontWeight:700, color:T.blue, letterSpacing:1, textTransform:"uppercase", marginBottom:10 }}>Leave a Review — Get 10% Off Your Next Order</div>
       <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:10 }}>
         <input
           placeholder="Your name (e.g. J.M.)"
@@ -1083,6 +1120,12 @@ function ReviewForm({ pid, onSubmit, onCancel, T, btnPrimary }) {
           ))}
         </div>
       </div>
+      <input
+        placeholder="Your email — we'll send your 10% code here (optional)"
+        value={email}
+        onChange={e => setEmail(e.target.value)}
+        type="email"
+        style={{ width:"100%", boxSizing:"border-box", padding:"9px 12px", borderRadius:9, border:`1.5px solid ${T.border}`, fontSize:14, fontFamily:"inherit", outline:"none", background:T.white, color:T.text, marginBottom:10 }} />
       <textarea
         placeholder="Share your research experience with this compound..."
         value={text}
@@ -1090,7 +1133,9 @@ function ReviewForm({ pid, onSubmit, onCancel, T, btnPrimary }) {
         rows={3}
         style={{ width:"100%", padding:"9px 12px", borderRadius:9, border:`1.5px solid ${T.border}`, fontSize:16, fontFamily:"inherit", outline:"none", background:T.white, color:T.text, resize:"vertical", boxSizing:"border-box" }} />
       <div style={{ display:"flex", gap:8, marginTop:10 }}>
-        <button onClick={() => { if (!name.trim() || !text.trim()) return; onSubmit({ name: name.trim(), rating, text: text.trim() }); }} style={{ ...btnPrimary({ padding:"9px 20px", fontSize:13 }) }}>Submit Review</button>
+        <button onClick={handleSubmit} disabled={submitting} style={{ ...btnPrimary({ padding:"9px 20px", fontSize:13 }) }}>
+          {submitting ? "Submitting…" : "Submit Review"}
+        </button>
         <button onClick={onCancel} style={{ padding:"9px 16px", fontSize:13, borderRadius:9, border:`1.5px solid ${T.border}`, background:"none", color:T.muted, cursor:"pointer", fontFamily:"inherit" }}>Cancel</button>
       </div>
     </div>
@@ -1105,7 +1150,9 @@ export default function App() {
   const [cat, setCat] = useState("all");
   const [q, setQ] = useState("");
   const [sort, setSort] = useState("default");
-  const [cart, setCart] = useState([]);
+  const [cart, setCart] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("aet_cart") || "[]"); } catch { return []; }
+  });
   const [cartOpen, setCartOpen] = useState(false);
   const [promoInput, setPromoInput] = useState("");
   const [promoCode, setPromoCode] = useState(null);   // validated code
@@ -1202,6 +1249,7 @@ export default function App() {
   };
   const [reviews, setReviews] = useState({});
   const [showReviewForm, setShowReviewForm] = useState(null); // productId
+  const [reviewCodes, setReviewCodes] = useState({}); // { [productId]: "REVIEW-XXXXXXXX" }
   const [abandonEmail, setAbandonEmail] = useState("");
   const [abandonPopup, setAbandonPopup] = useState(false);
   const [abandonStatus, setAbandonStatus] = useState("");
@@ -1217,12 +1265,19 @@ export default function App() {
     if (["contact","legal","admin","login","signup","account","about","faq","wholesale"].includes(hash)) setPage(hash);
     fetchInventory().then(inv => setInventory(inv));
     setAuthReady(true);
-    // Load reviews from localStorage
-    try { const r = JSON.parse(localStorage.getItem("aet_reviews") || "{}"); setReviews(r); } catch {}
-    // Email popup: show after 30s if not already dismissed
+    // Load reviews from Supabase (fall back to localStorage cache if offline)
+    sbFetchReviews().then(remote => {
+      if (Object.keys(remote).length > 0) {
+        setReviews(remote);
+        try { localStorage.setItem("aet_reviews", JSON.stringify(remote)); } catch {}
+      } else {
+        try { const r = JSON.parse(localStorage.getItem("aet_reviews") || "{}"); setReviews(r); } catch {}
+      }
+    });
+    // Email popup: show after 4s if not already dismissed
     const popupDone = localStorage.getItem("aet_popup_v2");
     if (!popupDone) {
-      setTimeout(() => setEmailPopup(true), 10000);
+      setTimeout(() => setEmailPopup(true), 4000);
     } else {
       setEmailPopupDone(true);
     }
@@ -1230,6 +1285,7 @@ export default function App() {
     if (params.get("payment") === "success") {
       setPaymentMsg("success");
       setCart([]);
+      try { localStorage.removeItem("aet_cart"); } catch {}
       window.history.replaceState({}, "", "/");
     } else if (params.get("payment") === "cancelled") {
       setPaymentMsg("cancelled");
@@ -1310,15 +1366,22 @@ export default function App() {
   const total = cart.reduce((s, i) => s + i.lt, 0);
 
   const addCart = (p, v, qty, lt) => {
-    const key = `${p.id}-${v.s}`;  // key WITHOUT qty so same item always merges
+    const key = `${p.id}-${v.s}`;
     setCart(prev => {
       const ex = prev.find(i => i.key === key);
-      if (ex) return prev.map(i => i.key === key ? { ...i, qty: i.qty + qty, lt: i.lt + lt } : i);
-      return [...prev, { key, id: p.id, name: p.name, img: p.img, size: v.s, qty, lt }];
+      const next = ex
+        ? prev.map(i => i.key === key ? { ...i, qty: i.qty + qty, lt: i.lt + lt } : i)
+        : [...prev, { key, id: p.id, name: p.name, img: p.img, size: v.s, qty, lt }];
+      try { localStorage.setItem("aet_cart", JSON.stringify(next)); } catch {}
+      return next;
     });
   };
   const addCartAndOpen = (p, v, qty, lt) => { addCart(p, v, qty, lt); setCartOpen(true); };
-  const rm = key => setCart(p => p.filter(i => i.key !== key));
+  const rm = key => setCart(p => {
+    const next = p.filter(i => i.key !== key);
+    try { localStorage.setItem("aet_cart", JSON.stringify(next)); } catch {}
+    return next;
+  });
 
 
   const products = useMemo(() => {
@@ -1560,14 +1623,41 @@ export default function App() {
                     T={T}
                     btnPrimary={btnPrimary}
                     onCancel={() => setShowReviewForm(null)}
-                    onSubmit={({ name, rating, text }) => {
-                      const newReview = { name, rating, text, date: new Date().toLocaleDateString("en-US",{month:"short",year:"numeric"}) };
+                    onSubmit={async ({ name, rating, text, email }) => {
+                      const date = new Date().toLocaleDateString("en-US", { month:"short", year:"numeric" });
+                      const newReview = { name, rating, text, date };
+                      // Update local state immediately
                       const updated = { ...reviews, [pid]: [newReview, ...(reviews[pid]||[])] };
                       setReviews(updated);
                       try { localStorage.setItem("aet_reviews", JSON.stringify(updated)); } catch {}
+                      // Save to Supabase
+                      await sbSubmitReview({ productId: pid, name, rating, text, email });
+                      // If email provided, call API to generate & send unique review discount code
+                      if (email && email.includes("@")) {
+                        try {
+                          const r = await fetch("/api/review-capture", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ email, productId: pid, productName: modal?.name }),
+                          });
+                          const data = await r.json();
+                          if (data.code) {
+                            setReviewCodes(prev => ({ ...prev, [pid]: data.code }));
+                          }
+                        } catch {}
+                      }
                       setShowReviewForm(null);
                     }}
                   />
+                  </div>
+                )}
+
+                {/* Show discount code after review submission */}
+                {reviewCodes[pid] && (
+                  <div style={{ background:"#14532d", border:"1px solid #16a34a", borderRadius:12, padding:"14px 18px", marginBottom:16, textAlign:"center" }}>
+                    <div style={{ fontSize:12, color:"#4ade80", fontWeight:700, marginBottom:6 }}>✓ Thanks for your review! Here's your one-time 10% discount code:</div>
+                    <div style={{ fontSize:22, fontWeight:900, color:"#4ade80", letterSpacing:4, fontFamily:"monospace" }}>{reviewCodes[pid]}</div>
+                    <div style={{ fontSize:11, color:"#86efac", marginTop:6 }}>Enter this at checkout · Single use only · Emailed to you too</div>
                   </div>
                 )}
 
