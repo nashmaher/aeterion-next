@@ -1100,43 +1100,56 @@ function ReviewForm({ pid, onSubmit, onCancel, T, btnPrimary }) {
     setSubmitting(false);
   };
 
+  const [hoverStar, setHoverStar] = useState(0);
+
   return (
-    <div style={{ background:T.bg, borderRadius:12, padding:"16px", marginBottom:16, border:`1px solid ${T.border}` }}>
-      <div style={{ fontSize:12, fontWeight:700, color:T.blue, letterSpacing:1, textTransform:"uppercase", marginBottom:10 }}>Leave a Review — Get 10% Off Your Next Order</div>
-      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:10 }}>
-        <input
-          placeholder="Your name (e.g. J.M.)"
-          value={name}
-          onChange={e => setName(e.target.value)}
-          autoComplete="off"
-          autoCorrect="off"
-          spellCheck={false}
-          style={{ padding:"9px 12px", borderRadius:9, border:`1.5px solid ${T.border}`, fontSize:16, fontFamily:"inherit", outline:"none", background:T.white, color:T.text }} />
-        <div style={{ display:"flex", alignItems:"center", gap:6, padding:"9px 12px", borderRadius:9, border:`1.5px solid ${T.border}`, background:T.white }}>
-          <span style={{ fontSize:12, color:T.muted, marginRight:2 }}>Rating:</span>
+    <div style={{ background:"#f8fafc", borderRadius:14, padding:"18px 16px", marginBottom:16, border:`1px solid ${T.border}` }}>
+      <div style={{ fontSize:11, fontWeight:800, color:T.blue, letterSpacing:1.5, textTransform:"uppercase", marginBottom:14 }}>Leave a Review — Get 10% Off</div>
+
+      {/* Name — full width */}
+      <input
+        placeholder="Your name (e.g. J.M.)"
+        value={name}
+        onChange={e => setName(e.target.value)}
+        autoComplete="off" autoCorrect="off" spellCheck={false}
+        style={{ width:"100%", boxSizing:"border-box", padding:"10px 12px", borderRadius:9, border:`1.5px solid ${T.border}`, fontSize:15, fontFamily:"inherit", outline:"none", background:T.white, color:T.text, marginBottom:10 }} />
+
+      {/* Stars — own row, isolated from other inputs */}
+      <div style={{ display:"flex", alignItems:"center", gap:4, padding:"10px 12px", borderRadius:9, border:`1.5px solid ${T.border}`, background:T.white, marginBottom:10, width:"100%", boxSizing:"border-box" }}>
+        <span style={{ fontSize:12, fontWeight:600, color:T.muted, marginRight:6, whiteSpace:"nowrap" }}>Your rating:</span>
+        <div style={{ display:"flex", gap:3 }}>
           {[1,2,3,4,5].map(star => (
-            <span key={star} onClick={() => setRating(star)}
-              style={{ fontSize:18, cursor:"pointer", color: star <= rating ? "#f59e0b" : "#d1d5db", transition:"color .1s" }}>★</span>
+            <span key={star}
+              onClick={() => setRating(star)}
+              onMouseEnter={() => setHoverStar(star)}
+              onMouseLeave={() => setHoverStar(0)}
+              style={{ fontSize:22, lineHeight:1, cursor:"pointer", color: star <= (hoverStar || rating) ? "#f59e0b" : "#d1d5db", transition:"color .1s", userSelect:"none", WebkitUserSelect:"none" }}>★</span>
           ))}
         </div>
+        <span style={{ fontSize:12, color:"#f59e0b", fontWeight:700, marginLeft:6 }}>{["","Poor","Fair","Good","Great","Excellent"][hoverStar || rating]}</span>
       </div>
+
+      {/* Email */}
       <input
-        placeholder="Your email — we'll send your 10% code here (optional)"
+        placeholder="Email for 10% discount code (optional)"
         value={email}
         onChange={e => setEmail(e.target.value)}
         type="email"
-        style={{ width:"100%", boxSizing:"border-box", padding:"9px 12px", borderRadius:9, border:`1.5px solid ${T.border}`, fontSize:14, fontFamily:"inherit", outline:"none", background:T.white, color:T.text, marginBottom:10 }} />
+        style={{ width:"100%", boxSizing:"border-box", padding:"10px 12px", borderRadius:9, border:`1.5px solid ${T.border}`, fontSize:14, fontFamily:"inherit", outline:"none", background:T.white, color:T.text, marginBottom:10 }} />
+
+      {/* Review text */}
       <textarea
         placeholder="Share your research experience with this compound..."
         value={text}
         onChange={e => setText(e.target.value)}
         rows={3}
-        style={{ width:"100%", padding:"9px 12px", borderRadius:9, border:`1.5px solid ${T.border}`, fontSize:16, fontFamily:"inherit", outline:"none", background:T.white, color:T.text, resize:"vertical", boxSizing:"border-box" }} />
-      <div style={{ display:"flex", gap:8, marginTop:10 }}>
-        <button onClick={handleSubmit} disabled={submitting} style={{ ...btnPrimary({ padding:"9px 20px", fontSize:13 }) }}>
+        style={{ width:"100%", padding:"10px 12px", borderRadius:9, border:`1.5px solid ${T.border}`, fontSize:14, fontFamily:"inherit", outline:"none", background:T.white, color:T.text, resize:"vertical", boxSizing:"border-box" }} />
+
+      <div style={{ display:"flex", gap:8, marginTop:12 }}>
+        <button onClick={handleSubmit} disabled={submitting} style={{ ...btnPrimary({ padding:"10px 22px", fontSize:13 }) }}>
           {submitting ? "Submitting…" : "Submit Review"}
         </button>
-        <button onClick={onCancel} style={{ padding:"9px 16px", fontSize:13, borderRadius:9, border:`1.5px solid ${T.border}`, background:"none", color:T.muted, cursor:"pointer", fontFamily:"inherit" }}>Cancel</button>
+        <button onClick={onCancel} style={{ padding:"10px 16px", fontSize:13, borderRadius:9, border:`1.5px solid ${T.border}`, background:"none", color:T.muted, cursor:"pointer", fontFamily:"inherit" }}>Cancel</button>
       </div>
     </div>
   );
@@ -3570,9 +3583,11 @@ export default function App() {
           <div style={{ fontSize: 9, fontWeight: 800, letterSpacing: 2.5, color: "#1B3A6B", lineHeight: 1, marginTop: 1 }}>AETERION</div>
         </div>
         <button onClick={() => setSearchOpen(s => !s)} style={{ background: "none", border: "none", cursor: "pointer", padding: 4, fontSize: 18, color: T.sub }}>🔍</button>
-        <button onClick={() => setCartOpen(true)} style={{ position: "relative", background: "none", border: "none", cursor: "pointer", padding: 4, fontSize: 18, color: T.sub }}>
-          Cart
-          {count > 0 && <span style={{ position: "absolute", top: -2, right: -2, background: T.blue, color: "#fff", borderRadius: "50%", width: 16, height: 16, fontSize: 9, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800 }}>{count}</span>}
+        <button onClick={() => setCartOpen(true)} style={{ position: "relative", background: "none", border: "none", cursor: "pointer", padding: "4px 6px", color: T.text, display:"flex", alignItems:"center", gap:4 }}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/>
+          </svg>
+          {count > 0 && <span style={{ position:"absolute", top:0, right:2, background:T.blue, color:"#fff", borderRadius:"50%", width:17, height:17, fontSize:9, display:"flex", alignItems:"center", justifyContent:"center", fontWeight:900, lineHeight:1 }}>{count}</span>}
         </button>
       </header>
 
@@ -4033,10 +4048,11 @@ export default function App() {
               Sign In
             </button>
           )}
-          <button onClick={() => setCartOpen(true)} style={{ ...btnPrimary({ marginLeft: "auto", padding: "10px 20px", fontSize: 14, borderRadius: 12, display: "flex", alignItems: "center", gap: 8, boxShadow: "0 3px 10px rgba(26,110,216,0.22)" }) }}>
-            Cart
-            {count > 0 && <span style={{ background: "#fff", color: T.blue, borderRadius: "50%", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 900 }}>{count}</span>}
-            {count > 0 && <span style={{ fontWeight: 700 }}>{fmt(total)}</span>}
+          <button onClick={() => setCartOpen(true)} style={{ ...btnPrimary({ marginLeft: "auto", padding: "9px 18px", fontSize: 14, borderRadius: 12, display: "flex", alignItems: "center", gap: 8, boxShadow: "0 3px 10px rgba(26,110,216,0.22)" }) }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/>
+            </svg>
+            {count > 0 ? <><span style={{ background:"rgba(255,255,255,0.25)", borderRadius:20, padding:"1px 8px", fontSize:12, fontWeight:900 }}>{count}</span><span style={{ fontWeight:700 }}>{fmt(total)}</span></> : <span>Cart</span>}
           </button>
         </div>
 
