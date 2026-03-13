@@ -1685,10 +1685,10 @@ export default function App() {
   const cartDrawerJSX = (
     <>
       {cartOpen && <div onClick={() => setCartOpen(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.35)", zIndex: 500 }} />}
-      <div style={{ position: "fixed", top: 0, right: cartOpen ? 0 : (mob ? "-100%" : -420), width: mob ? "100%" : 400, height: "100%", background: T.white, zIndex: 510, display: "flex", flexDirection: "column", boxShadow: "-4px 0 32px rgba(0,0,0,0.12)", transition: "right .3s ease" }}>
-        <div style={{ padding: "18px 20px", borderBottom: `1px solid ${T.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div style={{ fontWeight: 800, fontSize: 17, color: T.text }}>Your Cart {count > 0 && <span style={{ color: T.blue }}>({count})</span>}</div>
-          <button onClick={() => setCartOpen(false)} style={{ background: "none", border: "none", fontSize: 18, cursor: "pointer", color: T.sub }}>✕</button>
+      <div style={{ position: "fixed", top: 0, right: cartOpen ? 0 : (mob ? "-100%" : -420), width: mob ? "100%" : 420, height: "100%", background: "#fff", zIndex: 510, display: "flex", flexDirection: "column", boxShadow: "-8px 0 48px rgba(0,0,0,0.18), -1px 0 0 rgba(0,0,0,0.06)", transition: "right .3s ease" }}>
+        <div style={{ padding: "20px 22px", borderBottom: "1px solid #e8ecf0", display: "flex", justifyContent: "space-between", alignItems: "center", background: "#fff" }}>
+          <div style={{ fontWeight: 900, fontSize: 18, color: "#111827", letterSpacing: "-0.3px" }}>Your Cart {count > 0 && <span style={{ color: T.blue }}>({count})</span>}</div>
+          <button onClick={() => setCartOpen(false)} style={{ background: "#f1f5f9", border: "none", width: 32, height: 32, borderRadius: "50%", fontSize: 16, cursor: "pointer", color: "#64748b", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700 }}>×</button>
         </div>
 
         {cart.length === 0 ? (
@@ -2106,26 +2106,26 @@ export default function App() {
     return (
       <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", background: "#0f172a", minHeight: "100vh", color: "#f8fafc" }}>
         {/* Header */}
-        <div style={{ background: "#1e293b", borderBottom: "1px solid #334155", padding: "16px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ background: "#1e293b", borderBottom: "1px solid #334155", padding: "14px 16px", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
           <div>
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, color: "#60a5fa", textTransform: "uppercase" }}>AETERION LABS</div>
             <div style={{ fontSize: 20, fontWeight: 900 }}>Admin Panel</div>
           </div>
-          <div style={{ display: "flex", gap: 10 }}>
-            <button onClick={() => { setAdminTab("orders"); loadOrders(); }} style={{ background: adminTab === "orders" ? "#1a6ed8" : "#334155", border: "none", color: adminTab === "orders" ? "#fff" : "#94a3b8", padding: "8px 16px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: "inherit", fontWeight: 700 }}>📦 Orders</button>
-            <button onClick={() => { setAdminTab("ambassadors"); loadAmbassadors(); }} style={{ background: adminTab === "ambassadors" ? "#1a6ed8" : "#334155", border: "none", color: adminTab === "ambassadors" ? "#fff" : "#94a3b8", padding: "8px 16px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: "inherit", fontWeight: 700, position: "relative" }}>
-              🤝 Ambassadors
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <button onClick={() => { setAdminTab("orders"); loadOrders(); }} style={{ background: adminTab === "orders" ? "#1a6ed8" : "#334155", border: "none", color: adminTab === "orders" ? "#fff" : "#94a3b8", padding: "8px 14px", borderRadius: 8, cursor: "pointer", fontSize: 12, fontFamily: "inherit", fontWeight: 700 }}>Orders</button>
+            <button onClick={() => { setAdminTab("ambassadors"); loadAmbassadors(); }} style={{ background: adminTab === "ambassadors" ? "#1a6ed8" : "#334155", border: "none", color: adminTab === "ambassadors" ? "#fff" : "#94a3b8", padding: "8px 14px", borderRadius: 8, cursor: "pointer", fontSize: 12, fontFamily: "inherit", fontWeight: 700, position: "relative" }}>
+              Ambassadors
               {ambassadors.filter(a => a.status === "pending").length > 0 && (
                 <span style={{ position: "absolute", top: -6, right: -6, background: "#f97316", color: "#fff", borderRadius: "50%", width: 18, height: 18, fontSize: 10, fontWeight: 900, display: "flex", alignItems: "center", justifyContent: "center" }}>
                   {ambassadors.filter(a => a.status === "pending").length}
                 </span>
               )}
             </button>
-            <button onClick={() => { setAdminTab("commissions"); loadCommissions(); }} style={{ background: adminTab === "commissions" ? "#1a6ed8" : "#334155", border: "none", color: adminTab === "commissions" ? "#fff" : "#94a3b8", padding: "8px 16px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: "inherit", fontWeight: 700 }}>💰 Commissions</button>
-            <button onClick={() => { setAdminTab("blog"); loadBlogPosts(); }} style={{ background: adminTab === "blog" ? "#1a6ed8" : "#334155", border: "none", color: adminTab === "blog" ? "#fff" : "#94a3b8", padding: "8px 16px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: "inherit", fontWeight: 700 }}>📝 Blog</button>
-            <button onClick={() => adminTab === "orders" ? loadOrders() : adminTab === "commissions" ? loadCommissions() : adminTab === "blog" ? loadBlogPosts() : loadAmbassadors()} style={{ background: "#334155", border: "none", color: "#94a3b8", padding: "8px 16px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: "inherit" }}>↻ Refresh</button>
-            <button onClick={() => goTo("store")} style={{ ...btnPrimary({ padding: "8px 16px", fontSize: 13, borderRadius: 8 }) }}>← Store</button>
-            <button onClick={() => { try { sessionStorage.removeItem("aet_admin_token"); } catch {} setAuthed(false); setAdminToken(""); }} style={{ background: "#3b0000", border: "1px solid #7f1d1d", color: "#f87171", borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>Sign Out</button>
+            <button onClick={() => { setAdminTab("commissions"); loadCommissions(); }} style={{ background: adminTab === "commissions" ? "#1a6ed8" : "#334155", border: "none", color: adminTab === "commissions" ? "#fff" : "#94a3b8", padding: "8px 14px", borderRadius: 8, cursor: "pointer", fontSize: 12, fontFamily: "inherit", fontWeight: 700 }}>Commissions</button>
+            <button onClick={() => { setAdminTab("blog"); loadBlogPosts(); }} style={{ background: adminTab === "blog" ? "#1a6ed8" : "#334155", border: "none", color: adminTab === "blog" ? "#fff" : "#94a3b8", padding: "8px 14px", borderRadius: 8, cursor: "pointer", fontSize: 12, fontFamily: "inherit", fontWeight: 700 }}>Blog</button>
+            <button onClick={() => adminTab === "orders" ? loadOrders() : adminTab === "commissions" ? loadCommissions() : adminTab === "blog" ? loadBlogPosts() : loadAmbassadors()} style={{ background: "#334155", border: "none", color: "#94a3b8", padding: "8px 14px", borderRadius: 8, cursor: "pointer", fontSize: 12, fontFamily: "inherit" }}>Refresh</button>
+            <button onClick={() => goTo("store")} style={{ ...btnPrimary({ padding: "8px 14px", fontSize: 12, borderRadius: 8 }) }}>Store</button>
+            <button onClick={() => { try { sessionStorage.removeItem("aet_admin_token"); } catch {} setAuthed(false); setAdminToken(""); }} style={{ background: "#3b0000", border: "1px solid #7f1d1d", color: "#f87171", borderRadius: 8, padding: "8px 14px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>Sign Out</button>
           </div>
         </div>
 
@@ -2451,7 +2451,7 @@ export default function App() {
 
                 {/* Expanded details */}
                 {isOpen && (
-                  <div style={{ borderTop: "1px solid #334155", padding: "20px 20px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+                  <div style={{ borderTop: "1px solid #334155", padding: "20px 20px", display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: 20 }}>
                     {/* Left: customer + items */}
                     <div>
                       <div style={{ fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 }}>Customer Info</div>
@@ -3908,73 +3908,77 @@ export default function App() {
 
       {/* ══════════ EMAIL CAPTURE POPUP (mobile) ══════════ */}
       {emailPopup && !emailPopupDone && (
-        <div style={{ position:"fixed",inset:0,background:"rgba(2,6,15,0.88)",zIndex:9000,display:"flex",alignItems:"flex-end",justifyContent:"center",padding:0,backdropFilter:"blur(6px)",WebkitBackdropFilter:"blur(6px)" }}
+        <div style={{ position:"fixed",inset:0,background:"rgba(2,6,15,0.9)",zIndex:9000,display:"flex",alignItems:"flex-end",justifyContent:"center",backdropFilter:"blur(8px)",WebkitBackdropFilter:"blur(8px)" }}
           onClick={e => { if(e.target===e.currentTarget){ setEmailPopup(false); localStorage.setItem("aet_popup_v2","1"); setEmailPopupDone(true); }}}>
-          <div style={{ background:"#0a1628",width:"100%",maxWidth:480,borderRadius:"24px 24px 0 0",padding:"32px 24px 36px",position:"relative",borderTop:"1px solid rgba(99,179,237,0.15)",borderLeft:"1px solid rgba(99,179,237,0.08)",borderRight:"1px solid rgba(99,179,237,0.08)" }}>
-            {/* Accent bar */}
-            <div style={{ position:"absolute",top:0,left:"50%",transform:"translateX(-50%)",width:48,height:4,background:"linear-gradient(90deg,#1a6ed8,#63b3ed)",borderRadius:"0 0 4px 4px" }} />
-            <button onClick={()=>{ setEmailPopup(false); localStorage.setItem("aet_popup_v2","1"); setEmailPopupDone(true); }}
-              style={{ position:"absolute",top:18,right:20,background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"50%",width:30,height:30,color:"#94a3b8",fontSize:16,cursor:"pointer",lineHeight:1,display:"flex",alignItems:"center",justifyContent:"center" }}>×</button>
+          <div style={{ background:"#0a1628",width:"100%",borderRadius:"20px 20px 0 0",padding:"0 0 36px",position:"relative",border:"1px solid rgba(255,255,255,0.07)",borderBottom:"none" }}>
 
-            {/* Logo + badge row */}
-            <div style={{ display:"flex",alignItems:"center",gap:10,marginBottom:20 }}>
-              <AeterionLogo size={28} showText={false} dark={true} />
-              <span style={{ fontSize:10,fontWeight:800,letterSpacing:3,color:"#63b3ed",textTransform:"uppercase" }}>Aeterion Labs</span>
-              <span style={{ marginLeft:"auto",fontSize:9,fontWeight:700,color:"#4ade80",background:"rgba(74,222,128,0.1)",border:"1px solid rgba(74,222,128,0.25)",borderRadius:20,padding:"3px 10px",letterSpacing:1,textTransform:"uppercase" }}>Verified Supplier</span>
+            {/* Top handle + close */}
+            <div style={{ display:"flex",alignItems:"center",justifyContent:"center",padding:"16px 20px 0",position:"relative" }}>
+              <div style={{ width:36,height:4,borderRadius:2,background:"rgba(255,255,255,0.15)" }} />
+              <button onClick={()=>{ setEmailPopup(false); localStorage.setItem("aet_popup_v2","1"); setEmailPopupDone(true); }}
+                style={{ position:"absolute",right:16,top:12,background:"rgba(255,255,255,0.07)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"50%",width:28,height:28,color:"#64748b",fontSize:15,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700 }}>×</button>
             </div>
 
-            {/* Headline */}
-            <div style={{ fontSize:22,fontWeight:900,color:"#f1f5f9",lineHeight:1.15,marginBottom:8,letterSpacing:"-0.5px" }}>
-              Research-Grade Peptides.<br/>
-              <span style={{ color:"#63b3ed" }}>10% off your first order.</span>
-            </div>
-            <div style={{ fontSize:13,color:"#64748b",marginBottom:22,lineHeight:1.7 }}>
-              COA with every batch. Cold-chain shipping. Trusted by researchers worldwide.
-            </div>
+            {/* Blue accent stripe */}
+            <div style={{ height:2,background:"linear-gradient(90deg,transparent 0%,#1a6ed8 30%,#3b82f6 70%,transparent 100%)",margin:"16px 0 24px" }} />
 
-            {/* Trust row */}
-            <div style={{ display:"flex",gap:12,marginBottom:22 }}>
-              {[["🧪","HPLC Tested"],["📋","COA Included"],["🇺🇸","Ships USA"]].map(([icon,label]) => (
-                <div key={label} style={{ flex:1,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:10,padding:"8px 4px",textAlign:"center" }}>
-                  <div style={{ fontSize:15,marginBottom:3 }}>{icon}</div>
-                  <div style={{ fontSize:9,fontWeight:700,color:"#64748b",letterSpacing:1,textTransform:"uppercase" }}>{label}</div>
-                </div>
-              ))}
-            </div>
-
-            {emailPopupStatus==="done" ? (
-              <div style={{ background:"rgba(74,222,128,0.08)",border:"1px solid rgba(74,222,128,0.3)",borderRadius:14,padding:"18px",textAlign:"center" }}>
-                <div style={{ fontSize:22,marginBottom:6 }}>✓</div>
-                <div style={{ fontSize:14,fontWeight:700,color:"#4ade80",marginBottom:4 }}>Code sent — check your inbox</div>
-                <div style={{ fontSize:12,color:"#64748b" }}>Use it at checkout for 10% off</div>
+            <div style={{ padding:"0 24px" }}>
+              {/* Header row */}
+              <div style={{ display:"flex",alignItems:"center",gap:8,marginBottom:18 }}>
+                <AeterionLogo size={22} showText={false} dark={true} />
+                <span style={{ fontSize:10,fontWeight:800,letterSpacing:3,color:"#3b82f6",textTransform:"uppercase" }}>Aeterion Labs</span>
+                <span style={{ marginLeft:"auto",fontSize:9,fontWeight:700,color:"#22c55e",background:"rgba(34,197,94,0.1)",border:"1px solid rgba(34,197,94,0.2)",borderRadius:4,padding:"3px 8px",letterSpacing:0.5,textTransform:"uppercase" }}>Verified</span>
               </div>
-            ) : (
-              <>
-                <div style={{ position:"relative",marginBottom:10 }}>
-                  <input type="email" placeholder="Enter your email address" value={emailPopupVal}
+
+              {/* Headline */}
+              <div style={{ fontSize:24,fontWeight:900,color:"#f8fafc",lineHeight:1.15,marginBottom:6,letterSpacing:"-0.6px" }}>
+                10% Off Your First Order
+              </div>
+              <div style={{ fontSize:13,color:"#475569",marginBottom:20,lineHeight:1.65 }}>
+                HPLC-tested compounds. Certificate of Analysis included. Trusted by researchers in 40+ countries.
+              </div>
+
+              {/* 3 trust signals — text only, no emojis */}
+              <div style={{ display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:22 }}>
+                {[["HPLC","Tested"],["COA","Included"],["USA","Ships 1–2d"]].map(([t,s]) => (
+                  <div key={t} style={{ background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:8,padding:"10px 6px",textAlign:"center" }}>
+                    <div style={{ fontSize:11,fontWeight:800,color:"#cbd5e1",letterSpacing:0.3 }}>{t}</div>
+                    <div style={{ fontSize:10,color:"#475569",marginTop:2 }}>{s}</div>
+                  </div>
+                ))}
+              </div>
+
+              {emailPopupStatus==="done" ? (
+                <div style={{ background:"rgba(34,197,94,0.07)",border:"1px solid rgba(34,197,94,0.2)",borderRadius:12,padding:"20px",textAlign:"center" }}>
+                  <div style={{ fontSize:13,fontWeight:800,color:"#22c55e",marginBottom:4 }}>Code sent — check your inbox</div>
+                  <div style={{ fontSize:12,color:"#475569" }}>Apply it at checkout for 10% off your order.</div>
+                </div>
+              ) : (
+                <>
+                  <input type="email" placeholder="your@email.com" value={emailPopupVal}
                     onChange={e=>setEmailPopupVal(e.target.value)}
                     onKeyDown={e=>{ if(e.key==="Enter"&&emailPopupVal.includes("@")){ setEmailPopupStatus("sending"); fetch("/api/email-capture",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:emailPopupVal})}).then(()=>setEmailPopupStatus("done")).catch(()=>setEmailPopupStatus("done")); }}}
-                    style={{ width:"100%",boxSizing:"border-box",background:"rgba(255,255,255,0.05)",border:"1.5px solid rgba(99,179,237,0.25)",borderRadius:12,padding:"14px 16px",fontSize:14,color:"#f1f5f9",outline:"none",fontFamily:"inherit",transition:"border-color .2s" }}
-                    onFocus={e=>e.target.style.borderColor="rgba(99,179,237,0.6)"}
-                    onBlur={e=>e.target.style.borderColor="rgba(99,179,237,0.25)"}
+                    style={{ width:"100%",boxSizing:"border-box",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(59,130,246,0.3)",borderRadius:10,padding:"14px 16px",fontSize:15,color:"#f8fafc",outline:"none",fontFamily:"inherit",marginBottom:10,transition:"border-color .2s" }}
+                    onFocus={e=>e.target.style.borderColor="rgba(59,130,246,0.7)"}
+                    onBlur={e=>e.target.style.borderColor="rgba(59,130,246,0.3)"}
                   />
-                </div>
-                <button disabled={emailPopupStatus==="sending"}
-                  onClick={()=>{
-                    if(!emailPopupVal.includes("@")) return;
-                    setEmailPopupStatus("sending");
-                    fetch("/api/email-capture",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:emailPopupVal})})
-                      .then(()=>setEmailPopupStatus("done")).catch(()=>setEmailPopupStatus("done"));
-                  }}
-                  style={{ width:"100%",background:emailPopupStatus==="sending"?"#1e3a5f":"linear-gradient(135deg,#1a6ed8 0%,#2563eb 100%)",border:"none",color:"#fff",fontWeight:800,fontSize:14,padding:"15px",borderRadius:12,cursor:"pointer",fontFamily:"inherit",letterSpacing:"0.3px",boxShadow:"0 4px 20px rgba(26,110,216,0.35)",transition:"opacity .15s" }}>
-                  {emailPopupStatus==="sending" ? "Sending…" : "Claim 10% Off →"}
-                </button>
-                <div style={{ display:"flex",alignItems:"center",justifyContent:"center",gap:6,marginTop:12 }}>
-                  <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><rect x="1" y="4.5" width="10" height="7" rx="1.5" stroke="#475569" strokeWidth="1.2"/><path d="M4 4.5V3a2 2 0 114 0v1.5" stroke="#475569" strokeWidth="1.2" strokeLinecap="round"/></svg>
-                  <span style={{ fontSize:11,color:"#475569" }}>Your email is safe. No spam, ever. Unsubscribe anytime.</span>
-                </div>
-              </>
-            )}
+                  <button disabled={emailPopupStatus==="sending"}
+                    onClick={()=>{
+                      if(!emailPopupVal.includes("@")) return;
+                      setEmailPopupStatus("sending");
+                      fetch("/api/email-capture",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:emailPopupVal})})
+                        .then(()=>setEmailPopupStatus("done")).catch(()=>setEmailPopupStatus("done"));
+                    }}
+                    style={{ width:"100%",background:emailPopupStatus==="sending"?"#1e3a5f":"#1a6ed8",border:"none",color:"#fff",fontWeight:800,fontSize:15,padding:"15px",borderRadius:10,cursor:"pointer",fontFamily:"inherit",boxShadow:"0 2px 16px rgba(26,110,216,0.4)",marginBottom:12 }}>
+                    {emailPopupStatus==="sending" ? "Sending…" : "Claim 10% Discount"}
+                  </button>
+                  <div style={{ display:"flex",alignItems:"center",justifyContent:"center",gap:5 }}>
+                    <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><rect x="1" y="4.5" width="10" height="7" rx="1.5" stroke="#334155" strokeWidth="1.3"/><path d="M4 4.5V3a2 2 0 114 0v1.5" stroke="#334155" strokeWidth="1.3" strokeLinecap="round"/></svg>
+                    <span style={{ fontSize:11,color:"#334155" }}>No spam. Unsubscribe anytime.</span>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -4445,7 +4449,7 @@ export default function App() {
                 <div style={{ fontSize:10,fontWeight:800,letterSpacing:3,color:"#63b3ed",textTransform:"uppercase" }}>Aeterion Labs</div>
                 <div style={{ fontSize:9,color:"#334155",letterSpacing:2,textTransform:"uppercase" }}>Research Peptides</div>
               </div>
-              <div style={{ marginLeft:"auto",fontSize:9,fontWeight:700,color:"#4ade80",background:"rgba(74,222,128,0.08)",border:"1px solid rgba(74,222,128,0.2)",borderRadius:20,padding:"4px 12px",letterSpacing:1,textTransform:"uppercase",whiteSpace:"nowrap" }}>✓ Verified Supplier</div>
+              <div style={{ marginLeft:"auto",fontSize:9,fontWeight:700,color:"#22c55e",background:"rgba(34,197,94,0.08)",border:"1px solid rgba(34,197,94,0.2)",borderRadius:4,padding:"4px 10px",letterSpacing:1,textTransform:"uppercase",whiteSpace:"nowrap" }}>Verified Supplier</div>
             </div>
             <div style={{ fontSize:28,fontWeight:900,color:"#f1f5f9",lineHeight:1.15,marginBottom:10,letterSpacing:"-0.8px" }}>
               Research-Grade Peptides.<br/>
@@ -4455,19 +4459,19 @@ export default function App() {
               HPLC-verified compounds. COA with every batch. Cold-chain shipping. Trusted by researchers in 40+ countries.
             </div>
             <div style={{ display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,marginBottom:28 }}>
-              {[["🧪","HPLC Tested","Every batch"],["📋","COA Included","With every order"],["🇺🇸","USA Shipping","1-2 day processing"]].map(([icon,title,sub]) => (
-                <div key={title} style={{ background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:12,padding:"12px 8px",textAlign:"center" }}>
-                  <div style={{ fontSize:18,marginBottom:5 }}>{icon}</div>
+              {[["HPLC","Tested","Every batch"],["COA","Included","With every order"],["USA","Shipping","1–2 day processing"]].map(([t,title,sub]) => (
+                <div key={t} style={{ background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:12,padding:"14px 10px",textAlign:"center" }}>
+                  <div style={{ fontSize:13,fontWeight:900,color:"#3b82f6",letterSpacing:1,marginBottom:3 }}>{t}</div>
                   <div style={{ fontSize:11,fontWeight:700,color:"#cbd5e1",marginBottom:2 }}>{title}</div>
                   <div style={{ fontSize:10,color:"#475569" }}>{sub}</div>
                 </div>
               ))}
             </div>
             {emailPopupStatus==="done" ? (
-              <div style={{ background:"rgba(74,222,128,0.07)",border:"1px solid rgba(74,222,128,0.25)",borderRadius:16,padding:"24px",textAlign:"center" }}>
-                <div style={{ fontSize:28,marginBottom:8 }}>✓</div>
-                <div style={{ fontSize:16,fontWeight:800,color:"#4ade80",marginBottom:6 }}>Code sent — check your inbox</div>
-                <div style={{ fontSize:13,color:"#64748b" }}>Your personal 10% code is on its way. Use it at checkout.</div>
+              <div style={{ background:"rgba(34,197,94,0.07)",border:"1px solid rgba(34,197,94,0.2)",borderRadius:16,padding:"28px",textAlign:"center" }}>
+                <div style={{ width:40,height:40,borderRadius:"50%",background:"rgba(34,197,94,0.15)",border:"1px solid rgba(34,197,94,0.3)",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 14px",fontSize:18,color:"#22c55e",fontWeight:900 }}>✓</div>
+                <div style={{ fontSize:16,fontWeight:800,color:"#22c55e",marginBottom:6 }}>Code sent to your inbox</div>
+                <div style={{ fontSize:13,color:"#64748b" }}>Apply your personal 10% code at checkout.</div>
               </div>
             ) : (
               <>
@@ -4757,7 +4761,11 @@ Output this exact JSON structure with ${minCount === maxCount ? minCount : `${mi
     const addAllToCart = () => {
       let added = 0;
       quizResult.compounds.forEach(c => {
-        const prod = PRODUCTS.find(p => p.name.toLowerCase() === c.name.toLowerCase());
+        const prod = PRODUCTS.find(p => {
+                const a = p.name.toLowerCase().replace(/[^a-z0-9]/g,'');
+                const b = c.name.toLowerCase().replace(/[^a-z0-9]/g,'');
+                return a === b || a.includes(b) || b.includes(a);
+              });
         if (prod) { addCart(prod, prod.variants[0], 1, prod.variants[0].p); added++; }
       });
       if (added > 0) { setCartOpen(true); closeQuiz(); }
@@ -4772,7 +4780,11 @@ Output this exact JSON structure with ${minCount === maxCount ? minCount : `${mi
           <div style={{ fontSize:15,color:"#94a3b8",marginBottom:32,lineHeight:1.6 }}>{quizResult.tagline}</div>
           <div style={{ display:"flex",flexDirection:"column",gap:14,marginBottom:24 }}>
             {quizResult.compounds?.map((c, i) => {
-              const prod = PRODUCTS.find(p => p.name.toLowerCase() === c.name.toLowerCase());
+              const prod = PRODUCTS.find(p => {
+                const a = p.name.toLowerCase().replace(/[^a-z0-9]/g,'');
+                const b = c.name.toLowerCase().replace(/[^a-z0-9]/g,'');
+                return a === b || a.includes(b) || b.includes(a);
+              });
               return (
                 <div key={i} style={{ background:"#0f172a",border:"1px solid #1e293b",borderRadius:16,padding:"20px 22px",display:"flex",gap:16,alignItems:"flex-start" }}>
                   <div style={{ background:"#1a6ed8",color:"#fff",borderRadius:10,width:36,height:36,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,fontSize:14,flexShrink:0,marginTop:2 }}>{i+1}</div>
@@ -4787,7 +4799,10 @@ Output this exact JSON structure with ${minCount === maxCount ? minCount : `${mi
                     <div style={{ fontSize:12,color:"#475569",fontStyle:"italic" }}>{c.researchNote}</div>
                   </div>
                   {prod && (
-                    <button onClick={()=>{ addCart(prod, prod.variants[0], 1, prod.variants[0].p); setCartOpen(true); }}
+                    <button onClick={()=>{
+                      const variant = prod.variants.find(v => v.s.toLowerCase() === (c.recommendedSize||'').toLowerCase()) || prod.variants[0];
+                      addCart(prod, variant, 1, variant.p); setCartOpen(true);
+                    }}
                       style={{ background:"#1e293b",border:"1px solid #334155",color:"#94a3b8",fontSize:11,fontWeight:700,padding:"8px 12px",borderRadius:8,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap",flexShrink:0 }}>
                       + Cart
                     </button>
