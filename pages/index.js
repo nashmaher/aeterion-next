@@ -4493,62 +4493,95 @@ function QuizModal({
 
   const generateStack = async (answers) => {
     setQuizLoading(true);
-    const compoundCount = answers.exp === "beginner" ? "EXACTLY 2-3" : answers.exp === "mid" ? "EXACTLY 4" : "EXACTLY 5";
+    const minCount = answers.exp === "beginner" ? 2 : answers.exp === "mid" ? 4 : 5;
+    const maxCount = answers.exp === "beginner" ? 3 : answers.exp === "mid" ? 4 : 5;
     const sizeRule = answers.exp === "beginner"
       ? "recommend the SMALLEST vial size available for each compound"
       : answers.exp === "mid"
       ? "recommend a MID-RANGE or LARGE vial size (e.g. 5mg, 10mg, 15mg) — NOT the smallest"
       : "ALWAYS recommend the LARGEST vial size available for each compound — never the smallest";
-    try {
-      const prompt = `You are the Aeterion Labs stack builder. Generate a premium personalized peptide research protocol.
 
-Researcher Profile:
-- Primary Goal: ${answers.goal}
-- Secondary Focus: ${answers.secondary}
-- Experience Level: ${answers.exp}
-- Cycle Length: ${answers.cycle}
-- Budget: ${answers.budget}
+    const systemPrompt = `You are the Aeterion Labs stack builder AI. Your ONLY job is to output valid JSON peptide stacks.
+CRITICAL: You MUST include between ${minCount} and ${maxCount} compounds in the compounds array. Never fewer. Never more.
+Do not explain. Do not add markdown. Output raw JSON only.`;
 
-Available Aeterion Products (with ALL available sizes):
+    const userPrompt = `Build a personalized peptide research stack for this researcher:
+
+PRIMARY GOAL: ${answers.goal}
+SECONDARY FOCUS: ${answers.secondary || "none"}
+EXPERIENCE: ${answers.exp}
+CYCLE LENGTH: ${answers.cycle}
+BUDGET: ${answers.budget}
+
+AVAILABLE PRODUCTS (name [sizes: size=$price]):
 ${PRODUCT_CATALOG}
 
-STRICT RULES:
-1. Compound count: ${compoundCount} — non-negotiable
-2. Vial sizing: ${sizeRule}
-3. Only use product names that exist EXACTLY in the catalog above
-4. Match budget: low=cheaper compounds, high=premium/rare compounds and largest sizes
-5. The recommendedSize field MUST match one of the actual listed sizes for that product
+RULES — follow all of them:
+- compounds array MUST have ${minCount === maxCount ? minCount : `${minCount} to ${maxCount}`} entries — this is mandatory
+- ${sizeRule}
+- Only use product names that exist EXACTLY in the list above
+- low budget = cheaper, widely available compounds; high budget = premium/rare compounds, largest sizes
+- recommendedSize must exactly match one of the sizes listed for that product
+- Each compound must serve a distinct role (no duplicates, no redundant mechanisms)
 
-Respond ONLY with valid JSON, no markdown, no backticks:
+Output this exact JSON structure with ${minCount === maxCount ? minCount : `${minCount}–${maxCount}`} compounds in the array:
 {
-  "protocolName": "Dramatic 3-4 word protocol name",
-  "tagline": "One compelling sentence for this stack",
+  "protocolName": "3-4 word name",
+  "tagline": "One compelling sentence",
   "compounds": [
-    {
-      "name": "EXACT product name from catalog",
-      "recommendedSize": "EXACT size string from that product's size list above",
-      "role": "2-4 word role (Foundation / Amplifier / Support / Optimizer)",
-      "reason": "1-2 sentence scientific rationale",
-      "researchNote": "Brief note on published research protocols"
-    }
+    { "name": "Product Name", "recommendedSize": "Xmg", "role": "Foundation", "reason": "1-2 sentence rationale.", "researchNote": "Brief research note." },
+    { "name": "Product Name", "recommendedSize": "Xmg", "role": "Amplifier", "reason": "1-2 sentence rationale.", "researchNote": "Brief research note." },
+    { "name": "Product Name", "recommendedSize": "Xmg", "role": "Support", "reason": "1-2 sentence rationale.", "researchNote": "Brief research note." }
   ],
-  "protocolTip": "One practical tip for this cycle"
+  "protocolTip": "One practical tip."
 }`;
+
+    try {
       const res = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000, messages: [{ role: "user", content: prompt }] }),
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 2000,
+          system: systemPrompt,
+          messages: [{ role: "user", content: userPrompt }],
+        }),
       });
       const data = await res.json();
+      if (data.error) throw new Error(data.error.message);
       const text = data.content?.[0]?.text || "";
       const clean = text.replace(/```json|```/g, "").trim();
-      setQuizResult(JSON.parse(clean));
-    } catch {
+      const parsed = JSON.parse(clean);
+      // Safety net: if model still returned <2 compounds, surface an error
+      if (!parsed.compounds || parsed.compounds.length < 2) {
+        throw new Error(`Only ${parsed.compounds?.length ?? 0} compounds returned`);
+      }
+      setQuizResult(parsed);
+    } catch (err) {
+      console.error("Stack builder error:", err);
+      // Fallback stacks by goal so users always get something useful
+      const fallbacks = {
+        fat:      ["Semaglutide", "BPC-157", "Tesamorelin"],
+        recovery: ["BPC-157", "TB-500", "GHK-Cu"],
+        growth:   ["CJC-1295 / Ipamorelin Blend", "BPC-157", "IGF-1 LR3", "MK-677"],
+        neuro:    ["Semax", "BPC-157", "Selank"],
+        longevity:["Epithalon", "BPC-157", "GHK-Cu", "Thymosin Alpha-1"],
+      };
+      const names = fallbacks[answers.goal] || fallbacks.recovery;
       setQuizResult({
         protocolName: "Foundation Protocol",
-        tagline: "A solid starting point for your research goals.",
-        compounds: [{ name: "BPC-157", recommendedSize: "5mg", role: "Foundation", reason: "Versatile healing peptide with broad research backing.", researchNote: "Well-tolerated in beginner protocols." }],
-        protocolTip: "Start with the foundation compound and introduce others after the first 2 weeks.",
+        tagline: "A curated starting point for your research goals.",
+        compounds: names.map((name, i) => {
+          const prod = PRODUCTS.find(p => p.name === name);
+          return {
+            name,
+            recommendedSize: prod?.variants[0]?.s || "5mg",
+            role: ["Foundation", "Amplifier", "Support", "Optimizer"][i] || "Support",
+            reason: "Included based on your goal profile and research literature.",
+            researchNote: "Well-documented in peer-reviewed research for this application.",
+          };
+        }),
+        protocolTip: "Start with the foundation compound for 2 weeks before introducing the others.",
       });
     }
     setQuizLoading(false);
