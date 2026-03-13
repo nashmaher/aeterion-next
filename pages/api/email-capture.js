@@ -1,5 +1,6 @@
 // pages/api/email-capture.js
 // Handles email signup from popup (10% welcome) AND cart abandonment (5% save cart)
+// Generates unique one-time-use discount codes per customer — never reuses static codes.
 
 import { createClient } from '@supabase/supabase-js';
 
@@ -8,7 +9,14 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_KEY
 );
 
-async function sendWelcomeEmail(email) {
+function generateCode(prefix) {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no confusable chars (0/O, 1/I)
+  let rand = '';
+  for (let i = 0; i < 8; i++) rand += chars[Math.floor(Math.random() * chars.length)];
+  return `${prefix}-${rand}`;
+}
+
+async function sendWelcomeEmail(email, code) {
   const html = `
   <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0f172a;margin:0;padding:0;">
     <div style="max-width:560px;margin:0 auto;padding:40px 24px;">
@@ -20,12 +28,12 @@ async function sendWelcomeEmail(email) {
         <div style="font-size:48px;margin-bottom:16px;">🧪</div>
         <div style="font-size:24px;font-weight:900;color:#f8fafc;margin-bottom:12px;">Welcome to Aeterion Labs</div>
         <div style="font-size:15px;color:#94a3b8;line-height:1.6;margin-bottom:28px;">
-          Thank you for joining. Here's your exclusive first-order discount:
+          Thank you for joining. Here's your exclusive first-order discount — this code is unique to you and can only be used once:
         </div>
         <div style="background:#0f172a;border-radius:14px;padding:24px;margin-bottom:24px;">
-          <div style="font-size:11px;color:#64748b;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">Your Discount Code</div>
-          <div style="font-size:40px;font-weight:900;color:#4ade80;letter-spacing:6px;">WELCOME10</div>
-          <div style="font-size:13px;color:#94a3b8;margin-top:8px;">10% off your entire first order</div>
+          <div style="font-size:11px;color:#64748b;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">Your Personal Discount Code</div>
+          <div style="font-size:36px;font-weight:900;color:#4ade80;letter-spacing:5px;font-family:monospace;">${code}</div>
+          <div style="font-size:13px;color:#94a3b8;margin-top:8px;">10% off your first order · Single use only</div>
         </div>
         <a href="https://aeterionpeptides.com" style="display:inline-block;background:#1a6ed8;color:#fff;font-weight:700;font-size:15px;padding:14px 36px;border-radius:12px;text-decoration:none;">Shop Now</a>
       </div>
@@ -50,13 +58,13 @@ async function sendWelcomeEmail(email) {
     body: JSON.stringify({
       from: 'Aeterion Labs <info@notifications.aeterionpeptides.com>',
       to: [email],
-      subject: 'Your 10% discount code is inside',
+      subject: 'Your personal 10% discount code is inside',
       html,
     }),
   });
 }
 
-async function sendAbandonEmail(email, cartItems) {
+async function sendAbandonEmail(email, cartItems, code) {
   const itemList = (cartItems || []).map(name =>
     `<li style="margin-bottom:6px;color:#94a3b8;">${name}</li>`
   ).join('');
@@ -71,13 +79,13 @@ async function sendAbandonEmail(email, cartItems) {
         <div style="font-size:32px;text-align:center;margin-bottom:16px;">🛒</div>
         <div style="font-size:22px;font-weight:900;color:#f8fafc;text-align:center;margin-bottom:12px;">You left something behind</div>
         <div style="font-size:14px;color:#94a3b8;line-height:1.6;margin-bottom:20px;">
-          Your cart is saved and waiting. As a thank-you, here is an extra 5% off your order:
+          Your cart is saved and waiting. Here is your personal one-time 5% off code:
         </div>
         ${itemList ? `<ul style="padding:0 0 0 18px;margin-bottom:20px;">${itemList}</ul>` : ''}
         <div style="background:#0f172a;border-radius:14px;padding:20px;text-align:center;margin-bottom:24px;">
-          <div style="font-size:11px;color:#64748b;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">Your Save Code</div>
-          <div style="font-size:36px;font-weight:900;color:#4ade80;letter-spacing:5px;">SAVE5</div>
-          <div style="font-size:12px;color:#94a3b8;margin-top:6px;">5% off, use at checkout</div>
+          <div style="font-size:11px;color:#64748b;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">Your Personal Code</div>
+          <div style="font-size:32px;font-weight:900;color:#4ade80;letter-spacing:4px;font-family:monospace;">${code}</div>
+          <div style="font-size:12px;color:#94a3b8;margin-top:6px;">5% off · Single use only</div>
         </div>
         <div style="text-align:center;">
           <a href="https://aeterionpeptides.com" style="display:inline-block;background:#1a6ed8;color:#fff;font-weight:700;font-size:15px;padding:14px 36px;border-radius:12px;text-decoration:none;">Complete My Order</a>
@@ -110,10 +118,39 @@ export default async function handler(req, res) {
   const cleanEmail = email.toLowerCase().trim();
   const isAbandon = source === 'abandon';
 
+  // Check if this email already has an unused code — don't generate a new one
+  let code;
+  try {
+    const { data: existing } = await supabase
+      .from('email_subscribers')
+      .select('discount_code, code_used')
+      .eq('email', cleanEmail)
+      .single();
+
+    if (existing && existing.discount_code && !existing.code_used) {
+      // Reuse existing unused code (e.g. if they sign up again)
+      code = existing.discount_code;
+    } else if (existing && existing.code_used) {
+      // Already used their code — don't issue another
+      return res.status(200).json({ success: true, message: 'Code already used' });
+    } else {
+      // New subscriber — generate unique code
+      code = generateCode(isAbandon ? 'SAVE' : 'WELCOME');
+    }
+  } catch {
+    code = generateCode(isAbandon ? 'SAVE' : 'WELCOME');
+  }
+
   try {
     await supabase.from('email_subscribers').upsert(
-      { email: cleanEmail, source: source || 'popup', discount_code: isAbandon ? 'SAVE5' : 'WELCOME10' },
-      { onConflict: 'email', ignoreDuplicates: true }
+      {
+        email: cleanEmail,
+        source: source || 'popup',
+        discount_code: code,
+        discount_pct: isAbandon ? 5 : 10,
+        code_used: false,
+      },
+      { onConflict: 'email', ignoreDuplicates: false }
     );
   } catch (e) {
     console.error('Supabase store failed:', e.message);
@@ -121,9 +158,9 @@ export default async function handler(req, res) {
 
   try {
     if (isAbandon) {
-      await sendAbandonEmail(cleanEmail, cartItems);
+      await sendAbandonEmail(cleanEmail, cartItems, code);
     } else {
-      await sendWelcomeEmail(cleanEmail);
+      await sendWelcomeEmail(cleanEmail, code);
     }
   } catch (e) {
     console.error('Email send failed:', e.message);
