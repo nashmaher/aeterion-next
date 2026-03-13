@@ -64,7 +64,7 @@ function CartDrawer() {
           <div style={{ fontWeight: 800, fontSize: 17, color: '#111827' }}>
             Your Cart {count > 0 && <span style={{ color: '#1a6ed8' }}>({count})</span>}
           </div>
-          <button onClick={() => setCartOpen(false)}
+          <button onClick={() => setCartOpen(false)} aria-label="Close cart"
             style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: '#6b7280' }}>✕</button>
         </div>
 
@@ -82,8 +82,8 @@ function CartDrawer() {
                 <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 6 }}>{item.size} × {item.qty}</div>
                 <div style={{ fontWeight: 800, fontSize: 14, color: '#16a34a' }}>${item.lt.toFixed(2)}</div>
               </div>
-              <button onClick={() => removeFromCart(item.key)}
-                style={{ background: 'none', border: 'none', color: '#9ca3af', fontSize: 20, cursor: 'pointer', alignSelf: 'flex-start', lineHeight: 1 }}>×</button>
+              <button onClick={() => removeFromCart(item.key)} aria-label="Remove item from cart"
+                style={{ background: 'none', border: 'none', color: '#6b7280', fontSize: 20, cursor: 'pointer', alignSelf: 'flex-start', lineHeight: 1 }}>×</button>
             </div>
           ))}
         </div>
@@ -275,9 +275,9 @@ export default function ProductPage({ product }) {
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
                   <div style={{ display: 'flex', alignItems: 'center', background: '#0f172a', border: '1px solid #1e293b', borderRadius: 10, overflow: 'hidden' }}>
-                    <button onClick={() => setQty(q => Math.max(1, q - 1))} style={{ padding: '10px 16px', background: 'none', border: 'none', color: '#94a3b8', fontSize: 18, cursor: 'pointer', fontFamily: 'inherit' }}>−</button>
+                    <button onClick={() => setQty(q => Math.max(1, q - 1))} aria-label="Decrease quantity" style={{ padding: '10px 16px', background: 'none', border: 'none', color: '#cbd5e1', fontSize: 18, cursor: 'pointer', fontFamily: 'inherit' }}>−</button>
                     <span style={{ padding: '0 14px', fontSize: 15, fontWeight: 700, minWidth: 28, textAlign: 'center' }}>{qty}</span>
-                    <button onClick={() => setQty(q => q + 1)} style={{ padding: '10px 16px', background: 'none', border: 'none', color: '#94a3b8', fontSize: 18, cursor: 'pointer', fontFamily: 'inherit' }}>+</button>
+                    <button onClick={() => setQty(q => q + 1)} aria-label="Increase quantity" style={{ padding: '10px 16px', background: 'none', border: 'none', color: '#cbd5e1', fontSize: 18, cursor: 'pointer', fontFamily: 'inherit' }}>+</button>
                   </div>
                   {qty < 5 && <div style={{ fontSize: 11, color: '#334155' }}>Buy 5+ for 8% · 10+ for 18%</div>}
                 </div>
