@@ -3908,39 +3908,71 @@ export default function App() {
 
       {/* ══════════ EMAIL CAPTURE POPUP (mobile) ══════════ */}
       {emailPopup && !emailPopupDone && (
-        <div style={{ position:"fixed",inset:0,background:"rgba(0,0,0,0.75)",zIndex:9000,display:"flex",alignItems:"center",justifyContent:"center",padding:20 }}
-          onClick={e => { if (e.target===e.currentTarget){ setEmailPopup(false); localStorage.setItem("aet_popup_v2","1"); setEmailPopupDone(true); }}}>
-          <div style={{ background:"#0f172a",borderRadius:20,padding:"36px 28px",maxWidth:420,width:"100%",position:"relative",border:"1px solid #1e293b",textAlign:"center" }}>
+        <div style={{ position:"fixed",inset:0,background:"rgba(2,6,15,0.88)",zIndex:9000,display:"flex",alignItems:"flex-end",justifyContent:"center",padding:0,backdropFilter:"blur(6px)",WebkitBackdropFilter:"blur(6px)" }}
+          onClick={e => { if(e.target===e.currentTarget){ setEmailPopup(false); localStorage.setItem("aet_popup_v2","1"); setEmailPopupDone(true); }}}>
+          <div style={{ background:"#0a1628",width:"100%",maxWidth:480,borderRadius:"24px 24px 0 0",padding:"32px 24px 36px",position:"relative",borderTop:"1px solid rgba(99,179,237,0.15)",borderLeft:"1px solid rgba(99,179,237,0.08)",borderRight:"1px solid rgba(99,179,237,0.08)" }}>
+            {/* Accent bar */}
+            <div style={{ position:"absolute",top:0,left:"50%",transform:"translateX(-50%)",width:48,height:4,background:"linear-gradient(90deg,#1a6ed8,#63b3ed)",borderRadius:"0 0 4px 4px" }} />
             <button onClick={()=>{ setEmailPopup(false); localStorage.setItem("aet_popup_v2","1"); setEmailPopupDone(true); }}
-              style={{ position:"absolute",top:14,right:16,background:"none",border:"none",color:"#64748b",fontSize:24,cursor:"pointer",lineHeight:1 }}>×</button>
-            <div style={{ width: 48, height: 48, borderRadius: 12, background: "linear-gradient(135deg,#1a6ed8,#3b82f6)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 12, fontSize: 11, fontWeight: 800, color: "#fff" }}>STACK</div>
-            <div style={{ fontSize:20,fontWeight:900,color:"#f8fafc",marginBottom:8 }}>10% Off Your First Order</div>
-            <div style={{ fontSize:13,color:"#94a3b8",marginBottom:22,lineHeight:1.6 }}>
-              Join thousands of researchers. Get exclusive access to new compounds, lab notes, and a <strong style={{ color:"#4ade80" }}>10% discount</strong> on your first order.
+              style={{ position:"absolute",top:18,right:20,background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"50%",width:30,height:30,color:"#94a3b8",fontSize:16,cursor:"pointer",lineHeight:1,display:"flex",alignItems:"center",justifyContent:"center" }}>×</button>
+
+            {/* Logo + badge row */}
+            <div style={{ display:"flex",alignItems:"center",gap:10,marginBottom:20 }}>
+              <AeterionLogo size={28} showText={false} dark={true} />
+              <span style={{ fontSize:10,fontWeight:800,letterSpacing:3,color:"#63b3ed",textTransform:"uppercase" }}>Aeterion Labs</span>
+              <span style={{ marginLeft:"auto",fontSize:9,fontWeight:700,color:"#4ade80",background:"rgba(74,222,128,0.1)",border:"1px solid rgba(74,222,128,0.25)",borderRadius:20,padding:"3px 10px",letterSpacing:1,textTransform:"uppercase" }}>Verified Supplier</span>
             </div>
+
+            {/* Headline */}
+            <div style={{ fontSize:22,fontWeight:900,color:"#f1f5f9",lineHeight:1.15,marginBottom:8,letterSpacing:"-0.5px" }}>
+              Research-Grade Peptides.<br/>
+              <span style={{ color:"#63b3ed" }}>10% off your first order.</span>
+            </div>
+            <div style={{ fontSize:13,color:"#64748b",marginBottom:22,lineHeight:1.7 }}>
+              COA with every batch. Cold-chain shipping. Trusted by researchers worldwide.
+            </div>
+
+            {/* Trust row */}
+            <div style={{ display:"flex",gap:12,marginBottom:22 }}>
+              {[["🧪","HPLC Tested"],["📋","COA Included"],["🇺🇸","Ships USA"]].map(([icon,label]) => (
+                <div key={label} style={{ flex:1,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:10,padding:"8px 4px",textAlign:"center" }}>
+                  <div style={{ fontSize:15,marginBottom:3 }}>{icon}</div>
+                  <div style={{ fontSize:9,fontWeight:700,color:"#64748b",letterSpacing:1,textTransform:"uppercase" }}>{label}</div>
+                </div>
+              ))}
+            </div>
+
             {emailPopupStatus==="done" ? (
-              <div style={{ background:"#14532d",borderRadius:12,padding:"16px",fontSize:14,fontWeight:700,color:"#4ade80" }}>
-                ✓ Check your inbox! Your code is on its way.
+              <div style={{ background:"rgba(74,222,128,0.08)",border:"1px solid rgba(74,222,128,0.3)",borderRadius:14,padding:"18px",textAlign:"center" }}>
+                <div style={{ fontSize:22,marginBottom:6 }}>✓</div>
+                <div style={{ fontSize:14,fontWeight:700,color:"#4ade80",marginBottom:4 }}>Code sent — check your inbox</div>
+                <div style={{ fontSize:12,color:"#64748b" }}>Use it at checkout for 10% off</div>
               </div>
             ) : (
               <>
-                <div style={{ display:"flex",flexDirection:"column",gap:8,marginBottom:12 }}>
-                  <input type="email" placeholder="your@email.com" value={emailPopupVal}
+                <div style={{ position:"relative",marginBottom:10 }}>
+                  <input type="email" placeholder="Enter your email address" value={emailPopupVal}
                     onChange={e=>setEmailPopupVal(e.target.value)}
-                    style={{ width:"100%",boxSizing:"border-box",background:"#1e293b",border:"1.5px solid #334155",borderRadius:10,padding:"13px 16px",fontSize:14,color:"#f8fafc",outline:"none",fontFamily:"inherit" }}
+                    onKeyDown={e=>{ if(e.key==="Enter"&&emailPopupVal.includes("@")){ setEmailPopupStatus("sending"); fetch("/api/email-capture",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:emailPopupVal})}).then(()=>setEmailPopupStatus("done")).catch(()=>setEmailPopupStatus("done")); }}}
+                    style={{ width:"100%",boxSizing:"border-box",background:"rgba(255,255,255,0.05)",border:"1.5px solid rgba(99,179,237,0.25)",borderRadius:12,padding:"14px 16px",fontSize:14,color:"#f1f5f9",outline:"none",fontFamily:"inherit",transition:"border-color .2s" }}
+                    onFocus={e=>e.target.style.borderColor="rgba(99,179,237,0.6)"}
+                    onBlur={e=>e.target.style.borderColor="rgba(99,179,237,0.25)"}
                   />
-                  <button disabled={emailPopupStatus==="sending"}
-                    onClick={()=>{
-                      if(!emailPopupVal.includes("@")) return;
-                      setEmailPopupStatus("sending");
-                      fetch("/api/email-capture",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:emailPopupVal})})
-                        .then(()=>setEmailPopupStatus("done")).catch(()=>setEmailPopupStatus("done"));
-                    }}
-                    style={{ background:"#1a6ed8",border:"none",color:"#fff",fontWeight:700,fontSize:14,padding:"13px",borderRadius:10,cursor:"pointer",fontFamily:"inherit",width:"100%" }}>
-                    {emailPopupStatus==="sending"?"...":"Get 10% Off →"}
-                  </button>
                 </div>
-                <div style={{ fontSize:11,color:"#475569" }}>No spam. Unsubscribe anytime.</div>
+                <button disabled={emailPopupStatus==="sending"}
+                  onClick={()=>{
+                    if(!emailPopupVal.includes("@")) return;
+                    setEmailPopupStatus("sending");
+                    fetch("/api/email-capture",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:emailPopupVal})})
+                      .then(()=>setEmailPopupStatus("done")).catch(()=>setEmailPopupStatus("done"));
+                  }}
+                  style={{ width:"100%",background:emailPopupStatus==="sending"?"#1e3a5f":"linear-gradient(135deg,#1a6ed8 0%,#2563eb 100%)",border:"none",color:"#fff",fontWeight:800,fontSize:14,padding:"15px",borderRadius:12,cursor:"pointer",fontFamily:"inherit",letterSpacing:"0.3px",boxShadow:"0 4px 20px rgba(26,110,216,0.35)",transition:"opacity .15s" }}>
+                  {emailPopupStatus==="sending" ? "Sending…" : "Claim 10% Off →"}
+                </button>
+                <div style={{ display:"flex",alignItems:"center",justifyContent:"center",gap:6,marginTop:12 }}>
+                  <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><rect x="1" y="4.5" width="10" height="7" rx="1.5" stroke="#475569" strokeWidth="1.2"/><path d="M4 4.5V3a2 2 0 114 0v1.5" stroke="#475569" strokeWidth="1.2" strokeLinecap="round"/></svg>
+                  <span style={{ fontSize:11,color:"#475569" }}>Your email is safe. No spam, ever. Unsubscribe anytime.</span>
+                </div>
               </>
             )}
           </div>
@@ -4397,41 +4429,71 @@ export default function App() {
         );
       })()}
 
-      {/* ══════════ EMAIL CAPTURE POPUP ══════════ */}
+      {/* ══════════ EMAIL CAPTURE POPUP (desktop) ══════════ */}
       {emailPopup && !emailPopupDone && (
-        <div style={{ position:"fixed",inset:0,background:"rgba(0,0,0,0.75)",zIndex:9000,display:"flex",alignItems:"center",justifyContent:"center",padding:24 }}
-          onClick={e => { if (e.target===e.currentTarget){ setEmailPopup(false); localStorage.setItem("aet_popup_v2","1"); setEmailPopupDone(true); }}}>
-          <div style={{ background:"#0f172a",borderRadius:20,padding:"40px 36px",maxWidth:460,width:"100%",position:"relative",border:"1px solid #1e293b",textAlign:"center" }}>
+        <div style={{ position:"fixed",inset:0,background:"rgba(2,6,15,0.85)",zIndex:9000,display:"flex",alignItems:"center",justifyContent:"center",padding:24,backdropFilter:"blur(8px)",WebkitBackdropFilter:"blur(8px)" }}
+          onClick={e => { if(e.target===e.currentTarget){ setEmailPopup(false); localStorage.setItem("aet_popup_v2","1"); setEmailPopupDone(true); }}}>
+          <div style={{ background:"#0a1628",maxWidth:480,width:"100%",borderRadius:24,padding:"44px 40px",position:"relative",border:"1px solid rgba(99,179,237,0.15)",boxShadow:"0 32px 80px rgba(0,0,0,0.6),0 0 0 1px rgba(99,179,237,0.05)" }}>
+            <div style={{ position:"absolute",top:0,left:40,right:40,height:3,background:"linear-gradient(90deg,transparent,#1a6ed8,#63b3ed,transparent)",borderRadius:"0 0 3px 3px" }} />
             <button onClick={()=>{ setEmailPopup(false); localStorage.setItem("aet_popup_v2","1"); setEmailPopupDone(true); }}
-              style={{ position:"absolute",top:16,right:18,background:"none",border:"none",color:"#64748b",fontSize:22,cursor:"pointer",lineHeight:1 }}>×</button>
-            <div style={{ width: 48, height: 48, borderRadius: 12, background: "linear-gradient(135deg,#1a6ed8,#3b82f6)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 12, fontSize: 11, fontWeight: 800, color: "#fff" }}>STACK</div>
-            <div style={{ fontSize:22,fontWeight:900,color:"#f8fafc",marginBottom:8 }}>10% Off Your First Order</div>
-            <div style={{ fontSize:14,color:"#94a3b8",marginBottom:24,lineHeight:1.6 }}>
-              Join thousands of researchers. Get exclusive access to new compounds, lab notes, and a <strong style={{ color:"#4ade80" }}>10% discount</strong> on your first order.
+              style={{ position:"absolute",top:18,right:20,background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"50%",width:32,height:32,color:"#94a3b8",fontSize:16,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }}
+              onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,0.12)"}
+              onMouseLeave={e=>e.currentTarget.style.background="rgba(255,255,255,0.06)"}>×</button>
+            <div style={{ display:"flex",alignItems:"center",gap:10,marginBottom:24 }}>
+              <AeterionLogo size={30} showText={false} dark={true} />
+              <div>
+                <div style={{ fontSize:10,fontWeight:800,letterSpacing:3,color:"#63b3ed",textTransform:"uppercase" }}>Aeterion Labs</div>
+                <div style={{ fontSize:9,color:"#334155",letterSpacing:2,textTransform:"uppercase" }}>Research Peptides</div>
+              </div>
+              <div style={{ marginLeft:"auto",fontSize:9,fontWeight:700,color:"#4ade80",background:"rgba(74,222,128,0.08)",border:"1px solid rgba(74,222,128,0.2)",borderRadius:20,padding:"4px 12px",letterSpacing:1,textTransform:"uppercase",whiteSpace:"nowrap" }}>✓ Verified Supplier</div>
+            </div>
+            <div style={{ fontSize:28,fontWeight:900,color:"#f1f5f9",lineHeight:1.15,marginBottom:10,letterSpacing:"-0.8px" }}>
+              Research-Grade Peptides.<br/>
+              <span style={{ background:"linear-gradient(90deg,#63b3ed,#93c5fd)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent" }}>10% off your first order.</span>
+            </div>
+            <div style={{ fontSize:14,color:"#64748b",marginBottom:24,lineHeight:1.7 }}>
+              HPLC-verified compounds. COA with every batch. Cold-chain shipping. Trusted by researchers in 40+ countries.
+            </div>
+            <div style={{ display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,marginBottom:28 }}>
+              {[["🧪","HPLC Tested","Every batch"],["📋","COA Included","With every order"],["🇺🇸","USA Shipping","1-2 day processing"]].map(([icon,title,sub]) => (
+                <div key={title} style={{ background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:12,padding:"12px 8px",textAlign:"center" }}>
+                  <div style={{ fontSize:18,marginBottom:5 }}>{icon}</div>
+                  <div style={{ fontSize:11,fontWeight:700,color:"#cbd5e1",marginBottom:2 }}>{title}</div>
+                  <div style={{ fontSize:10,color:"#475569" }}>{sub}</div>
+                </div>
+              ))}
             </div>
             {emailPopupStatus==="done" ? (
-              <div style={{ background:"#14532d",borderRadius:12,padding:"18px",fontSize:15,fontWeight:700,color:"#4ade80" }}>
-                ✓ Check your inbox! Your code is on its way.
+              <div style={{ background:"rgba(74,222,128,0.07)",border:"1px solid rgba(74,222,128,0.25)",borderRadius:16,padding:"24px",textAlign:"center" }}>
+                <div style={{ fontSize:28,marginBottom:8 }}>✓</div>
+                <div style={{ fontSize:16,fontWeight:800,color:"#4ade80",marginBottom:6 }}>Code sent — check your inbox</div>
+                <div style={{ fontSize:13,color:"#64748b" }}>Your personal 10% code is on its way. Use it at checkout.</div>
               </div>
             ) : (
               <>
-                <div style={{ display:"flex",gap:8,marginBottom:12 }}>
-                  <input type="email" placeholder="your@email.com" value={emailPopupVal}
-                    onChange={e=>setEmailPopupVal(e.target.value)}
-                    style={{ flex:1,background:"#1e293b",border:"1.5px solid #334155",borderRadius:10,padding:"12px 16px",fontSize:14,color:"#f8fafc",outline:"none",fontFamily:"inherit" }}
-                  />
-                  <button disabled={emailPopupStatus==="sending"}
-                    onClick={()=>{
-                      if(!emailPopupVal.includes("@")) return;
-                      setEmailPopupStatus("sending");
-                      fetch("/api/email-capture",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:emailPopupVal})})
-                        .then(()=>setEmailPopupStatus("done")).catch(()=>setEmailPopupStatus("done"));
-                    }}
-                    style={{ background:"#1a6ed8",border:"none",color:"#fff",fontWeight:700,fontSize:14,padding:"12px 20px",borderRadius:10,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap" }}>
-                    {emailPopupStatus==="sending"?"...":"Get 10% Off"}
-                  </button>
+                <input type="email" placeholder="Enter your email address" value={emailPopupVal}
+                  onChange={e=>setEmailPopupVal(e.target.value)}
+                  onKeyDown={e=>{ if(e.key==="Enter"&&emailPopupVal.includes("@")){ setEmailPopupStatus("sending"); fetch("/api/email-capture",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:emailPopupVal})}).then(()=>setEmailPopupStatus("done")).catch(()=>setEmailPopupStatus("done")); }}}
+                  style={{ width:"100%",boxSizing:"border-box",background:"rgba(255,255,255,0.04)",border:"1.5px solid rgba(99,179,237,0.2)",borderRadius:12,padding:"15px 18px",fontSize:15,color:"#f1f5f9",outline:"none",fontFamily:"inherit",marginBottom:10,transition:"border-color .2s" }}
+                  onFocus={e=>e.target.style.borderColor="rgba(99,179,237,0.55)"}
+                  onBlur={e=>e.target.style.borderColor="rgba(99,179,237,0.2)"}
+                />
+                <button disabled={emailPopupStatus==="sending"}
+                  onClick={()=>{
+                    if(!emailPopupVal.includes("@")) return;
+                    setEmailPopupStatus("sending");
+                    fetch("/api/email-capture",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:emailPopupVal})})
+                      .then(()=>setEmailPopupStatus("done")).catch(()=>setEmailPopupStatus("done"));
+                  }}
+                  style={{ width:"100%",background:emailPopupStatus==="sending"?"#1e3a5f":"linear-gradient(135deg,#1a6ed8 0%,#2563eb 100%)",border:"none",color:"#fff",fontWeight:800,fontSize:15,padding:"16px",borderRadius:12,cursor:"pointer",fontFamily:"inherit",boxShadow:"0 4px 24px rgba(26,110,216,0.4)",marginBottom:14 }}
+                  onMouseEnter={e=>{ if(emailPopupStatus!=="sending") e.currentTarget.style.opacity="0.9"; }}
+                  onMouseLeave={e=>e.currentTarget.style.opacity="1"}>
+                  {emailPopupStatus==="sending" ? "Sending…" : "Claim My 10% Discount →"}
+                </button>
+                <div style={{ display:"flex",alignItems:"center",justifyContent:"center",gap:6 }}>
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="1" y="4.5" width="10" height="7" rx="1.5" stroke="#475569" strokeWidth="1.2"/><path d="M4 4.5V3a2 2 0 114 0v1.5" stroke="#475569" strokeWidth="1.2" strokeLinecap="round"/></svg>
+                  <span style={{ fontSize:11,color:"#475569" }}>Your email is safe — no spam, ever. Unsubscribe anytime.</span>
                 </div>
-                <div style={{ fontSize:11,color:"#475569" }}>No spam. Unsubscribe anytime.</div>
               </>
             )}
           </div>
