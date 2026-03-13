@@ -186,18 +186,44 @@ export default async function handler(req, res) {
 
     const password_hash = await bcrypt.hash(password, 12);
 
+    const finalCommissionRate = commission_rate || 20;
+    const finalPromoCode = promo_code.toUpperCase().trim();
+
+    // Fetch ambassador name/email before updating so we can send the welcome email
+    const { data: ambRows } = await supabase
+      .from('ambassadors')
+      .select('name, email')
+      .eq('id', ambassador_id)
+      .single();
+
     const { error } = await supabase
       .from('ambassadors')
       .update({
         status: 'approved',
-        promo_code: promo_code.toUpperCase().trim(),
+        promo_code: finalPromoCode,
         password_hash,
-        commission_rate: commission_rate || 20,
+        commission_rate: finalCommissionRate,
         notes: notes || null,
       })
       .eq('id', ambassador_id);
 
     if (error) return res.status(500).json({ error: error.message });
+
+    // Send welcome email with login credentials
+    if (ambRows?.email) {
+      try {
+        await sendAmbassadorWelcomeEmail({
+          name: ambRows.name,
+          email: ambRows.email,
+          promo_code: finalPromoCode,
+          password,
+          commission_rate: finalCommissionRate,
+        });
+      } catch (e) {
+        console.error('Ambassador welcome email failed:', e.message);
+      }
+    }
+
     return res.status(200).json({ success: true, message: 'Ambassador approved.' });
   }
 

@@ -6,7 +6,7 @@ export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
 
   const SB_URL = "https://kafwkhbzdtpsxkufmkmm.supabase.co";
-  const SB_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImthZndraGJ6ZHRwc3hrdWZta21tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MDEyODAsImV4cCI6MjA4ODQ3NzI4MH0.sa4_CFHQpBkWVc02et_pSsu35wqPLQpD8g4WIxYRCIA";
+  const SB_ANON = process.env.SUPABASE_SERVICE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   try {
     const { orderId, status, tracking, notes } = req.body;
@@ -31,28 +31,33 @@ export default async function handler(req, res) {
 
     if (!sbRes.ok) {
       const err = await sbRes.text();
-      return res.status(500).json({ error: "Supabase error: " + err });
+      console.error("update-order Supabase error:", err);
+      return res.status(500).json({ error: "Failed to update order." });
     }
 
     const rows = await sbRes.json();
     const order = rows[0];
 
-    // Send shipped email if status changed to shipped
+    // Send shipped email if status changed to shipped — failure must not break the response
     if (status === "shipped" && order?.customer_email) {
-      await sendShippedEmail({
-        to:           order.customer_email,
-        customerName: order.customer_name,
-        orderNumber:  order.order_number,
-        tracking:     order.tracking,
-        items:        order.items || [],
-        total:        order.total,
-      });
+      try {
+        await sendShippedEmail({
+          to:           order.customer_email,
+          customerName: order.customer_name,
+          orderNumber:  order.order_number,
+          tracking:     order.tracking,
+          items:        order.items || [],
+          total:        order.total,
+        });
+      } catch (emailErr) {
+        console.error("update-order shipped email FAILED:", emailErr.message);
+      }
     }
 
     return res.status(200).json({ success: true, order });
   } catch (err) {
     console.error("update-order error:", err.message);
-    return res.status(500).json({ error: err.message });
+    return res.status(500).json({ error: "Internal server error." });
   }
 };
 

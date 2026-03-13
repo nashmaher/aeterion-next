@@ -135,7 +135,7 @@ function buildAdminEmail({ customerName, customerEmail, customerPhone, shippingA
 </table></td></tr></table></body></html>`;
 }
 
-function buildAmbassadorEmail({ ambassadorName, ambassadorEmail, customerEmail, commissionAmount, orderTotal, promoCode, orderNumber }) {
+function buildAmbassadorEmail({ ambassadorName, ambassadorEmail, customerEmail, commissionAmount, commissionRatePct, orderTotal, promoCode, orderNumber }) {
   return `<!DOCTYPE html><html><head><meta charset="utf-8"></head>
 <body style="margin:0;padding:0;background:#f1f5f9;font-family:Arial,sans-serif;">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:40px 20px;">
@@ -149,7 +149,7 @@ function buildAmbassadorEmail({ ambassadorName, ambassadorEmail, customerEmail, 
     <div style="background:#f0fdf4;border-radius:12px;padding:24px;border:1px solid #bbf7d0;text-align:center;margin-bottom:24px;">
       <div style="font-size:12px;color:#16a34a;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Your Commission</div>
       <div style="font-size:42px;font-weight:900;color:#16a34a;">$${commissionAmount.toFixed(2)}</div>
-      <div style="font-size:13px;color:#64748b;margin-top:6px;">Order total: $${(orderTotal / 100).toFixed(2)} · Commission rate: 20%</div>
+      <div style="font-size:13px;color:#64748b;margin-top:6px;">Order total: $${(orderTotal / 100).toFixed(2)} · Commission rate: ${commissionRatePct ?? 20}%</div>
     </div>
     <div style="background:#f8fafc;border-radius:10px;padding:16px;border:1px solid #e2e8f0;margin-bottom:24px;">
       <div style="font-size:12px;color:#64748b;margin-bottom:4px;">Order Number</div>
@@ -266,9 +266,18 @@ export default async function handler(req, res) {
           if (existing?.length) {
             console.log(`⚠️ Commission already recorded for session ${session.id} — skipping duplicate`);
           } else {
+            // Fetch ambassador details (including commission_rate) before calculating
+            const ambData = await sb(`ambassadors?id=eq.${ambassadorId}&select=id,name,email,commission_rate,total_commission_earned`);
+            const amb = ambData?.[0];
+
+            // Use ambassador's actual commission_rate (default 20 if not set)
+            const commissionRatePct = Number(amb?.commission_rate ?? 20);
+            // Customer discount is always 10% for ambassador codes
+            const customerDiscountPct = 10;
+
             // Commission based on product subtotal only (sum of line items, no shipping)
             const productSubtotal  = lineItems.data.reduce((sum, i) => sum + i.amount_total, 0) / 100;
-            const commissionAmount = productSubtotal * 0.20;
+            const commissionAmount = productSubtotal * (commissionRatePct / 100);
 
             // Insert commission record
             await sb("ambassador_commissions", "POST", {
@@ -277,18 +286,16 @@ export default async function handler(req, res) {
               stripe_session_id: session.id,
               customer_email:    customerEmail || "",
               order_subtotal:    productSubtotal,
-              discount_amount:   productSubtotal * 0.10,
+              discount_amount:   productSubtotal * (customerDiscountPct / 100),
               commission_amount: commissionAmount,
               promo_code:        promoCode,
               status:            "pending",
             });
-            console.log(`✓ Commission logged: $${commissionAmount.toFixed(2)}`);
+            console.log(`✓ Commission logged: $${commissionAmount.toFixed(2)} (${commissionRatePct}%)`);
 
             // Update ambassador running total
             try {
-              const ambData = await sb(`ambassadors?id=eq.${ambassadorId}&select=id,name,email,total_commission_earned`);
-              if (ambData?.length) {
-                const amb      = ambData[0];
+              if (amb) {
                 const newTotal = Number(amb.total_commission_earned || 0) + commissionAmount;
                 await sb(`ambassadors?id=eq.${ambassadorId}`, "PATCH", { total_commission_earned: newTotal });
                 console.log(`✓ Ambassador total updated to $${newTotal.toFixed(2)}`);
@@ -303,6 +310,7 @@ export default async function handler(req, res) {
                         ambassadorEmail:  amb.email,
                         customerEmail:    customerEmail,
                         commissionAmount: commissionAmount,
+                        commissionRatePct,
                         orderTotal:       session.amount_total,
                         promoCode:        promoCode,
                         orderNumber:      orderNumber,
