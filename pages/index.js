@@ -1875,7 +1875,7 @@ export default function App() {
     }, [authed, adminToken]);
 
     // ── Ambassador tab state ──
-    const [adminTab, setAdminTab] = useState("orders"); // "orders" | "ambassadors" | "commissions" | "blog"
+    const [adminTab, setAdminTab] = useState("orders"); // "orders" | "ambassadors" | "commissions" | "blog" | "costs" | "profit"
     const [commissions, setCommissions] = useState([]);
 
     // ── Blog state ──
@@ -1933,6 +1933,91 @@ export default function App() {
       setBlogEditing(post.id);
       setBlogForm({ title: post.title, excerpt: post.excerpt || "", body: post.body || "", cover_url: post.cover_url || "", tags: (post.tags || []).join(", "), published: post.published });
       setBlogMsg("");
+    };
+
+    // ── Costs tab state ──
+    const [costs, setCosts] = useState([]);
+    const [costsLoading, setCostsLoading] = useState(false);
+    const [costEditId, setCostEditId] = useState(null);
+    const [costEditVal, setCostEditVal] = useState("");
+    const [costSeedWorking, setCostSeedWorking] = useState(false);
+    const [costMsg, setCostMsg] = useState("");
+
+    // ── Profit tab state ──
+    const [profitReport, setProfitReport] = useState(null);
+    const [profitLoading, setProfitLoading] = useState(false);
+    const [profitDateFrom, setProfitDateFrom] = useState("");
+    const [profitDateTo, setProfitDateTo] = useState("");
+    const [profitSubTab, setProfitSubTab] = useState("summary");
+    const [profitOrderExpanded, setProfitOrderExpanded] = useState(null);
+
+    const loadCosts = async () => {
+      setCostsLoading(true);
+      try {
+        const res = await fetch(`/api/admin/product-costs?admin_token=${encodeURIComponent(adminToken)}`);
+        const data = await res.json();
+        if (data.costs) setCosts(data.costs);
+      } catch {}
+      setCostsLoading(false);
+    };
+
+    const saveCost = async (productId, variantSize, costVal) => {
+      const parsed = parseFloat(costVal);
+      if (isNaN(parsed) || parsed < 0) { setCostMsg("✗ Enter a valid cost (e.g. 4.80)"); return; }
+      try {
+        const res = await fetch("/api/admin/product-costs", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ admin_token: adminToken, action: "upsert", product_id: productId, variant_size: variantSize, cost_per_unit: parsed }),
+        });
+        const data = await res.json();
+        if (data.success) { setCostEditId(null); setCostEditVal(""); setCostMsg("✓ Cost saved"); await loadCosts(); }
+        else setCostMsg("✗ " + data.error);
+      } catch { setCostMsg("✗ Request failed"); }
+    };
+
+    const approveCost = async (id) => {
+      try {
+        await fetch("/api/admin/product-costs", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ admin_token: adminToken, action: "approve", id }),
+        });
+        await loadCosts();
+      } catch {}
+    };
+
+    const seedCosts = async () => {
+      if (!window.confirm("Import all confirmed supplier costs? This is safe to run multiple times.")) return;
+      setCostSeedWorking(true); setCostMsg("");
+      try {
+        const res = await fetch("/api/admin/product-costs", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ admin_token: adminToken, action: "seed" }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          setCostMsg(`✓ Seeded ${data.inserted} costs, ${data.review_flagged} flagged for review`);
+          await loadCosts();
+        } else { setCostMsg("✗ " + data.error); }
+      } catch { setCostMsg("✗ Request failed"); }
+      setCostSeedWorking(false);
+    };
+
+    const loadProfitReport = async () => {
+      setProfitLoading(true);
+      try {
+        const res = await fetch("/api/admin/profit-report", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ admin_token: adminToken, date_from: profitDateFrom || undefined, date_to: profitDateTo || undefined }),
+        });
+        const data = await res.json();
+        if (data.store_summary) setProfitReport(data);
+        else setCostMsg("✗ " + (data.error || "Failed to generate report"));
+      } catch { setCostMsg("✗ Request failed"); }
+      setProfitLoading(false);
     };
 
     const loadCommissions = async () => {
@@ -2136,7 +2221,16 @@ export default function App() {
             </button>
             <button onClick={() => { setAdminTab("commissions"); loadCommissions(); }} style={{ background: adminTab === "commissions" ? "#1a6ed8" : "#334155", border: "none", color: adminTab === "commissions" ? "#fff" : "#94a3b8", padding: "8px 14px", borderRadius: 8, cursor: "pointer", fontSize: 12, fontFamily: "inherit", fontWeight: 700 }}>Commissions</button>
             <button onClick={() => { setAdminTab("blog"); loadBlogPosts(); }} style={{ background: adminTab === "blog" ? "#1a6ed8" : "#334155", border: "none", color: adminTab === "blog" ? "#fff" : "#94a3b8", padding: "8px 14px", borderRadius: 8, cursor: "pointer", fontSize: 12, fontFamily: "inherit", fontWeight: 700 }}>Blog</button>
-            <button onClick={() => adminTab === "orders" ? loadOrders() : adminTab === "commissions" ? loadCommissions() : adminTab === "blog" ? loadBlogPosts() : loadAmbassadors()} style={{ background: "#334155", border: "none", color: "#94a3b8", padding: "8px 14px", borderRadius: 8, cursor: "pointer", fontSize: 12, fontFamily: "inherit" }}>Refresh</button>
+            <button onClick={() => { setAdminTab("costs"); loadCosts(); }} style={{ background: adminTab === "costs" ? "#1a6ed8" : "#334155", border: "none", color: adminTab === "costs" ? "#fff" : "#94a3b8", padding: "8px 14px", borderRadius: 8, cursor: "pointer", fontSize: 12, fontFamily: "inherit", fontWeight: 700, position: "relative" }}>
+              Costs
+              {costs.filter(c => c.needs_review).length > 0 && (
+                <span style={{ position: "absolute", top: -6, right: -6, background: "#f97316", color: "#fff", borderRadius: "50%", width: 18, height: 18, fontSize: 10, fontWeight: 900, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  {costs.filter(c => c.needs_review).length}
+                </span>
+              )}
+            </button>
+            <button onClick={() => { setAdminTab("profit"); }} style={{ background: adminTab === "profit" ? "#1a6ed8" : "#334155", border: "none", color: adminTab === "profit" ? "#fff" : "#94a3b8", padding: "8px 14px", borderRadius: 8, cursor: "pointer", fontSize: 12, fontFamily: "inherit", fontWeight: 700 }}>Profit</button>
+            <button onClick={() => adminTab === "orders" ? loadOrders() : adminTab === "commissions" ? loadCommissions() : adminTab === "blog" ? loadBlogPosts() : adminTab === "costs" ? loadCosts() : adminTab === "profit" ? loadProfitReport() : loadAmbassadors()} style={{ background: "#334155", border: "none", color: "#94a3b8", padding: "8px 14px", borderRadius: 8, cursor: "pointer", fontSize: 12, fontFamily: "inherit" }}>Refresh</button>
             <button onClick={() => goTo("store")} style={{ ...btnPrimary({ padding: "8px 14px", fontSize: 12, borderRadius: 8 }) }}>Store</button>
             <button onClick={() => { try { sessionStorage.removeItem("aet_admin_token"); } catch {} setAuthed(false); setAdminToken(""); }} style={{ background: "#3b0000", border: "1px solid #7f1d1d", color: "#f87171", borderRadius: 8, padding: "8px 14px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>Sign Out</button>
           </div>
@@ -2706,6 +2800,396 @@ export default function App() {
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* ── COSTS TAB ── */}
+      {adminTab === "costs" && (
+        <div>
+          {/* Header */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, flexWrap: "wrap", gap: 12 }}>
+            <div style={{ fontSize: 18, fontWeight: 900, color: "#f8fafc" }}>Product Costs (COGS)</div>
+            <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+              {costMsg && <span style={{ fontSize: 12, fontWeight: 600, color: costMsg.startsWith("✓") ? "#4ade80" : "#f87171" }}>{costMsg}</span>}
+              <button onClick={seedCosts} disabled={costSeedWorking} style={{ background: costSeedWorking ? "#334155" : "#1a6ed8", border: "none", color: "#fff", padding: "9px 16px", borderRadius: 8, cursor: costSeedWorking ? "default" : "pointer", fontSize: 12, fontWeight: 700, fontFamily: "inherit", opacity: costSeedWorking ? 0.6 : 1 }}>
+                {costSeedWorking ? "Importing…" : "⬇ Import Supplier Data"}
+              </button>
+            </div>
+          </div>
+
+          {/* Needs Review Panel */}
+          {costs.filter(c => c.needs_review).length > 0 && (
+            <div style={{ background: "#431407", border: "1px solid #f97316", borderRadius: 12, padding: "16px 20px", marginBottom: 24 }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: "#fed7aa", marginBottom: 12 }}>
+                ⚠ {costs.filter(c => c.needs_review).length} items need manual review — profit calculations exclude orders containing these products until costs are confirmed
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {costs.filter(c => c.needs_review).map(c => (
+                  <div key={c.id} style={{ background: "rgba(0,0,0,0.3)", borderRadius: 8, padding: "10px 14px", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: "#fed7aa" }}>{c.product_name} — {c.variant_size}</div>
+                      <div style={{ fontSize: 11, color: "#fb923c", marginTop: 2 }}>{c.review_note}</div>
+                      {c.cost_per_unit > 0 && <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>Current estimated cost: ${Number(c.cost_per_unit).toFixed(2)}/vial</div>}
+                    </div>
+                    <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                      {costEditId === c.id ? (
+                        <>
+                          <input
+                            type="number" step="0.01" min="0" value={costEditVal}
+                            onChange={e => setCostEditVal(e.target.value)}
+                            placeholder="Cost/vial"
+                            style={{ width: 90, background: "#0f172a", border: "1px solid #f97316", borderRadius: 6, padding: "6px 8px", fontSize: 12, color: "#f8fafc", outline: "none", fontFamily: "inherit" }}
+                          />
+                          <button onClick={() => saveCost(c.product_id, c.variant_size, costEditVal)} style={{ background: "#4ade80", border: "none", color: "#0f172a", padding: "6px 10px", borderRadius: 6, fontSize: 11, fontWeight: 800, cursor: "pointer", fontFamily: "inherit" }}>Save</button>
+                          <button onClick={() => { setCostEditId(null); setCostEditVal(""); }} style={{ background: "#334155", border: "none", color: "#94a3b8", padding: "6px 8px", borderRadius: 6, fontSize: 11, cursor: "pointer", fontFamily: "inherit" }}>✕</button>
+                        </>
+                      ) : (
+                        <>
+                          <button onClick={() => { setCostEditId(c.id); setCostEditVal(c.cost_per_unit > 0 ? String(c.cost_per_unit) : ""); }} style={{ background: "#334155", border: "none", color: "#94a3b8", padding: "6px 10px", borderRadius: 6, fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>✏ Edit Cost</button>
+                          {c.cost_per_unit > 0 && <button onClick={() => approveCost(c.id)} style={{ background: "#14532d", border: "1px solid #16a34a", color: "#4ade80", padding: "6px 10px", borderRadius: 6, fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>✓ Approve</button>}
+                        </>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Costs Table */}
+          {costsLoading ? (
+            <div style={{ textAlign: "center", padding: 60, color: "#64748b" }}>Loading costs…</div>
+          ) : costs.filter(c => !c.needs_review).length === 0 ? (
+            <div style={{ textAlign: "center", padding: 60, color: "#64748b" }}>
+              <div style={{ fontSize: 16, marginBottom: 12 }}>No cost data yet.</div>
+              <div style={{ fontSize: 13 }}>Click "Import Supplier Data" to load confirmed costs from the supplier price list.</div>
+            </div>
+          ) : (
+            <div style={{ background: "#1e293b", borderRadius: 12, overflow: "hidden", border: "1px solid #334155" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                <thead>
+                  <tr style={{ background: "#0f172a" }}>
+                    {["Product", "Variant", "Cost / Vial", "Sale Price", "Gross Margin", "Supplier Cat#", "Actions"].map(h => (
+                      <th key={h} style={{ padding: "11px 14px", fontSize: 11, fontWeight: 700, color: "#64748b", textAlign: "left", textTransform: "uppercase", letterSpacing: 0.8 }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {costs.filter(c => !c.needs_review).map((c, i) => {
+                    const margin = c.sale_price && c.cost_per_unit > 0 ? ((c.sale_price - c.cost_per_unit) / c.sale_price * 100) : null;
+                    return (
+                      <tr key={c.id} style={{ borderTop: "1px solid #334155", background: i % 2 === 0 ? "#1e293b" : "#0f172a" }}>
+                        <td style={{ padding: "10px 14px", fontSize: 13, fontWeight: 700 }}>{c.product_name}</td>
+                        <td style={{ padding: "10px 14px", fontSize: 12, color: "#94a3b8" }}>{c.variant_size}</td>
+                        <td style={{ padding: "10px 14px" }}>
+                          {costEditId === c.id ? (
+                            <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                              <input
+                                type="number" step="0.01" min="0" value={costEditVal}
+                                onChange={e => setCostEditVal(e.target.value)}
+                                style={{ width: 80, background: "#0f172a", border: "1px solid #60a5fa", borderRadius: 6, padding: "5px 8px", fontSize: 12, color: "#f8fafc", outline: "none", fontFamily: "inherit" }}
+                              />
+                              <button onClick={() => saveCost(c.product_id, c.variant_size, costEditVal)} style={{ background: "#1a6ed8", border: "none", color: "#fff", padding: "5px 8px", borderRadius: 5, fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>✓</button>
+                              <button onClick={() => { setCostEditId(null); setCostEditVal(""); }} style={{ background: "#334155", border: "none", color: "#94a3b8", padding: "5px 6px", borderRadius: 5, fontSize: 11, cursor: "pointer", fontFamily: "inherit" }}>✕</button>
+                            </div>
+                          ) : (
+                            <span style={{ fontSize: 13, fontWeight: 700, color: "#4ade80" }}>${Number(c.cost_per_unit).toFixed(2)}</span>
+                          )}
+                        </td>
+                        <td style={{ padding: "10px 14px", fontSize: 13, color: "#94a3b8" }}>{c.sale_price ? `$${c.sale_price.toFixed(2)}` : "—"}</td>
+                        <td style={{ padding: "10px 14px" }}>
+                          {margin !== null ? (
+                            <span style={{ fontSize: 12, fontWeight: 700, color: margin >= 60 ? "#4ade80" : margin >= 30 ? "#fbbf24" : "#f87171" }}>{margin.toFixed(1)}%</span>
+                          ) : <span style={{ color: "#475569" }}>—</span>}
+                        </td>
+                        <td style={{ padding: "10px 14px", fontSize: 11, color: "#64748b" }}>{c.supplier_cat_no || "—"}</td>
+                        <td style={{ padding: "10px 14px" }}>
+                          {costEditId !== c.id && (
+                            <button onClick={() => { setCostEditId(c.id); setCostEditVal(String(c.cost_per_unit)); }} style={{ background: "#334155", border: "none", color: "#94a3b8", padding: "5px 8px", borderRadius: 6, fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>✏</button>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── PROFIT TAB ── */}
+      {adminTab === "profit" && (
+        <div>
+          {/* Header + date range */}
+          <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 20, flexWrap: "wrap", gap: 12 }}>
+            <div style={{ fontSize: 18, fontWeight: 900, color: "#f8fafc" }}>Profit Report</div>
+            <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+              <div>
+                <div style={{ fontSize: 10, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 4 }}>From</div>
+                <input type="date" value={profitDateFrom} onChange={e => setProfitDateFrom(e.target.value)}
+                  style={{ background: "#1e293b", border: "1px solid #334155", borderRadius: 8, padding: "8px 10px", fontSize: 12, color: "#f8fafc", outline: "none", fontFamily: "inherit" }} />
+              </div>
+              <div>
+                <div style={{ fontSize: 10, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 4 }}>To</div>
+                <input type="date" value={profitDateTo} onChange={e => setProfitDateTo(e.target.value)}
+                  style={{ background: "#1e293b", border: "1px solid #334155", borderRadius: 8, padding: "8px 10px", fontSize: 12, color: "#f8fafc", outline: "none", fontFamily: "inherit" }} />
+              </div>
+              <button onClick={loadProfitReport} disabled={profitLoading}
+                style={{ ...{ background: profitLoading ? "#334155" : "#1a6ed8", border: "none", color: "#fff", padding: "10px 20px", borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: profitLoading ? "default" : "pointer", fontFamily: "inherit", alignSelf: "flex-end", opacity: profitLoading ? 0.7 : 1 } }}>
+                {profitLoading ? "Calculating…" : "Generate Report"}
+              </button>
+            </div>
+          </div>
+
+          {profitLoading && <div style={{ textAlign: "center", padding: 60, color: "#64748b" }}>Calculating profit…</div>}
+
+          {!profitLoading && !profitReport && (
+            <div style={{ textAlign: "center", padding: 60, color: "#64748b" }}>
+              <div style={{ fontSize: 32, marginBottom: 12 }}>📊</div>
+              <div style={{ fontSize: 16, marginBottom: 6 }}>No report generated yet</div>
+              <div style={{ fontSize: 13 }}>Click "Generate Report" to calculate profit metrics. Optionally filter by date range.</div>
+            </div>
+          )}
+
+          {!profitLoading && profitReport && (() => {
+            const s = profitReport.store_summary;
+            const fmt = n => n != null ? `$${Number(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "—";
+            const fmtPct = n => n != null ? `${Number(n).toFixed(1)}%` : "—";
+
+            return (
+              <div>
+                {/* Missing cost warning */}
+                {s.missing_cost_skus && s.missing_cost_skus.length > 0 && (
+                  <div style={{ background: "#431407", border: "1px solid #f97316", borderRadius: 10, padding: "12px 16px", marginBottom: 20 }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: "#fed7aa", marginBottom: 6 }}>
+                      ⚠ {s.missing_cost_skus.length} SKU{s.missing_cost_skus.length > 1 ? "s" : ""} have missing cost data — {s.active_orders - s.orders_with_full_costs} order{s.active_orders - s.orders_with_full_costs !== 1 ? "s" : ""} excluded from profit totals
+                    </div>
+                    <div style={{ fontSize: 11, color: "#fb923c", lineHeight: 1.7 }}>
+                      {s.missing_cost_skus.join(" · ")}
+                    </div>
+                    <div style={{ fontSize: 11, color: "#64748b", marginTop: 6 }}>Go to the Costs tab to add missing cost data.</div>
+                  </div>
+                )}
+
+                {/* Summary cards */}
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(165px, 1fr))", gap: 12, marginBottom: 24 }}>
+                  {[
+                    ["💰", "Total Revenue", fmt(s.total_revenue_usd), "#4ade80"],
+                    ["📦", "Total COGS", fmt(s.total_cogs_usd), "#f87171"],
+                    ["🤝", "Commissions", fmt(s.total_commissions_usd), "#fb923c"],
+                    ["📈", "Gross Profit", fmt(s.gross_profit_usd), s.gross_profit_usd >= 0 ? "#4ade80" : "#f87171"],
+                    ["🏆", "Net Profit", fmt(s.net_profit_usd), s.net_profit_usd >= 0 ? "#4ade80" : "#f87171"],
+                    ["📊", "Net Margin", fmtPct(s.net_margin_pct), s.net_margin_pct >= 20 ? "#4ade80" : s.net_margin_pct >= 0 ? "#fbbf24" : "#f87171"],
+                    ["🛒", "Orders (full data)", `${s.orders_with_full_costs}/${s.active_orders}`, "#94a3b8"],
+                  ].map(([icon, label, value, color]) => (
+                    <div key={label} style={{ background: "#1e293b", borderRadius: 12, padding: "16px 18px", border: "1px solid #334155" }}>
+                      <div style={{ fontSize: 20, marginBottom: 4 }}>{icon}</div>
+                      <div style={{ fontSize: 11, color: "#64748b", fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5 }}>{label}</div>
+                      <div style={{ fontSize: 20, fontWeight: 900, color: color || "#f8fafc", marginTop: 3 }}>{value}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Sub-tab switcher */}
+                <div style={{ display: "flex", gap: 6, marginBottom: 20, flexWrap: "wrap" }}>
+                  {["summary", "products", "orders", "ambassadors"].map(t => (
+                    <button key={t} onClick={() => setProfitSubTab(t)}
+                      style={{ padding: "8px 16px", borderRadius: 8, border: "1px solid", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", textTransform: "capitalize",
+                        background: profitSubTab === t ? "#1a6ed8" : "#1e293b",
+                        color: profitSubTab === t ? "#fff" : "#64748b",
+                        borderColor: profitSubTab === t ? "#1a6ed8" : "#334155" }}>{t === "summary" ? "Summary" : t === "products" ? "By Product" : t === "orders" ? "By Order" : "By Ambassador"}</button>
+                  ))}
+                </div>
+
+                {/* Summary sub-tab */}
+                {profitSubTab === "summary" && (
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                    <div style={{ background: "#1e293b", borderRadius: 12, padding: "20px 24px", border: "1px solid #334155" }}>
+                      <div style={{ fontSize: 13, fontWeight: 800, color: "#f8fafc", marginBottom: 14, textTransform: "uppercase", letterSpacing: 1 }}>Revenue Breakdown</div>
+                      {[
+                        ["Gross Revenue", fmt(s.total_revenue_usd)],
+                        ["Product Revenue", fmt(s.total_product_revenue_usd)],
+                        ["Shipping Revenue", fmt(s.total_shipping_revenue_usd)],
+                      ].map(([label, val]) => (
+                        <div key={label} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid #1e293b", fontSize: 13 }}>
+                          <span style={{ color: "#94a3b8" }}>{label}</span>
+                          <span style={{ color: "#f8fafc", fontWeight: 700 }}>{val}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{ background: "#1e293b", borderRadius: 12, padding: "20px 24px", border: "1px solid #334155" }}>
+                      <div style={{ fontSize: 13, fontWeight: 800, color: "#f8fafc", marginBottom: 14, textTransform: "uppercase", letterSpacing: 1 }}>Cost Breakdown</div>
+                      {[
+                        ["Product Cost (COGS)", fmt(s.total_cogs_usd), "#f87171"],
+                        ["Ambassador Commissions", fmt(s.total_commissions_usd), "#fb923c"],
+                        ["Total Costs", fmt((s.total_cogs_usd || 0) + (s.total_commissions_usd || 0)), "#fbbf24"],
+                      ].map(([label, val, color]) => (
+                        <div key={label} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid #1e293b", fontSize: 13 }}>
+                          <span style={{ color: "#94a3b8" }}>{label}</span>
+                          <span style={{ color: color || "#f8fafc", fontWeight: 700 }}>{val}</span>
+                        </div>
+                      ))}
+                      <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", fontSize: 14, marginTop: 4 }}>
+                        <span style={{ color: "#f8fafc", fontWeight: 800 }}>Net Profit</span>
+                        <span style={{ color: (s.net_profit_usd || 0) >= 0 ? "#4ade80" : "#f87171", fontWeight: 900, fontSize: 16 }}>{fmt(s.net_profit_usd)}</span>
+                      </div>
+                    </div>
+                    {s.costs_coverage_note && (
+                      <div style={{ gridColumn: "1 / -1", background: "#1e293b", borderRadius: 10, padding: "12px 16px", border: "1px solid #334155", fontSize: 12, color: "#94a3b8" }}>
+                        ℹ {s.costs_coverage_note}. Profit figures only include orders where all item costs are known.
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* By Product sub-tab */}
+                {profitSubTab === "products" && (
+                  <div style={{ background: "#1e293b", borderRadius: 12, overflow: "auto", border: "1px solid #334155" }}>
+                    {profitReport.products.length === 0 ? (
+                      <div style={{ textAlign: "center", padding: 40, color: "#64748b" }}>No product sales data found for this period.</div>
+                    ) : (
+                      <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                        <thead>
+                          <tr style={{ background: "#0f172a" }}>
+                            {["Product", "Units Sold", "Revenue", "Cost/Unit", "COGS", "Gross Profit", "Margin"].map(h => (
+                              <th key={h} style={{ padding: "11px 14px", fontSize: 11, fontWeight: 700, color: "#64748b", textAlign: "left", textTransform: "uppercase", letterSpacing: 0.8, whiteSpace: "nowrap" }}>{h}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {profitReport.products.map((p, i) => (
+                            <tr key={p.description} style={{ borderTop: "1px solid #334155", background: i % 2 === 0 ? "#1e293b" : "#0f172a" }}>
+                              <td style={{ padding: "10px 14px", fontSize: 13, fontWeight: 700, maxWidth: 200 }}>{p.description}</td>
+                              <td style={{ padding: "10px 14px", fontSize: 13, color: "#94a3b8", textAlign: "right" }}>{p.units_sold}</td>
+                              <td style={{ padding: "10px 14px", fontSize: 13, fontWeight: 700, textAlign: "right" }}>{fmt(p.revenue_usd)}</td>
+                              <td style={{ padding: "10px 14px", fontSize: 12, color: "#94a3b8", textAlign: "right" }}>{fmt(p.cost_per_unit)}</td>
+                              <td style={{ padding: "10px 14px", fontSize: 13, color: "#f87171", textAlign: "right" }}>{fmt(p.cogs_usd)}</td>
+                              <td style={{ padding: "10px 14px", fontSize: 13, fontWeight: 700, color: "#4ade80", textAlign: "right" }}>{fmt(p.gross_profit_usd)}</td>
+                              <td style={{ padding: "10px 14px", textAlign: "right" }}>
+                                <span style={{ fontSize: 12, fontWeight: 700, color: p.margin_pct >= 60 ? "#4ade80" : p.margin_pct >= 30 ? "#fbbf24" : "#f87171" }}>{fmtPct(p.margin_pct)}</span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    )}
+                  </div>
+                )}
+
+                {/* By Order sub-tab */}
+                {profitSubTab === "orders" && (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    {profitReport.orders.length === 0 ? (
+                      <div style={{ textAlign: "center", padding: 40, color: "#64748b" }}>No orders found for this period.</div>
+                    ) : profitReport.orders.map(o => {
+                      const isOpen = profitOrderExpanded === o.id;
+                      return (
+                        <div key={o.id} style={{ background: "#1e293b", borderRadius: 12, border: "1px solid #334155", overflow: "hidden" }}>
+                          <div onClick={() => setProfitOrderExpanded(isOpen ? null : o.id)} style={{ padding: "12px 16px", display: "flex", alignItems: "center", gap: 12, cursor: "pointer", flexWrap: "wrap" }}>
+                            <div style={{ flex: 1, minWidth: 140 }}>
+                              <div style={{ fontSize: 13, fontWeight: 800, color: "#60a5fa" }}>{o.order_number}</div>
+                              <div style={{ fontSize: 11, color: "#64748b" }}>{new Date(o.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })} · {o.customer_name}</div>
+                            </div>
+                            <div style={{ minWidth: 80, textAlign: "right" }}>
+                              <div style={{ fontSize: 12, color: "#64748b" }}>Revenue</div>
+                              <div style={{ fontSize: 14, fontWeight: 700 }}>{fmt(o.revenue_usd)}</div>
+                            </div>
+                            <div style={{ minWidth: 80, textAlign: "right" }}>
+                              <div style={{ fontSize: 12, color: "#64748b" }}>COGS</div>
+                              <div style={{ fontSize: 14, fontWeight: 700, color: "#f87171" }}>{o.cogs_usd != null ? fmt(o.cogs_usd) : <span style={{ color: "#f97316", fontSize: 11 }}>Incomplete</span>}</div>
+                            </div>
+                            {o.commission_usd > 0 && (
+                              <div style={{ minWidth: 80, textAlign: "right" }}>
+                                <div style={{ fontSize: 12, color: "#64748b" }}>Commission</div>
+                                <div style={{ fontSize: 14, fontWeight: 700, color: "#fb923c" }}>{fmt(o.commission_usd)}</div>
+                              </div>
+                            )}
+                            <div style={{ minWidth: 90, textAlign: "right" }}>
+                              <div style={{ fontSize: 12, color: "#64748b" }}>Net Profit</div>
+                              <div style={{ fontSize: 14, fontWeight: 900, color: o.is_refunded ? "#64748b" : o.net_profit_usd == null ? "#f97316" : o.net_profit_usd >= 0 ? "#4ade80" : "#f87171" }}>
+                                {o.is_refunded ? "Refunded" : o.net_profit_usd != null ? fmt(o.net_profit_usd) : "Missing costs"}
+                              </div>
+                            </div>
+                            {o.net_profit_usd != null && o.margin_pct != null && (
+                              <div style={{ minWidth: 60, textAlign: "right" }}>
+                                <div style={{ fontSize: 12, color: "#64748b" }}>Margin</div>
+                                <div style={{ fontSize: 13, fontWeight: 700, color: o.margin_pct >= 40 ? "#4ade80" : o.margin_pct >= 0 ? "#fbbf24" : "#f87171" }}>{fmtPct(o.margin_pct)}</div>
+                              </div>
+                            )}
+                            {o.promo_code && <span style={{ background: "#1e3a5f", color: "#60a5fa", borderRadius: 6, padding: "3px 8px", fontSize: 10, fontWeight: 700 }}>{o.promo_code}</span>}
+                            <span style={{ color: "#64748b", fontSize: 14 }}>{isOpen ? "▲" : "▼"}</span>
+                          </div>
+                          {isOpen && (
+                            <div style={{ borderTop: "1px solid #334155", padding: "14px 16px" }}>
+                              <div style={{ fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 8 }}>Line Items</div>
+                              <div style={{ background: "#0f172a", borderRadius: 8, overflow: "hidden" }}>
+                                {o.items.map((item, j) => (
+                                  <div key={j} style={{ padding: "9px 12px", borderBottom: "1px solid #1e293b", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8, fontSize: 12 }}>
+                                    <span style={{ color: "#f8fafc" }}>{item.description} × {item.quantity}</span>
+                                    <div style={{ display: "flex", gap: 16 }}>
+                                      <span style={{ color: "#94a3b8" }}>Rev: {fmt(item.revenue_usd)}</span>
+                                      <span style={{ color: "#f87171" }}>Cost: {item.item_cogs != null ? fmt(item.item_cogs) : <span style={{ color: "#f97316" }}>Missing</span>}</span>
+                                      <span style={{ color: item.item_profit != null ? "#4ade80" : "#f97316", fontWeight: 700 }}>Profit: {item.item_profit != null ? fmt(item.item_profit) : "—"}</span>
+                                    </div>
+                                  </div>
+                                ))}
+                                <div style={{ padding: "10px 12px", display: "flex", justifyContent: "space-between", fontSize: 13, fontWeight: 800 }}>
+                                  <span>Order Total</span>
+                                  <div style={{ display: "flex", gap: 16 }}>
+                                    <span>Rev: {fmt(o.product_revenue_usd)}</span>
+                                    {o.shipping_revenue_usd > 0 && <span style={{ color: "#64748b" }}>+{fmt(o.shipping_revenue_usd)} shipping</span>}
+                                    {o.commission_usd > 0 && <span style={{ color: "#fb923c" }}>−{fmt(o.commission_usd)} commission</span>}
+                                    <span style={{ color: o.net_profit_usd >= 0 ? "#4ade80" : "#f87171" }}>Net: {o.net_profit_usd != null ? fmt(o.net_profit_usd) : "—"}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* By Ambassador sub-tab */}
+                {profitSubTab === "ambassadors" && (
+                  <div>
+                    {profitReport.ambassadors.length === 0 ? (
+                      <div style={{ textAlign: "center", padding: 40, color: "#64748b" }}>No ambassador commissions found for this period.</div>
+                    ) : (
+                      <div style={{ background: "#1e293b", borderRadius: 12, overflow: "auto", border: "1px solid #334155" }}>
+                        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                          <thead>
+                            <tr style={{ background: "#0f172a" }}>
+                              {["Ambassador", "Code", "Orders", "Order Value", "Commission Paid", "Commission Rate"].map(h => (
+                                <th key={h} style={{ padding: "11px 14px", fontSize: 11, fontWeight: 700, color: "#64748b", textAlign: "left", textTransform: "uppercase", letterSpacing: 0.8, whiteSpace: "nowrap" }}>{h}</th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {profitReport.ambassadors.map((a, i) => (
+                              <tr key={a.ambassador_id} style={{ borderTop: "1px solid #334155", background: i % 2 === 0 ? "#1e293b" : "#0f172a" }}>
+                                <td style={{ padding: "10px 14px" }}>
+                                  <div style={{ fontSize: 13, fontWeight: 700 }}>{a.name}</div>
+                                  <div style={{ fontSize: 11, color: "#64748b" }}>{a.email}</div>
+                                </td>
+                                <td style={{ padding: "10px 14px" }}><span style={{ background: "#1e3a5f", color: "#60a5fa", borderRadius: 6, padding: "3px 8px", fontSize: 11, fontWeight: 700 }}>{a.promo_code}</span></td>
+                                <td style={{ padding: "10px 14px", fontSize: 13, color: "#94a3b8" }}>{a.orders}</td>
+                                <td style={{ padding: "10px 14px", fontSize: 13, fontWeight: 700 }}>{fmt(a.total_order_value)}</td>
+                                <td style={{ padding: "10px 14px", fontSize: 13, fontWeight: 700, color: "#fb923c" }}>{fmt(a.total_commission)}</td>
+                                <td style={{ padding: "10px 14px", fontSize: 12, color: "#94a3b8" }}>{fmtPct(a.commission_rate_pct)}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </div>
       )}
 
