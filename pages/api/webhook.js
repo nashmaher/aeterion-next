@@ -189,7 +189,10 @@ export default async function handler(req, res) {
       console.log("Metadata:", JSON.stringify(session.metadata));
       console.log("Amount total:", session.amount_total);
 
-      const lineItems = await stripe.checkout.sessions.listLineItems(session.id, { limit: 100 });
+      const lineItems = await stripe.checkout.sessions.listLineItems(session.id, {
+        limit: 100,
+        expand: ['data.price.product'],
+      });
 
       const customerName    = session.customer_details?.name || "Valued Customer";
       const customerEmail   = session.customer_details?.email;
@@ -217,7 +220,14 @@ export default async function handler(req, res) {
             customer_email:   customerEmail,
             customer_phone:   customerPhone,
             shipping_address: shippingAddress || null,
-            items:            lineItems.data.map(i => ({ description: i.description, quantity: i.quantity, amount_total: i.amount_total })),
+            items:            lineItems.data.map(i => ({
+              description:  i.description,
+              quantity:     i.quantity,
+              amount_total: i.amount_total,
+              product_id:   i.price?.product?.metadata?.product_id
+                              ? parseInt(i.price.product.metadata.product_id)
+                              : null,
+            })),
             total:            session.amount_total,
             status:           "processing",
             user_id:          session.metadata?.user_id || null,
