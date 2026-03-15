@@ -22,7 +22,7 @@ function calcPrice(unitPrice, qty) {
 
 // ─── Cart Drawer ──────────────────────────────────────────────────────────────
 function CartDrawer() {
-  const { cart, cartOpen, setCartOpen, removeFromCart, total, count } = useCart();
+  const { cart, cartOpen, setCartOpen, removeFromCart, updateItemQty, total, count } = useCart();
 
   const finalTotal = +total.toFixed(2);
 
@@ -78,7 +78,12 @@ function CartDrawer() {
               <img src={item.img} alt={item.name} style={{ width: 56, height: 70, objectFit: 'cover', borderRadius: 8, flexShrink: 0 }} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontWeight: 700, fontSize: 13, color: '#111827', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</div>
-                <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 6 }}>{item.size} × {item.qty}</div>
+                <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 4 }}>{item.size}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 2, marginBottom: 6 }}>
+                  <button onClick={() => updateItemQty(item.key, item.qty - 1)} aria-label="Decrease quantity" style={{ width: 26, height: 26, borderRadius: '50%', border: '1.5px solid #e8ecf0', background: 'transparent', color: '#111827', fontWeight: 700, fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background .15s, border-color .15s', lineHeight: 1, padding: 0 }} onMouseEnter={e => { e.currentTarget.style.background = '#eff5ff'; e.currentTarget.style.borderColor = '#1a6ed8'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = '#e8ecf0'; }}>−</button>
+                  <span style={{ minWidth: 28, textAlign: 'center', fontWeight: 700, fontSize: 13, color: '#111827', userSelect: 'none' }}>{item.qty}</span>
+                  <button onClick={() => updateItemQty(item.key, item.qty + 1)} aria-label="Increase quantity" style={{ width: 26, height: 26, borderRadius: '50%', border: '1.5px solid #e8ecf0', background: 'transparent', color: '#111827', fontWeight: 700, fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background .15s, border-color .15s', lineHeight: 1, padding: 0 }} onMouseEnter={e => { e.currentTarget.style.background = '#eff5ff'; e.currentTarget.style.borderColor = '#1a6ed8'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = '#e8ecf0'; }}>+</button>
+                </div>
                 <div style={{ fontWeight: 800, fontSize: 14, color: '#16a34a' }}>${item.lt.toFixed(2)}</div>
               </div>
               <button onClick={() => removeFromCart(item.key)} aria-label="Remove item from cart"

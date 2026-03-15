@@ -1165,7 +1165,14 @@ export default function App() {
   const [q, setQ] = useState("");
   const [sort, setSort] = useState("default");
   const [cart, setCart] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("aet_cart") || "[]"); } catch { return []; }
+    try {
+      const parsed = JSON.parse(localStorage.getItem("aet_cart") || "[]");
+      return parsed.map(item => {
+        if (item.unitPrice != null) return item;
+        const rate = item.qty >= 10 ? 0.82 : item.qty >= 5 ? 0.92 : 1;
+        return { ...item, unitPrice: +(item.lt / item.qty / rate).toFixed(4) };
+      });
+    } catch { return []; }
   });
   const [cartOpen, setCartOpen] = useState(false);
   const [promoInput, setPromoInput] = useState("");
@@ -1381,7 +1388,7 @@ export default function App() {
       const ex = prev.find(i => i.key === key);
       const next = ex
         ? prev.map(i => i.key === key ? { ...i, qty: i.qty + qty, lt: i.lt + lt } : i)
-        : [...prev, { key, id: p.id, name: p.name, img: p.img, size: v.s, qty, lt }];
+        : [...prev, { key, id: p.id, name: p.name, img: p.img, size: v.s, qty, lt, unitPrice: v.p }];
       try { localStorage.setItem("aet_cart", JSON.stringify(next)); } catch {}
       return next;
     });
@@ -1392,6 +1399,18 @@ export default function App() {
     try { localStorage.setItem("aet_cart", JSON.stringify(next)); } catch {}
     return next;
   });
+  const updateItemQty = (key, newQty) => {
+    if (newQty <= 0) { rm(key); return; }
+    setCart(prev => {
+      const next = prev.map(item => {
+        if (item.key !== key) return item;
+        const rate = newQty >= 10 ? 0.82 : newQty >= 5 ? 0.92 : 1;
+        return { ...item, qty: newQty, lt: +(item.unitPrice * newQty * rate).toFixed(2) };
+      });
+      try { localStorage.setItem("aet_cart", JSON.stringify(next)); } catch {}
+      return next;
+    });
+  };
 
 
   const products = useMemo(() => {
@@ -1713,13 +1732,18 @@ export default function App() {
               {cart.map(item => (
                 <div key={item.key} style={{ display: "flex", gap: 12, padding: "12px 0", borderBottom: `1px solid ${T.border}`, alignItems: "center" }}>
                   <img src={item.img} alt={item.name} style={{ width: 56, height: 56, borderRadius: 10, objectFit: "cover", border: `1px solid ${T.border}`, flexShrink: 0 }} />
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: T.text, marginBottom: 2 }}>{item.name}</div>
-                    <div style={{ fontSize: 11, color: T.muted }}>{item.size} · Qty {item.qty}</div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: T.text, marginBottom: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.name}</div>
+                    <div style={{ fontSize: 11, color: T.muted, marginBottom: 6 }}>{item.size}</div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
+                      <button onClick={() => updateItemQty(item.key, item.qty - 1)} aria-label="Decrease quantity" style={{ width: 26, height: 26, borderRadius: "50%", border: `1.5px solid ${T.border}`, background: "transparent", color: T.text, fontWeight: 700, fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "background .15s, border-color .15s", lineHeight: 1, padding: 0 }} onMouseEnter={e => { e.currentTarget.style.background = T.blueSoft; e.currentTarget.style.borderColor = T.blue; }} onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.borderColor = T.border; }}>−</button>
+                      <span style={{ minWidth: 28, textAlign: "center", fontWeight: 700, fontSize: 13, color: T.text, userSelect: "none" }}>{item.qty}</span>
+                      <button onClick={() => updateItemQty(item.key, item.qty + 1)} aria-label="Increase quantity" style={{ width: 26, height: 26, borderRadius: "50%", border: `1.5px solid ${T.border}`, background: "transparent", color: T.text, fontWeight: 700, fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "background .15s, border-color .15s", lineHeight: 1, padding: 0 }} onMouseEnter={e => { e.currentTarget.style.background = T.blueSoft; e.currentTarget.style.borderColor = T.blue; }} onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.borderColor = T.border; }}>+</button>
+                    </div>
                   </div>
-                  <div style={{ textAlign: "right" }}>
+                  <div style={{ textAlign: "right", flexShrink: 0 }}>
                     <div style={{ fontSize: 14, fontWeight: 800, color: T.text }}>{fmt(item.lt)}</div>
-                    <button onClick={() => rm(item.key)} style={{ background: "none", border: "none", color: T.red, cursor: "pointer", fontSize: 11, fontWeight: 600 }}>Remove</button>
+                    <button onClick={() => rm(item.key)} style={{ background: "none", border: "none", color: T.red, cursor: "pointer", fontSize: 11, fontWeight: 600, padding: "2px 0" }}>Remove</button>
                   </div>
                 </div>
               ))}
