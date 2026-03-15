@@ -167,5 +167,5 @@ async function sendShippedEmail({ to, customerName, orderNumber, tracking, items
     const err = await emailRes.text();
     throw new Error(`Resend error: ${err}`);
   }
-  console.log(`Shipped email sent to ${to}`);
+  if (process.env.NODE_ENV !== "production") console.log(`Shipped email sent to ${to}`);
 }

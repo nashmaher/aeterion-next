@@ -1,6 +1,8 @@
 import Stripe from "stripe";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: "2025-01-27.acacia" });
+const isDev = process.env.NODE_ENV !== "production";
+const log = (...args) => { if (isDev) console.log(...args); };
 const SB_URL = "https://kafwkhbzdtpsxkufmkmm.supabase.co";
 const SB_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImthZndraGJ6ZHRwc3hrdWZta21tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MDEyODAsImV4cCI6MjA4ODQ3NzI4MH0.sa4_CFHQpBkWVc02et_pSsu35wqPLQpD8g4WIxYRCIA";
 
@@ -166,12 +168,12 @@ function buildAmbassadorEmail({ ambassadorName, ambassadorEmail, customerEmail, 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
 
-  console.log("=== WEBHOOK RECEIVED ===", req.body?.type);
+  log("=== WEBHOOK RECEIVED ===", req.body?.type);
 
   // Log full session data immediately so we can debug
   try {
     const preview = req.body?.data?.object;
-    console.log("Session preview:", JSON.stringify({
+    log("Session preview:", JSON.stringify({
       id: preview?.id,
       amount_total: preview?.amount_total,
       metadata: preview?.metadata,
@@ -185,9 +187,9 @@ export default async function handler(req, res) {
 
     if (event.type === "checkout.session.completed") {
       const session = event.data.object;
-      console.log("Session ID:", session.id);
-      console.log("Metadata:", JSON.stringify(session.metadata));
-      console.log("Amount total:", session.amount_total);
+      log("Session ID:", session.id);
+      log("Metadata:", JSON.stringify(session.metadata));
+      log("Amount total:", session.amount_total);
 
       const lineItems = await stripe.checkout.sessions.listLineItems(session.id, {
         limit: 100,
@@ -203,15 +205,15 @@ export default async function handler(req, res) {
       const promoCode       = session.metadata?.promo_code || null;
       const ambassadorId    = session.metadata?.ambassador_id || null;
 
-      console.log("Customer:", customerName, customerEmail);
-      console.log("Promo code:", promoCode, "| Ambassador ID:", ambassadorId);
-      console.log("Shipping address:", JSON.stringify(shippingAddress));
+      log("Customer:", customerName, customerEmail);
+      log("Promo code:", promoCode, "| Ambassador ID:", ambassadorId);
+      log("Shipping address:", JSON.stringify(shippingAddress));
 
       // ── 1. SAVE ORDER TO SUPABASE (idempotent) ──
       try {
         const existingOrder = await sb(`orders?id=eq.${session.id}&select=id`).catch(() => []);
         if (existingOrder?.length) {
-          console.log(`⚠️ Order ${session.id} already exists — skipping insert`);
+          log(`⚠️ Order ${session.id} already exists — skipping insert`);
         } else {
           await sb("orders", "POST", {
             id:               session.id,
@@ -234,7 +236,7 @@ export default async function handler(req, res) {
             promo_code:       promoCode || null,
             ambassador_id:    ambassadorId ? String(ambassadorId) : null,
           });
-          console.log("✓ Order saved to Supabase:", orderNumber);
+          log("✓ Order saved to Supabase:", orderNumber);
         }
       } catch (e) {
         console.error("✗ Supabase order save FAILED:", e.message);
@@ -248,7 +250,7 @@ export default async function handler(req, res) {
             subject: `Order Confirmed ${orderNumber} — Aeterion Labs`,
             html: buildCustomerEmail({ customerName, items: lineItems.data, total: session.amount_total, orderId: session.id, orderNumber }),
           });
-          console.log("✓ Customer email sent to:", customerEmail);
+          log("✓ Customer email sent to:", customerEmail);
         } catch (e) {
           console.error("✗ Customer email FAILED:", e.message);
         }
@@ -263,7 +265,7 @@ export default async function handler(req, res) {
           subject: `🛍️ New Order ${orderNumber} — $${(session.amount_total / 100).toFixed(2)} from ${customerName}`,
           html: buildAdminEmail({ customerName, customerEmail, customerPhone, shippingAddress, items: lineItems.data, total: session.amount_total, orderNumber, promoCode, commissionAmount: null }),
         });
-        console.log("✓ Admin email sent");
+        log("✓ Admin email sent");
       } catch (e) {
         console.error("✗ Admin email FAILED:", e.message);
       }
@@ -274,7 +276,7 @@ export default async function handler(req, res) {
           // IDEMPOTENT: check if commission already recorded for this session
           const existing = await sb(`ambassador_commissions?stripe_session_id=eq.${session.id}&select=id`);
           if (existing?.length) {
-            console.log(`⚠️ Commission already recorded for session ${session.id} — skipping duplicate`);
+            log(`⚠️ Commission already recorded for session ${session.id} — skipping duplicate`);
           } else {
             // Fetch ambassador details (including commission_rate) before calculating
             const ambData = await sb(`ambassadors?id=eq.${ambassadorId}&select=id,name,email,commission_rate,total_commission_earned`);
@@ -301,14 +303,14 @@ export default async function handler(req, res) {
               promo_code:        promoCode,
               status:            "pending",
             });
-            console.log(`✓ Commission logged: $${commissionAmount.toFixed(2)} (${commissionRatePct}%)`);
+            log(`✓ Commission logged: $${commissionAmount.toFixed(2)} (${commissionRatePct}%)`);
 
             // Update ambassador running total
             try {
               if (amb) {
                 const newTotal = Number(amb.total_commission_earned || 0) + commissionAmount;
                 await sb(`ambassadors?id=eq.${ambassadorId}`, "PATCH", { total_commission_earned: newTotal });
-                console.log(`✓ Ambassador total updated to $${newTotal.toFixed(2)}`);
+                log(`✓ Ambassador total updated to $${newTotal.toFixed(2)}`);
 
                 if (amb.email) {
                   try {
@@ -326,7 +328,7 @@ export default async function handler(req, res) {
                         orderNumber:      orderNumber,
                       }),
                     });
-                    console.log("✓ Ambassador email sent to:", amb.email);
+                    log("✓ Ambassador email sent to:", amb.email);
                   } catch (e) {
                     console.error("✗ Ambassador email FAILED:", e.message);
                   }
