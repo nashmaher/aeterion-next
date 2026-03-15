@@ -4036,8 +4036,19 @@ export default function App() {
     <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", background: T.bg, minHeight: "100vh", color: T.text, paddingBottom: 70 }}>
       <Head>
         <title>Buy Research Peptides Online | GLP-1, BPC-157, TB-500 & More | Aeterion Labs</title>
-        <meta name="description" content="Shop 79 research-grade peptides and compounds. GLP-1 agonists, BPC-157, TB-500, NAD+, cognitive peptides and more. COA with every order. USA shipping." />
+        <meta name="description" content="Shop 72+ research-grade peptides, GLP-1 agonists (semaglutide, tirzepatide), BPC-157, TB-500, NAD+, SARMs & nootropics. HPLC tested, COA included. Free shipping $250+. USA peptide research supplier." />
+        <meta name="keywords" content="research peptides, buy peptides online, peptide research supplier, GLP-1 research peptides, semaglutide research peptide, tirzepatide research peptide, peptide research compounds, BPC-157, TB-500" />
         <link rel="canonical" href="https://aeterionpeptides.com" />
+        <meta property="og:title" content="Buy Research Peptides Online — Aeterion Labs" />
+        <meta property="og:description" content="72+ research-grade peptides. GLP-1 agonists, BPC-157, TB-500, NAD+, SARMs & more. HPLC tested. COA included. Free shipping $250+." />
+        <meta property="og:image" content="https://aeterionpeptides.com/og-image.png" />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://aeterionpeptides.com" />
+        <meta property="og:site_name" content="Aeterion Labs" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Buy Research Peptides Online — Aeterion Labs" />
+        <meta name="twitter:description" content="72+ research-grade peptides. HPLC tested. COA included. Free shipping $250+." />
+        <meta name="twitter:image" content="https://aeterionpeptides.com/og-image.png" />
         {HOMEPAGE_SCHEMA.map((s, i) => <script key={i} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(s) }} />)}
         <style>{`
           @keyframes ticker-scroll {
@@ -4232,7 +4243,7 @@ export default function App() {
       <MobileMenu /><ProductModal />{cartDrawerJSX}
 
 
-      {/* ══════════ AI RESEARCH ASSISTANT ══════════ */}
+      {/* ══════════ AI RESEARCH ASSISTANT (mobile) ══════════ */}
       {(() => {
         const SUGGESTIONS = [
           "Best stack for fat loss?",
@@ -4245,102 +4256,104 @@ export default function App() {
 
         return (
           <>
-            {/* Floating button */}
-            {(!mob || !widgetHidden) && <button
-              onClick={() => setChatOpen(o => !o)}
-              style={{
-                position: "fixed", bottom: mob ? 82 : 28, right: 24, zIndex: 8000,
-                width: 56, height: 56, borderRadius: "50%",
-                background: chatOpen ? "#0f172a" : "linear-gradient(135deg,#1a6ed8,#2563eb)",
-                border: chatOpen ? "2px solid #334155" : "none",
-                color: "#fff", fontSize: 22, cursor: "pointer",
-                boxShadow: "0 4px 20px rgba(26,110,216,0.4)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                transition: "all .2s",
-              }}
-              title="AI Research Assistant"
-            >
-              "AI"
-            </button>}
-
-            {/* Mobile pull tab — always visible on mobile, hides/shows entire widget */}
-            {mob && (
-              <div
-                onClick={() => { setWidgetHidden(h => !h); if (!widgetHidden) { setChatOpen(false); } }}
+            {/* Modern floating AI button — mobile */}
+            {!widgetHidden && (
+              <button
+                onClick={() => setChatOpen(o => !o)}
+                aria-label="AI Research Assistant"
                 style={{
-                  position: "fixed", right: 0, bottom: 140, zIndex: 8002,
-                  background: "linear-gradient(135deg,#1a6ed8,#2563eb)",
-                  color: "#fff", fontSize: 11, fontWeight: 700,
-                  padding: "10px 6px", borderRadius: "10px 0 0 10px",
-                  cursor: "pointer", writingMode: "vertical-rl",
-                  textOrientation: "mixed", letterSpacing: 1,
-                  boxShadow: "-3px 0 12px rgba(26,110,216,0.35)",
-                  userSelect: "none", display: "flex", alignItems: "center", gap: 4,
+                  position: "fixed", bottom: 82, right: 16, zIndex: 8000,
+                  width: chatOpen ? 48 : 52, height: chatOpen ? 48 : 52,
+                  borderRadius: chatOpen ? 14 : "50%",
+                  background: chatOpen ? "#0f172a" : "linear-gradient(135deg,#1a6ed8 0%,#2563eb 60%,#7c3aed 100%)",
+                  border: chatOpen ? "1.5px solid #334155" : "2px solid rgba(255,255,255,0.15)",
+                  color: "#fff", cursor: "pointer",
+                  boxShadow: chatOpen ? "0 4px 16px rgba(0,0,0,0.3)" : "0 6px 24px rgba(26,110,216,0.45), 0 0 0 3px rgba(26,110,216,0.12)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  transition: "all .3s cubic-bezier(.4,0,.2,1)",
+                  animation: chatOpen ? "none" : "ai-breathe-m 3s ease-in-out infinite",
                 }}
               >
-                {widgetHidden ? "◀ AI" : "▶ AI"}
-              </div>
+                {chatOpen ? (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                ) : (
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 3c-1.2 0-2.4.6-3 1.7A3.6 3.6 0 004.6 9c-1 1.2-1 3 0 4.2.8 1 .8 2.6 0 3.6a3.6 3.6 0 004.4 4.5c1.2-.1 2.4.5 3 1.7.6-1.2 1.8-1.8 3-1.7a3.6 3.6 0 004.4-4.5c-.8-1-.8-2.6 0-3.6 1-1.2 1-3 0-4.2A3.6 3.6 0 0015 4.7C14.4 3.6 13.2 3 12 3z"/>
+                    <circle cx="12" cy="12" r="2.5"/>
+                  </svg>
+                )}
+              </button>
             )}
+            <style>{`
+              @keyframes ai-breathe-m { 0%,100%{box-shadow:0 6px 24px rgba(26,110,216,0.45),0 0 0 3px rgba(26,110,216,0.12)} 50%{box-shadow:0 8px 32px rgba(26,110,216,0.55),0 0 0 6px rgba(26,110,216,0.06)} }
+              @keyframes ai-slide-up-m { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+              @keyframes ai-typing-m { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-3px)} }
+            `}</style>
 
-            {/* Speech bubble — mobile only, when closed */}
-            {mob && !widgetHidden && !chatOpen && !bubbleDismissed && (
-              <div style={{
-                position: "fixed", bottom: 148, right: 18, zIndex: 8001,
-                background: "#1a6ed8", color: "#fff",
-                fontSize: 12, fontWeight: 700, whiteSpace: "nowrap",
-                padding: "8px 14px", borderRadius: "14px 14px 4px 14px",
-                boxShadow: "0 4px 14px rgba(26,110,216,0.45)",
-                pointerEvents: "none",
-                animation: "bubble-bounce 2.5s ease-in-out infinite",
-              }}>
-                <span>AI Research Assistant</span>
-                <button onClick={() => setBubbleDismissed(true)} aria-label="Dismiss" style={{ marginLeft: 8, background: "none", border: "none", color: "#ffffff", cursor: "pointer", fontSize: 13, lineHeight: 1, padding: "0 0 0 4px" }}>✕</button>
-                <div style={{ position: "absolute", bottom: -6, right: 16, width: 0, height: 0, borderLeft: "6px solid transparent", borderRight: "6px solid transparent", borderTop: "6px solid #1a6ed8" }} />
-              </div>
-            )}
-            <style>{`@keyframes bubble-bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }`}</style>
+            {/* Mobile pull tab — hide/show entire widget */}
+            <div
+              onClick={() => { setWidgetHidden(h => !h); if (!widgetHidden) { setChatOpen(false); } }}
+              style={{
+                position: "fixed", right: 0, bottom: 140, zIndex: 8002,
+                background: "linear-gradient(135deg,#1a6ed8,#7c3aed)",
+                color: "#fff", fontSize: 10, fontWeight: 800,
+                padding: "10px 5px", borderRadius: "10px 0 0 10px",
+                cursor: "pointer", writingMode: "vertical-rl",
+                textOrientation: "mixed", letterSpacing: 1.5,
+                boxShadow: "-3px 0 16px rgba(26,110,216,0.35)",
+                userSelect: "none", display: "flex", alignItems: "center", gap: 4,
+              }}
+            >
+              {widgetHidden ? "AI" : "AI"}
+            </div>
 
-            {/* Chat panel */}
-            {chatOpen && (!mob || !widgetHidden) && (
+            {/* Chat panel — mobile */}
+            {chatOpen && !widgetHidden && (
               <div style={{
-                position: "fixed", bottom: mob ? 150 : 96, right: 24, zIndex: 7999,
-                width: mob ? "calc(100vw - 32px)" : 380,
-                maxHeight: mob ? "65vh" : 540,
+                position: "fixed", bottom: 140, right: 8, left: 8, zIndex: 7999,
+                maxHeight: "60vh",
                 background: "#0f172a", borderRadius: 20,
-                border: "1px solid #1e293b",
-                boxShadow: "0 24px 60px rgba(0,0,0,0.5)",
+                border: "1px solid rgba(255,255,255,0.08)",
+                boxShadow: "0 24px 60px rgba(0,0,0,0.6)",
                 display: "flex", flexDirection: "column", overflow: "hidden",
+                animation: "ai-slide-up-m .25s ease-out",
               }}>
 
                 {/* Header */}
-                <div style={{ padding: "16px 18px 14px", borderBottom: "1px solid #1e293b", background: "#0f172a" }}>
+                <div style={{ padding: "14px 16px 12px", borderBottom: "1px solid rgba(255,255,255,0.06)", background: "linear-gradient(180deg,#0f172a,#0c1322)" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <div style={{ width: 34, height: 34, borderRadius: "50%", background: "linear-gradient(135deg,#1a6ed8,#3b82f6)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>AI</div>
-                    <div>
-                      <div style={{ fontSize: 14, fontWeight: 800, color: "#f8fafc" }}>Research Assistant</div>
-                      <div style={{ fontSize: 11, color: "#4ade80", fontWeight: 600, display: "flex", alignItems: "center", gap: 4 }}>
-                        <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#4ade80", display: "inline-block" }} />
-                        Powered by Gemini · Aeterion Catalog
+                    <div style={{ width: 32, height: 32, borderRadius: 10, background: "linear-gradient(135deg,#1a6ed8,#7c3aed)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 3c-1.2 0-2.4.6-3 1.7A3.6 3.6 0 004.6 9c-1 1.2-1 3 0 4.2.8 1 .8 2.6 0 3.6a3.6 3.6 0 004.4 4.5c1.2-.1 2.4.5 3 1.7.6-1.2 1.8-1.8 3-1.7a3.6 3.6 0 004.4-4.5c-.8-1-.8-2.6 0-3.6 1-1.2 1-3 0-4.2A3.6 3.6 0 0015 4.7C14.4 3.6 13.2 3 12 3z"/>
+                        <circle cx="12" cy="12" r="2.5"/>
+                      </svg>
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 13, fontWeight: 800, color: "#f8fafc" }}>Research Assistant</div>
+                      <div style={{ fontSize: 10, color: "#4ade80", fontWeight: 600, display: "flex", alignItems: "center", gap: 4 }}>
+                        <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#4ade80", display: "inline-block" }} />
+                        Powered by Gemini
                       </div>
                     </div>
+                    <button onClick={() => setChatOpen(false)} aria-label="Minimize chat" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, width: 28, height: 28, color: "#64748b", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    </button>
                   </div>
                 </div>
 
                 {/* Messages */}
-                <div style={{ flex: 1, overflowY: "auto", padding: "14px 16px", display: "flex", flexDirection: "column", gap: 12 }}
+                <div style={{ flex: 1, overflowY: "auto", padding: "12px 14px", display: "flex", flexDirection: "column", gap: 10 }}
                   ref={el => { if (el) el.scrollTop = el.scrollHeight; }}>
 
                   {chatMessages.length === 0 && (
                     <div>
-                      <div style={{ fontSize: 13, color: "#94a3b8", lineHeight: 1.6, marginBottom: 14 }}>
-                        Ask me anything about research compounds, stacks, mechanisms, or protocols. I know the full Aeterion catalog.
+                      <div style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6, marginBottom: 12 }}>
+                        Ask me anything about research compounds, stacks, or protocols.
                       </div>
-                      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                        {SUGGESTIONS.map((s, i) => (
+                      <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                        {SUGGESTIONS.slice(0, 4).map((s, i) => (
                           <button key={i} onClick={() => sendMessage(s)}
-                            style={{ textAlign: "left", background: "#1e293b", border: "1px solid #334155", borderRadius: 10, padding: "9px 13px", fontSize: 12, color: "#cbd5e1", cursor: "pointer", fontFamily: "inherit", transition: "border-color .15s" }}
-                            onMouseEnter={e => e.currentTarget.style.borderColor = "#1a6ed8"}
-                            onMouseLeave={e => e.currentTarget.style.borderColor = "#334155"}>
+                            style={{ textAlign: "left", background: "#1e293b", border: "1px solid #334155", borderRadius: 10, padding: "8px 12px", fontSize: 11, color: "#cbd5e1", cursor: "pointer", fontFamily: "inherit", transition: "border-color .15s" }}>
                             {s}
                           </button>
                         ))}
@@ -4351,14 +4364,16 @@ export default function App() {
                   {chatMessages.map((m, i) => (
                     <div key={i} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start" }}>
                       <div style={{
-                        maxWidth: "85%", padding: "10px 14px", borderRadius: m.role === "user" ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
-                        background: m.role === "user" ? "#1a6ed8" : "#1e293b",
-                        fontSize: 13, color: m.role === "user" ? "#fff" : "#e2e8f0",
+                        maxWidth: "88%", padding: "9px 13px", borderRadius: m.role === "user" ? "14px 14px 4px 14px" : "14px 14px 14px 4px",
+                        background: m.role === "user" ? "linear-gradient(135deg,#1a6ed8,#2563eb)" : "#1e293b",
+                        fontSize: 12, color: m.role === "user" ? "#fff" : "#e2e8f0",
                         lineHeight: 1.65, whiteSpace: "pre-wrap", wordBreak: "break-word",
                       }}>
                         {m.content}
                         {m.role === "assistant" && chatStreaming && i === chatMessages.length - 1 && (
-                          <span style={{ display: "inline-block", width: 8, height: 13, background: "#4ade80", borderRadius: 2, marginLeft: 3, animation: "blink 1s infinite" }} />
+                          <span style={{ display: "inline-flex", gap: 3, marginLeft: 6 }}>
+                            {[0,1,2].map(d => <span key={d} style={{ width: 3, height: 3, borderRadius: "50%", background: "#4ade80", display: "inline-block", animation: `ai-typing-m .8s ease-in-out ${d * 0.15}s infinite` }} />)}
+                          </span>
                         )}
                       </div>
                     </div>
@@ -4366,33 +4381,35 @@ export default function App() {
                 </div>
 
                 {/* Input */}
-                <div style={{ padding: "12px 14px", borderTop: "1px solid #1e293b", display: "flex", gap: 8 }}>
+                <div style={{ padding: "10px 12px", borderTop: "1px solid rgba(255,255,255,0.06)", display: "flex", gap: 8 }}>
                   <input
                     value={chatInput}
                     onChange={e => setChatInput(e.target.value)}
                     onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(chatInput); } }}
-                    placeholder="Ask about compounds, stacks, protocols…"
+                    placeholder="Ask about compounds..."
                     disabled={chatStreaming}
                     autoComplete="off"
-                    style={{ flex: 1, background: "#1e293b", border: "1.5px solid #334155", borderRadius: 10, padding: "10px 14px", fontSize: 13, color: "#f1f5f9", outline: "none", fontFamily: "inherit", resize: "none" }}
+                    style={{ flex: 1, background: "#1e293b", border: "1.5px solid #334155", borderRadius: 12, padding: "10px 12px", fontSize: 13, color: "#f1f5f9", outline: "none", fontFamily: "inherit", resize: "none" }}
                     onFocus={e => e.target.style.borderColor = "#1a6ed8"}
                     onBlur={e => e.target.style.borderColor = "#334155"}
                   />
                   <button
                     onClick={() => sendMessage(chatInput)}
                     disabled={chatStreaming || !chatInput.trim()}
-                    style={{ background: chatStreaming || !chatInput.trim() ? "#1e293b" : "#1a6ed8", border: "none", borderRadius: 10, width: 40, height: 40, cursor: chatStreaming ? "wait" : "pointer", color: "#fff", fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "background .15s" }}>
-                    {chatStreaming ? "⏳" : "↑"}
+                    style={{ background: chatStreaming || !chatInput.trim() ? "#1e293b" : "linear-gradient(135deg,#1a6ed8,#2563eb)", border: "none", borderRadius: 12, width: 40, height: 40, cursor: chatStreaming ? "wait" : "pointer", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all .2s" }}>
+                    {chatStreaming ? (
+                      <span style={{ display: "flex", gap: 2 }}>{[0,1,2].map(d => <span key={d} style={{ width: 3, height: 3, borderRadius: "50%", background: "#64748b", animation: `ai-typing-m .8s ease-in-out ${d * 0.15}s infinite` }} />)}</span>
+                    ) : (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                    )}
                   </button>
                 </div>
 
-                <div style={{ padding: "6px 14px 10px", fontSize: 10, color: "#334155", textAlign: "center" }}>
+                <div style={{ padding: "4px 12px 8px", fontSize: 9, color: "#334155", textAlign: "center" }}>
                   For research purposes only · Not medical advice
                 </div>
               </div>
             )}
-
-            <style>{`@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }`}</style>
           </>
         );
       })()}
@@ -4485,8 +4502,19 @@ export default function App() {
     <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", background: T.bg, minHeight: "100vh", color: T.text, width: "100%" }}>
       <Head>
         <title>Buy Research Peptides Online | GLP-1, BPC-157, TB-500 & More | Aeterion Labs</title>
-        <meta name="description" content="Shop 79 research-grade peptides and compounds. GLP-1 agonists, BPC-157, TB-500, NAD+, cognitive peptides and more. COA with every order. USA shipping." />
+        <meta name="description" content="Shop 72+ research-grade peptides, GLP-1 agonists (semaglutide, tirzepatide), BPC-157, TB-500, NAD+, SARMs & nootropics. HPLC tested, COA included. Free shipping $250+. USA peptide research supplier." />
+        <meta name="keywords" content="research peptides, buy peptides online, peptide research supplier, GLP-1 research peptides, semaglutide research peptide, tirzepatide research peptide, peptide research compounds, BPC-157, TB-500" />
         <link rel="canonical" href="https://aeterionpeptides.com" />
+        <meta property="og:title" content="Buy Research Peptides Online — Aeterion Labs" />
+        <meta property="og:description" content="72+ research-grade peptides. GLP-1 agonists, BPC-157, TB-500, NAD+, SARMs & more. HPLC tested. COA included. Free shipping $250+." />
+        <meta property="og:image" content="https://aeterionpeptides.com/og-image.png" />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://aeterionpeptides.com" />
+        <meta property="og:site_name" content="Aeterion Labs" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Buy Research Peptides Online — Aeterion Labs" />
+        <meta name="twitter:description" content="72+ research-grade peptides. HPLC tested. COA included. Free shipping $250+." />
+        <meta name="twitter:image" content="https://aeterionpeptides.com/og-image.png" />
         {HOMEPAGE_SCHEMA.map((s, i) => <script key={i} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(s) }} />)}
         <style>{`
           @keyframes ticker-scroll {
@@ -4609,7 +4637,7 @@ export default function App() {
               "Discreet, unmarked packaging",
               "Research grade compounds only",
               "New store — be our first reviewer and get 10% off your next order",
-              "Free shipping on orders over $150",
+              "Free shipping on orders over $250",
             ]).map((text, i) => (
               <div key={i} style={{ display:"inline-flex", alignItems:"center", gap:12, padding:"0 28px", borderRight:"1px solid rgba(255,255,255,0.07)", whiteSpace:"nowrap", height:38 }}>
                 <span style={{ width:4, height:4, borderRadius:"50%", background:"#1a6ed8", flexShrink:0, display:"inline-block" }} />
@@ -4760,7 +4788,34 @@ export default function App() {
       </footer>
 
 
-      {/* ══════════ AI RESEARCH ASSISTANT ══════════ */}
+      {/* ══════════ FLOATING BUILD MY STACK CTA (desktop) ══════════ */}
+      <button
+        onClick={() => setShowQuiz(true)}
+        style={{
+          position: "fixed", bottom: 96, right: 24, zIndex: 7500,
+          display: "flex", alignItems: "center", gap: 10,
+          background: "linear-gradient(135deg,#1a6ed8 0%,#2563eb 50%,#3b82f6 100%)",
+          color: "#fff", border: "none", borderRadius: 16,
+          padding: "14px 24px", fontSize: 14, fontWeight: 800,
+          cursor: "pointer", fontFamily: "inherit",
+          boxShadow: "0 8px 32px rgba(26,110,216,0.4), 0 0 0 1px rgba(255,255,255,0.1) inset",
+          letterSpacing: "-0.2px",
+          transition: "transform .2s, box-shadow .2s",
+        }}
+        onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px) scale(1.03)"; e.currentTarget.style.boxShadow = "0 12px 40px rgba(26,110,216,0.5), 0 0 0 1px rgba(255,255,255,0.15) inset"; }}
+        onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0) scale(1)"; e.currentTarget.style.boxShadow = "0 8px 32px rgba(26,110,216,0.4), 0 0 0 1px rgba(255,255,255,0.1) inset"; }}
+        title="Build a personalized research stack"
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+        </svg>
+        Build My Stack
+      </button>
+      <style>{`
+        @keyframes stack-glow { 0%,100%{box-shadow:0 8px 32px rgba(26,110,216,0.4)} 50%{box-shadow:0 8px 40px rgba(26,110,216,0.6),0 0 20px rgba(59,130,246,0.2)} }
+      `}</style>
+
+      {/* ══════════ AI RESEARCH ASSISTANT (desktop) ══════════ */}
       {(() => {
         const SUGGESTIONS = [
           "Best stack for fat loss?",
@@ -4773,84 +4828,75 @@ export default function App() {
 
         return (
           <>
-            {/* Floating button */}
-            {(!mob || !widgetHidden) && <button
+            {/* Modern floating AI button */}
+            <button
               onClick={() => setChatOpen(o => !o)}
+              aria-label="AI Research Assistant"
               style={{
-                position: "fixed", bottom: mob ? 82 : 28, right: 24, zIndex: 8000,
-                width: 56, height: 56, borderRadius: "50%",
-                background: chatOpen ? "#0f172a" : "linear-gradient(135deg,#1a6ed8,#2563eb)",
-                border: chatOpen ? "2px solid #334155" : "none",
-                color: "#fff", fontSize: 22, cursor: "pointer",
-                boxShadow: "0 4px 20px rgba(26,110,216,0.4)",
+                position: "fixed", bottom: 28, right: 24, zIndex: 8000,
+                width: chatOpen ? 52 : 56, height: chatOpen ? 52 : 56, borderRadius: chatOpen ? 14 : "50%",
+                background: chatOpen ? "#0f172a" : "linear-gradient(135deg,#1a6ed8 0%,#2563eb 60%,#7c3aed 100%)",
+                border: chatOpen ? "1.5px solid #334155" : "2px solid rgba(255,255,255,0.15)",
+                color: "#fff", fontSize: 20, cursor: "pointer",
+                boxShadow: chatOpen ? "0 4px 20px rgba(0,0,0,0.3)" : "0 6px 28px rgba(26,110,216,0.45), 0 0 0 4px rgba(26,110,216,0.1)",
                 display: "flex", alignItems: "center", justifyContent: "center",
-                transition: "all .2s",
+                transition: "all .3s cubic-bezier(.4,0,.2,1)",
+                animation: chatOpen ? "none" : "ai-breathe 3s ease-in-out infinite",
+                overflow: "hidden",
               }}
+              onMouseEnter={e => { if (!chatOpen) e.currentTarget.style.transform = "scale(1.1)"; }}
+              onMouseLeave={e => { e.currentTarget.style.transform = "scale(1)"; }}
               title="AI Research Assistant"
             >
-              "AI"
-            </button>}
-
-            {/* Mobile pull tab — always visible on mobile, hides/shows entire widget */}
-            {mob && (
-              <div
-                onClick={() => { setWidgetHidden(h => !h); if (!widgetHidden) { setChatOpen(false); } }}
-                style={{
-                  position: "fixed", right: 0, bottom: 140, zIndex: 8002,
-                  background: "linear-gradient(135deg,#1a6ed8,#2563eb)",
-                  color: "#fff", fontSize: 11, fontWeight: 700,
-                  padding: "10px 6px", borderRadius: "10px 0 0 10px",
-                  cursor: "pointer", writingMode: "vertical-rl",
-                  textOrientation: "mixed", letterSpacing: 1,
-                  boxShadow: "-3px 0 12px rgba(26,110,216,0.35)",
-                  userSelect: "none", display: "flex", alignItems: "center", gap: 4,
-                }}
-              >
-                {widgetHidden ? "◀ AI" : "▶ AI"}
-              </div>
-            )}
-
-            {/* Speech bubble — mobile only, when closed */}
-            {mob && !widgetHidden && !chatOpen && !bubbleDismissed && (
-              <div style={{
-                position: "fixed", bottom: 148, right: 18, zIndex: 8001,
-                background: "#1a6ed8", color: "#fff",
-                fontSize: 12, fontWeight: 700, whiteSpace: "nowrap",
-                padding: "8px 14px", borderRadius: "14px 14px 4px 14px",
-                boxShadow: "0 4px 14px rgba(26,110,216,0.45)",
-                pointerEvents: "none",
-                animation: "bubble-bounce 2.5s ease-in-out infinite",
-              }}>
-                <span>AI Research Assistant</span>
-                <button onClick={() => setBubbleDismissed(true)} aria-label="Dismiss" style={{ marginLeft: 8, background: "none", border: "none", color: "#ffffff", cursor: "pointer", fontSize: 13, lineHeight: 1, padding: "0 0 0 4px" }}>✕</button>
-                <div style={{ position: "absolute", bottom: -6, right: 16, width: 0, height: 0, borderLeft: "6px solid transparent", borderRight: "6px solid transparent", borderTop: "6px solid #1a6ed8" }} />
-              </div>
-            )}
-            <style>{`@keyframes bubble-bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }`}</style>
+              {chatOpen ? (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              ) : (
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 3c-1.2 0-2.4.6-3 1.7A3.6 3.6 0 004.6 9c-1 1.2-1 3 0 4.2.8 1 .8 2.6 0 3.6a3.6 3.6 0 004.4 4.5c1.2-.1 2.4.5 3 1.7.6-1.2 1.8-1.8 3-1.7a3.6 3.6 0 004.4-4.5c-.8-1-.8-2.6 0-3.6 1-1.2 1-3 0-4.2A3.6 3.6 0 0015 4.7C14.4 3.6 13.2 3 12 3z"/>
+                  <circle cx="12" cy="12" r="2.5"/>
+                </svg>
+              )}
+            </button>
+            <style>{`
+              @keyframes ai-breathe { 0%,100%{box-shadow:0 6px 28px rgba(26,110,216,0.45),0 0 0 4px rgba(26,110,216,0.1)} 50%{box-shadow:0 8px 36px rgba(26,110,216,0.55),0 0 0 8px rgba(26,110,216,0.06)} }
+              @keyframes ai-slide-up { from{opacity:0;transform:translateY(16px) scale(0.96)} to{opacity:1;transform:translateY(0) scale(1)} }
+              @keyframes ai-typing { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-4px)} }
+            `}</style>
 
             {/* Chat panel */}
-            {chatOpen && (!mob || !widgetHidden) && (
+            {chatOpen && (
               <div style={{
-                position: "fixed", bottom: mob ? 150 : 96, right: 24, zIndex: 7999,
-                width: mob ? "calc(100vw - 32px)" : 380,
-                maxHeight: mob ? "65vh" : 540,
+                position: "fixed", bottom: 96, right: 24, zIndex: 7999,
+                width: 400, maxHeight: 560,
                 background: "#0f172a", borderRadius: 20,
-                border: "1px solid #1e293b",
-                boxShadow: "0 24px 60px rgba(0,0,0,0.5)",
+                border: "1px solid rgba(255,255,255,0.08)",
+                boxShadow: "0 24px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05)",
                 display: "flex", flexDirection: "column", overflow: "hidden",
+                animation: "ai-slide-up .3s cubic-bezier(.4,0,.2,1)",
+                backdropFilter: "blur(20px)",
               }}>
 
                 {/* Header */}
-                <div style={{ padding: "16px 18px 14px", borderBottom: "1px solid #1e293b", background: "#0f172a" }}>
+                <div style={{ padding: "16px 18px 14px", borderBottom: "1px solid rgba(255,255,255,0.06)", background: "linear-gradient(180deg,#0f172a 0%,#0c1322 100%)" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <div style={{ width: 34, height: 34, borderRadius: "50%", background: "linear-gradient(135deg,#1a6ed8,#3b82f6)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>AI</div>
-                    <div>
+                    <div style={{ width: 36, height: 36, borderRadius: 12, background: "linear-gradient(135deg,#1a6ed8,#7c3aed)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 3c-1.2 0-2.4.6-3 1.7A3.6 3.6 0 004.6 9c-1 1.2-1 3 0 4.2.8 1 .8 2.6 0 3.6a3.6 3.6 0 004.4 4.5c1.2-.1 2.4.5 3 1.7.6-1.2 1.8-1.8 3-1.7a3.6 3.6 0 004.4-4.5c-.8-1-.8-2.6 0-3.6 1-1.2 1-3 0-4.2A3.6 3.6 0 0015 4.7C14.4 3.6 13.2 3 12 3z"/>
+                        <circle cx="12" cy="12" r="2.5"/>
+                      </svg>
+                    </div>
+                    <div style={{ flex: 1 }}>
                       <div style={{ fontSize: 14, fontWeight: 800, color: "#f8fafc" }}>Research Assistant</div>
                       <div style={{ fontSize: 11, color: "#4ade80", fontWeight: 600, display: "flex", alignItems: "center", gap: 4 }}>
-                        <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#4ade80", display: "inline-block" }} />
-                        Powered by Gemini · Aeterion Catalog
+                        <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#4ade80", display: "inline-block", animation: "ai-typing 2s ease-in-out infinite" }} />
+                        Powered by Gemini
                       </div>
                     </div>
+                    <button onClick={() => setChatOpen(false)} aria-label="Minimize chat" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, width: 30, height: 30, color: "#64748b", fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "background .15s" }}
+                      onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.1)"}
+                      onMouseLeave={e => e.currentTarget.style.background = "rgba(255,255,255,0.06)"}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    </button>
                   </div>
                 </div>
 
@@ -4866,9 +4912,9 @@ export default function App() {
                       <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                         {SUGGESTIONS.map((s, i) => (
                           <button key={i} onClick={() => sendMessage(s)}
-                            style={{ textAlign: "left", background: "#1e293b", border: "1px solid #334155", borderRadius: 10, padding: "9px 13px", fontSize: 12, color: "#cbd5e1", cursor: "pointer", fontFamily: "inherit", transition: "border-color .15s" }}
-                            onMouseEnter={e => e.currentTarget.style.borderColor = "#1a6ed8"}
-                            onMouseLeave={e => e.currentTarget.style.borderColor = "#334155"}>
+                            style={{ textAlign: "left", background: "#1e293b", border: "1px solid #334155", borderRadius: 10, padding: "9px 13px", fontSize: 12, color: "#cbd5e1", cursor: "pointer", fontFamily: "inherit", transition: "all .15s" }}
+                            onMouseEnter={e => { e.currentTarget.style.borderColor = "#1a6ed8"; e.currentTarget.style.background = "#162033"; }}
+                            onMouseLeave={e => { e.currentTarget.style.borderColor = "#334155"; e.currentTarget.style.background = "#1e293b"; }}>
                             {s}
                           </button>
                         ))}
@@ -4880,13 +4926,15 @@ export default function App() {
                     <div key={i} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start" }}>
                       <div style={{
                         maxWidth: "85%", padding: "10px 14px", borderRadius: m.role === "user" ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
-                        background: m.role === "user" ? "#1a6ed8" : "#1e293b",
+                        background: m.role === "user" ? "linear-gradient(135deg,#1a6ed8,#2563eb)" : "#1e293b",
                         fontSize: 13, color: m.role === "user" ? "#fff" : "#e2e8f0",
                         lineHeight: 1.65, whiteSpace: "pre-wrap", wordBreak: "break-word",
                       }}>
                         {m.content}
                         {m.role === "assistant" && chatStreaming && i === chatMessages.length - 1 && (
-                          <span style={{ display: "inline-block", width: 8, height: 13, background: "#4ade80", borderRadius: 2, marginLeft: 3, animation: "blink 1s infinite" }} />
+                          <span style={{ display: "inline-flex", gap: 3, marginLeft: 6 }}>
+                            {[0,1,2].map(d => <span key={d} style={{ width: 4, height: 4, borderRadius: "50%", background: "#4ade80", display: "inline-block", animation: `ai-typing .8s ease-in-out ${d * 0.15}s infinite` }} />)}
+                          </span>
                         )}
                       </div>
                     </div>
@@ -4894,23 +4942,27 @@ export default function App() {
                 </div>
 
                 {/* Input */}
-                <div style={{ padding: "12px 14px", borderTop: "1px solid #1e293b", display: "flex", gap: 8 }}>
+                <div style={{ padding: "12px 14px", borderTop: "1px solid rgba(255,255,255,0.06)", display: "flex", gap: 8 }}>
                   <input
                     value={chatInput}
                     onChange={e => setChatInput(e.target.value)}
                     onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(chatInput); } }}
-                    placeholder="Ask about compounds, stacks, protocols…"
+                    placeholder="Ask about compounds, stacks, protocols..."
                     disabled={chatStreaming}
                     autoComplete="off"
-                    style={{ flex: 1, background: "#1e293b", border: "1.5px solid #334155", borderRadius: 10, padding: "10px 14px", fontSize: 13, color: "#f1f5f9", outline: "none", fontFamily: "inherit", resize: "none" }}
+                    style={{ flex: 1, background: "#1e293b", border: "1.5px solid #334155", borderRadius: 12, padding: "11px 14px", fontSize: 13, color: "#f1f5f9", outline: "none", fontFamily: "inherit", resize: "none", transition: "border-color .15s" }}
                     onFocus={e => e.target.style.borderColor = "#1a6ed8"}
                     onBlur={e => e.target.style.borderColor = "#334155"}
                   />
                   <button
                     onClick={() => sendMessage(chatInput)}
                     disabled={chatStreaming || !chatInput.trim()}
-                    style={{ background: chatStreaming || !chatInput.trim() ? "#1e293b" : "#1a6ed8", border: "none", borderRadius: 10, width: 40, height: 40, cursor: chatStreaming ? "wait" : "pointer", color: "#fff", fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "background .15s" }}>
-                    {chatStreaming ? "⏳" : "↑"}
+                    style={{ background: chatStreaming || !chatInput.trim() ? "#1e293b" : "linear-gradient(135deg,#1a6ed8,#2563eb)", border: "none", borderRadius: 12, width: 42, height: 42, cursor: chatStreaming ? "wait" : "pointer", color: "#fff", fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all .2s" }}>
+                    {chatStreaming ? (
+                      <span style={{ display: "flex", gap: 2 }}>{[0,1,2].map(d => <span key={d} style={{ width: 3, height: 3, borderRadius: "50%", background: "#64748b", animation: `ai-typing .8s ease-in-out ${d * 0.15}s infinite` }} />)}</span>
+                    ) : (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                    )}
                   </button>
                 </div>
 

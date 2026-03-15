@@ -93,17 +93,6 @@ const QUESTIONS = [
     ],
   },
   {
-    q: "Do you have a form preference?",
-    sub: "Some researchers prefer non-injectable options when available.",
-    key: "formPref",
-    icon: "💉",
-    opts: [
-      { label: "No Preference", desc: "Open to all forms — injectable, oral, liquid", val: "any" },
-      { label: "Prefer Injectable", desc: "Standard reconstituted peptide protocol", val: "injectable" },
-      { label: "Prefer Non-Injectable", desc: "Capsules, oral liquids when available", val: "non-injectable" },
-    ],
-  },
-  {
     q: "How long is your research cycle?",
     sub: "Longer cycles allow more compounds and layering.",
     key: "cycle",
@@ -484,13 +473,6 @@ export default function StackBuilder({ onClose, addCart, setCartOpen }) {
                           )}
                           {c.category && (
                             <span style={{ fontSize: 11, color: TEXT_MUTED, fontWeight: 600 }}>{c.category}</span>
-                          )}
-                          {c.form && c.form !== "injectable" && (
-                            <span style={{
-                              fontSize: 10, fontWeight: 700, color: "#38bdf8",
-                              background: "rgba(56,189,248,0.1)", border: "1px solid rgba(56,189,248,0.2)",
-                              borderRadius: 20, padding: "2px 8px", textTransform: "uppercase",
-                            }}>{c.form}</span>
                           )}
                         </div>
 

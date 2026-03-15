@@ -24,8 +24,7 @@ function calcPrice(unitPrice, qty) {
 function CartDrawer() {
   const { cart, cartOpen, setCartOpen, removeFromCart, total, count } = useCart();
 
-  const discount = total >= 150 ? 0 : total >= 75 ? total * 0.05 : 0;
-  const finalTotal = +(total - discount).toFixed(2);
+  const finalTotal = +total.toFixed(2);
 
   async function checkout() {
     try {
@@ -90,11 +89,6 @@ function CartDrawer() {
 
         {cart.length > 0 && (
           <div style={{ padding: '20px 24px', borderTop: '1px solid #e8ecf0' }}>
-            {discount > 0 && (
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#16a34a', fontWeight: 700, marginBottom: 8 }}>
-                <span>Bulk discount</span><span>−${discount.toFixed(2)}</span>
-              </div>
-            )}
             <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: 16, marginBottom: 16 }}>
               <span>Total</span><span style={{ color: '#1a6ed8' }}>${finalTotal.toFixed(2)}</span>
             </div>
@@ -144,6 +138,11 @@ export default function ProductPage({ product }) {
         <meta property="og:image" content={product.img} />
         <meta property="og:type" content="product" />
         <meta property="og:url" content={`https://www.aeterionpeptides.com/products/${product.slug}`} />
+        <meta property="og:site_name" content="Aeterion Labs" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={metaTitle} />
+        <meta name="twitter:description" content={metaDesc} />
+        <meta name="twitter:image" content={product.img} />
         <link rel="canonical" href={`https://www.aeterionpeptides.com/products/${product.slug}`} />
         <link rel="icon" href="/favicon.ico" />
         <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;900&display=swap" rel="stylesheet" />
@@ -288,7 +287,7 @@ export default function ProductPage({ product }) {
                 <div style={{ fontSize: 38, fontWeight: 900, color: '#4ade80', letterSpacing: '-1px' }}>${lineTotal.toFixed(2)}</div>
                 {qty > 1 && <div style={{ fontSize: 13, color: '#475569' }}>${variant.p} × {qty}</div>}
               </div>
-              <div style={{ fontSize: 12, color: '#334155', marginBottom: 24 }}>Free shipping on orders over $150 · For research use only</div>
+              <div style={{ fontSize: 12, color: '#334155', marginBottom: 24 }}>Free shipping on orders over $250 · For research use only</div>
 
               {/* CTA */}
               <button onClick={handleAddToCart}
