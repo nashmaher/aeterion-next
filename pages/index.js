@@ -1463,7 +1463,7 @@ export default function App() {
               <img src={modal.img} alt={modal.name} style={{ width: "100%", height: isFullscreen ? 260 : "100%", objectFit: "cover", minHeight: isFullscreen ? 260 : 340, display: "block" }} />
               <Badge badge={modal.badge} isNew={modal.isNew} />
               {!isFullscreen && (
-                <button onClick={closeModal} style={{ position: "absolute", top: 12, right: 12, background: "rgba(255,255,255,0.92)", border: "none", color: T.sub, fontSize: 14, cursor: "pointer", borderRadius: "50%", width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700 }}>✕</button>
+                <button onClick={closeModal} aria-label="Close product details" style={{ position: "absolute", top: 12, right: 12, background: "rgba(255,255,255,0.92)", border: "none", color: T.sub, fontSize: 14, cursor: "pointer", borderRadius: "50%", width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700 }}>✕</button>
               )}
             </div>
             <div style={{ padding: isFullscreen ? "20px 18px 24px" : "26px 28px 24px", overflow: "auto" }}>
@@ -1735,6 +1735,7 @@ export default function App() {
                     value={promoInput}
                     onChange={e => { setPromoInput(e.target.value.toUpperCase()); if (promoStatus) { setPromoStatus(""); setPromoCode(null); setPromoDiscount(0); } }}
                     placeholder="Promo code"
+                    aria-label="Promo code"
                     maxLength={20}
                     autoComplete="off"
                     autoCorrect="off"
@@ -3576,7 +3577,7 @@ export default function App() {
               </div>
               <div>
                 <label style={{ fontSize: 11, fontWeight: 700, color: T.muted, letterSpacing: 1, textTransform: "uppercase", display: "block", marginBottom: 6 }}>Subject</label>
-                <select value={contactForm.subject} onChange={e => setContactForm(f => ({...f, subject: e.target.value}))}
+                <select value={contactForm.subject} onChange={e => setContactForm(f => ({...f, subject: e.target.value}))} aria-label="Subject"
                   style={{ width: "100%", background: T.bg, border: `1.5px solid ${T.border}`, borderRadius: 10, padding: "11px 14px", fontSize: 14, outline: "none", color: contactForm.subject ? T.text : T.muted, fontFamily: "inherit", cursor: "pointer" }}>
                   <option value="">Select a subject…</option>
                   <option>Order Inquiry</option>
@@ -3929,7 +3930,7 @@ export default function App() {
                   {inp("Company / Practice Name","company","text","Smith Aesthetics & Wellness",true)}
                   <div style={{ marginBottom:16 }}>
                     <div style={{ fontSize:12, fontWeight:700, color:T.text, marginBottom:6 }}>Account Type<span style={{ color:"#dc2626" }}>*</span></div>
-                    <select value={form.type} onChange={e => setForm(f=>({...f,type:e.target.value}))}
+                    <select value={form.type} onChange={e => setForm(f=>({...f,type:e.target.value}))} aria-label="Account type"
                       style={{ width:"100%", padding:"11px 14px", borderRadius:10, border:`1.5px solid ${T.border}`, fontSize:14, fontFamily:"inherit", outline:"none", background:T.white, color: form.type ? T.text : T.muted, boxSizing:"border-box" }}>
                       <option value="">Select account type...</option>
                       <option>Medical Clinic / Practice</option>
@@ -3943,7 +3944,7 @@ export default function App() {
                   <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"0 16px" }}>
                     <div style={{ marginBottom:16 }}>
                       <div style={{ fontSize:12, fontWeight:700, color:T.text, marginBottom:6 }}>Est. Monthly Volume</div>
-                      <select value={form.monthly} onChange={e => setForm(f=>({...f,monthly:e.target.value}))}
+                      <select value={form.monthly} onChange={e => setForm(f=>({...f,monthly:e.target.value}))} aria-label="Estimated monthly volume"
                         style={{ width:"100%", padding:"11px 14px", borderRadius:10, border:`1.5px solid ${T.border}`, fontSize:14, fontFamily:"inherit", outline:"none", background:T.white, color: form.monthly ? T.text : T.muted, boxSizing:"border-box" }}>
                         <option value="">Select range...</option>
                         <option>$500 – $1,499</option>
@@ -4064,13 +4065,13 @@ export default function App() {
       </div>
 
       <header style={{ background: T.white, borderBottom: `1px solid ${T.border}`, padding: "12px 16px", display: "flex", alignItems: "center", gap: 10, position: "sticky", top: 0, zIndex: 300, boxShadow: "0 1px 6px rgba(0,0,0,0.06)" }}>
-        <button onClick={() => setMenuOpen(true)} style={{ background: "none", border: "none", cursor: "pointer", padding: 4, fontSize: 20, color: T.text }}>☰</button>
+        <button onClick={() => setMenuOpen(true)} aria-label="Open menu" style={{ background: "none", border: "none", cursor: "pointer", padding: 4, fontSize: 20, color: T.text }}>☰</button>
         <div onClick={() => { setCat("all"); setQ(""); window.scrollTo({ top: 0, behavior: "smooth" }); }} style={{ cursor: "pointer", flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
           <AeterionLogo size={32} showText={false} textColor={T.text}/>
           <div style={{ fontSize: 9, fontWeight: 800, letterSpacing: 2.5, color: "#1B3A6B", lineHeight: 1, marginTop: 1 }}>AETERION</div>
         </div>
-        <button onClick={() => setSearchOpen(s => !s)} style={{ background: "none", border: "none", cursor: "pointer", padding: 4, fontSize: 18, color: T.sub }}>🔍</button>
-        <button onClick={() => setCartOpen(true)} style={{ position: "relative", background: "none", border: "none", cursor: "pointer", padding: "4px 6px", color: T.text, display:"flex", alignItems:"center", gap:4 }}>
+        <button onClick={() => setSearchOpen(s => !s)} aria-label="Search products" style={{ background: "none", border: "none", cursor: "pointer", padding: 4, fontSize: 18, color: T.sub }}>🔍</button>
+        <button onClick={() => setCartOpen(true)} aria-label="Shopping cart" style={{ position: "relative", background: "none", border: "none", cursor: "pointer", padding: "4px 6px", color: T.text, display:"flex", alignItems:"center", gap:4 }}>
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/>
           </svg>
@@ -4080,7 +4081,7 @@ export default function App() {
 
       {searchOpen && (
         <div style={{ background: T.white, padding: "10px 14px", borderBottom: `1px solid ${T.border}` }}>
-          <input autoFocus value={q} onChange={e => { setQ(e.target.value); setCat("all"); }} placeholder="Search 72 compounds…"
+          <input autoFocus value={q} onChange={e => { setQ(e.target.value); setCat("all"); }} placeholder="Search 72 compounds…" aria-label="Search products"
             style={{ width: "100%", background: T.bg, border: `1.5px solid ${T.border}`, borderRadius: 24, padding: "10px 16px", fontSize: 16, outline: "none", fontFamily: "inherit", color: T.text, boxSizing: "border-box" }} />
         </div>
       )}
@@ -4178,7 +4179,7 @@ export default function App() {
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
               <div style={{ fontSize: 15, fontWeight: 800, color: T.text, display: "flex", alignItems: "center", gap: 6 }}>
                 {g.icon} {g.label}
-                <span style={{ background: T.blueSoft, color: T.blue, fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 10 }}>{g.items.length}</span>
+                <span style={{ background: T.blueSoft, color: T.blueHov, fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 10 }}>{g.items.length}</span>
               </div>
               <button onClick={() => setCat(g.id)} style={{ ...btnOutline({ padding: "4px 10px", fontSize: 11, borderRadius: 8 }) }}>All →</button>
             </div>
@@ -4392,6 +4393,7 @@ export default function App() {
                     placeholder="Ask about compounds..."
                     disabled={chatStreaming}
                     autoComplete="off"
+                    aria-label="Type your message"
                     style={{ flex: 1, background: "#1e293b", border: "1.5px solid #334155", borderRadius: 12, padding: "10px 12px", fontSize: 13, color: "#f1f5f9", outline: "none", fontFamily: "inherit", resize: "none" }}
                     onFocus={e => e.target.style.borderColor = "#1a6ed8"}
                     onBlur={e => e.target.style.borderColor = "#334155"}
@@ -4399,6 +4401,7 @@ export default function App() {
                   <button
                     onClick={() => sendMessage(chatInput)}
                     disabled={chatStreaming || !chatInput.trim()}
+                    aria-label="Send message"
                     style={{ background: chatStreaming || !chatInput.trim() ? "#1e293b" : "linear-gradient(135deg,#1a6ed8,#2563eb)", border: "none", borderRadius: 12, width: 40, height: 40, cursor: chatStreaming ? "wait" : "pointer", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all .2s" }}>
                     {chatStreaming ? (
                       <span style={{ display: "flex", gap: 2 }}>{[0,1,2].map(d => <span key={d} style={{ width: 3, height: 3, borderRadius: "50%", background: "#64748b", animation: `ai-typing-m .8s ease-in-out ${d * 0.15}s infinite` }} />)}</span>
@@ -4466,7 +4469,7 @@ export default function App() {
                 </div>
               ) : (
                 <>
-                  <input type="email" placeholder="your@email.com" value={emailPopupVal}
+                  <input type="email" placeholder="your@email.com" value={emailPopupVal} aria-label="Email address"
                     onChange={e=>setEmailPopupVal(e.target.value)}
                     onKeyDown={e=>{ if(e.key==="Enter"&&emailPopupVal.includes("@")){ setEmailPopupStatus("sending"); fetch("/api/email-capture",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:emailPopupVal})}).then(()=>setEmailPopupStatus("done")).catch(()=>setEmailPopupStatus("done")); }}}
                     style={{ width:"100%",boxSizing:"border-box",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(59,130,246,0.3)",borderRadius:10,padding:"14px 16px",fontSize:15,color:"#f8fafc",outline:"none",fontFamily:"inherit",marginBottom:10,transition:"border-color .2s" }}
@@ -4534,13 +4537,13 @@ export default function App() {
 
       <header style={{ background: T.white, borderBottom: `1px solid ${T.border}`, position: "sticky", top: 0, zIndex: 300, boxShadow: "0 1px 8px rgba(0,0,0,0.05)" }}>
         <div style={{ maxWidth: 1400, margin: "0 auto", padding: "13px 24px", display: "flex", alignItems: "center", gap: 20 }}>
-          <div onClick={() => { setCat("all"); setQ(""); window.scrollTo({ top: 0, behavior: "smooth" }); }} style={{ cursor: "pointer", display: "flex", alignItems: "center", flexShrink: 0, overflow: "visible", minWidth: 180 }}>
+          <div onClick={() => { setCat("all"); setQ(""); window.scrollTo({ top: 0, behavior: "smooth" }); }} role="button" aria-label="Go to homepage" tabIndex={0} onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setCat("all"); setQ(""); window.scrollTo({ top: 0, behavior: "smooth" }); }}} style={{ cursor: "pointer", display: "flex", alignItems: "center", flexShrink: 0, overflow: "visible", minWidth: 180 }}>
             <AeterionLogo size={40} showText={true} textColor={T.text}/>
           </div>
 
           <div style={{ flex: 1, maxWidth: 500, position: "relative" }}>
             <span style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: T.muted, fontSize: 14 }}>🔍</span>
-            <input value={q} onChange={e => { setQ(e.target.value); setCat("all"); }} placeholder="Search for products…"
+            <input value={q} onChange={e => { setQ(e.target.value); setCat("all"); }} placeholder="Search for products…" aria-label="Search products"
               style={{ width: "100%", background: T.bg, border: `1.5px solid ${T.border}`, borderRadius: 28, padding: "10px 18px 10px 40px", fontSize: 16, outline: "none", color: T.text, boxSizing: "border-box", fontFamily: "inherit" }}
               onFocus={e => e.target.style.borderColor = T.blue}
               onBlur={e => e.target.style.borderColor = T.border} />
@@ -4555,7 +4558,7 @@ export default function App() {
               Sign In
             </button>
           )}
-          <button onClick={() => setCartOpen(true)} style={{ ...btnPrimary({ marginLeft: "auto", padding: "9px 18px", fontSize: 14, borderRadius: 12, display: "flex", alignItems: "center", gap: 8, boxShadow: "0 3px 10px rgba(26,110,216,0.22)" }) }}>
+          <button onClick={() => setCartOpen(true)} aria-label="Shopping cart" style={{ ...btnPrimary({ marginLeft: "auto", padding: "9px 18px", fontSize: 14, borderRadius: 12, display: "flex", alignItems: "center", gap: 8, boxShadow: "0 3px 10px rgba(26,110,216,0.22)" }) }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/>
             </svg>
@@ -4625,7 +4628,7 @@ export default function App() {
           <span style={{ fontSize: 12, color: "#15803d", fontWeight: 700 }}>BULK SAVINGS</span>
           <span style={{ fontSize: 12, color: "#166534" }}>Buy 5 vials → <b>8% off</b></span>
           <span style={{ fontSize: 12, color: "#166534" }}>Buy 10 vials → <b>18% off</b></span>
-          <span style={{ fontSize: 11, color: T.green }}>Applied automatically at checkout</span>
+          <span style={{ fontSize: 11, color: "#15803d" }}>Applied automatically at checkout</span>
         </div>
       </div>
 
@@ -4651,7 +4654,7 @@ export default function App() {
             ]).map((text, i) => (
               <div key={i} style={{ display:"inline-flex", alignItems:"center", gap:12, padding:"0 28px", borderRight:"1px solid rgba(255,255,255,0.07)", whiteSpace:"nowrap", height:38 }}>
                 <span style={{ width:4, height:4, borderRadius:"50%", background:"#1a6ed8", flexShrink:0, display:"inline-block" }} />
-                <span style={{ fontSize:12, color:"rgba(255,255,255,0.75)", fontWeight:600, letterSpacing:"0.2px" }}>{text}</span>
+                <span style={{ fontSize:12, color:"rgba(255,255,255,0.85)", fontWeight:600, letterSpacing:"0.2px" }}>{text}</span>
               </div>
             ))}
           </div>
@@ -4691,7 +4694,7 @@ export default function App() {
             {/* Sort */}
             <div style={{ borderTop: `1px solid ${T.border}`, padding: "12px 16px 14px" }}>
               <div style={{ fontSize: 10, fontWeight: 800, color: T.muted, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>Sort By</div>
-              <select value={sort} onChange={e => setSort(e.target.value)} style={{ width: "100%", background: T.bg, border: `1px solid ${T.border}`, color: T.text, borderRadius: 8, padding: "8px 10px", fontSize: 12, cursor: "pointer", fontFamily: "inherit", outline: "none" }}>
+              <select value={sort} onChange={e => setSort(e.target.value)} aria-label="Sort by" style={{ width: "100%", background: T.bg, border: `1px solid ${T.border}`, color: T.text, borderRadius: 8, padding: "8px 10px", fontSize: 12, cursor: "pointer", fontFamily: "inherit", outline: "none" }}>
                 <option value="default">Default</option>
                 <option value="low">Price: Low → High</option>
                 <option value="high">Price: High → Low</option>
@@ -4720,7 +4723,7 @@ export default function App() {
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <span style={{ fontSize: 20 }}>{g.icon}</span>
                 <h2 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: T.text }}>{g.label}</h2>
-                <span style={{ background: T.blueSoft, border: "1px solid #c7dcf9", borderRadius: 12, padding: "2px 9px", fontSize: 10, color: T.blue, fontWeight: 700 }}>{g.items.length}</span>
+                <span style={{ background: T.blueSoft, border: "1px solid #c7dcf9", borderRadius: 12, padding: "2px 9px", fontSize: 10, color: T.blueHov, fontWeight: 700 }}>{g.items.length}</span>
               </div>
               <button onClick={() => setCat(g.id)} style={{ ...btnOutline({ padding: "6px 14px", fontSize: 11, borderRadius: 8 }) }}>View All →</button>
             </div>
@@ -4765,34 +4768,34 @@ export default function App() {
 
       <ProductModal />{cartDrawerJSX}
 
-      <footer style={{ background: "#111827", color: "rgba(255,255,255,0.6)", padding: "48px 24px 28px", marginTop: 60 }}>
+      <footer style={{ background: "#111827", color: "rgba(255,255,255,0.75)", padding: "48px 24px 28px", marginTop: 60 }}>
         <div style={{ maxWidth: 1400, margin: "0 auto" }}>
           <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: 40, marginBottom: 36 }}>
             <div>
               <div style={{ marginBottom: 14 }}>
                 <AeterionLogo size={38} showText={true} dark={true}/>
               </div>
-              <p style={{ fontSize: 12, lineHeight: 1.9, margin: "0 0 12px", maxWidth: 280, color: "rgba(255,255,255,0.5)" }}>Premium supplier of research peptides, SARMs, and analytical compounds. COA with every order.</p>
-              <a href="mailto:info@aeterionpeptides.com" style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", textDecoration: "none" }}>info@aeterionpeptides.com</a>
+              <p style={{ fontSize: 12, lineHeight: 1.9, margin: "0 0 12px", maxWidth: 280, color: "rgba(255,255,255,0.7)" }}>Premium supplier of research peptides, SARMs, and analytical compounds. COA with every order.</p>
+              <a href="mailto:info@aeterionpeptides.com" style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", textDecoration: "none" }}>info@aeterionpeptides.com</a>
             </div>
             {[["Products",CATS.map(c=>c.label)],["Company",["About","Contact","FAQ","Wholesale","Military Discounts","Become an Ambassador"]],["Legal",["Terms of Service","Privacy Policy","Return Policy","Disclaimer"]]].map(([t,links]) => (
               <div key={t}>
-                <div style={{ fontWeight: 700, fontSize: 10, letterSpacing: 2, textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 14 }}>{t}</div>
+                <div style={{ fontWeight: 700, fontSize: 10, letterSpacing: 2, textTransform: "uppercase", color: "rgba(255,255,255,0.6)", marginBottom: 14 }}>{t}</div>
               {links.map(l => {
                   const dest = l === "Contact" ? "contact" : l === "About" ? "about" : l === "FAQ" ? "faq" : l === "Wholesale" ? "wholesale" : (l === "Terms of Service" || l === "Privacy Policy" || l === "Return Policy" || l === "Disclaimer") ? "legal" : null;
                   if (l === "Become an Ambassador") return (
                     <a key={l} href="/ambassador/apply" style={{ display: "block", color: "#60a5fa", fontSize: 12, marginBottom: 9, textDecoration: "none", fontWeight: 600 }}>✦ Become an Ambassador</a>
                   );
                   return dest
-                    ? <a key={l} href={`#${dest}`} onClick={e => { e.preventDefault(); goTo(dest); }} style={{ display: "block", color: "rgba(255,255,255,0.5)", fontSize: 12, marginBottom: 9, textDecoration: "none" }} onMouseEnter={e=>e.currentTarget.style.color="#fff"} onMouseLeave={e=>e.currentTarget.style.color="rgba(255,255,255,0.5)"}>{l}</a>
-                    : <div key={l} style={{ color: "rgba(255,255,255,0.5)", fontSize: 12, marginBottom: 9, cursor: "default" }}>{l}</div>;
+                    ? <a key={l} href={`#${dest}`} onClick={e => { e.preventDefault(); goTo(dest); }} style={{ display: "block", color: "rgba(255,255,255,0.7)", fontSize: 12, marginBottom: 9, textDecoration: "none" }} onMouseEnter={e=>e.currentTarget.style.color="#fff"} onMouseLeave={e=>e.currentTarget.style.color="rgba(255,255,255,0.7)"}>{l}</a>
+                    : <div key={l} style={{ color: "rgba(255,255,255,0.7)", fontSize: 12, marginBottom: 9, cursor: "default" }}>{l}</div>;
                 })}
               </div>
             ))}
           </div>
           <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: 16, display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>© 2025 Aeterion Peptides. All Rights Reserved.</div>
-            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", maxWidth: 500, textAlign: "right", lineHeight: 1.7 }}>All products are for laboratory research purposes only. Not for human consumption. Must be 18+. Not evaluated by the FDA.</div>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.6)" }}>© 2025 Aeterion Peptides. All Rights Reserved.</div>
+            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.55)", maxWidth: 500, textAlign: "right", lineHeight: 1.7 }}>All products are for laboratory research purposes only. Not for human consumption. Must be 18+. Not evaluated by the FDA.</div>
           </div>
         </div>
       </footer>
@@ -4933,6 +4936,7 @@ export default function App() {
                     placeholder="Ask about compounds, stacks, protocols..."
                     disabled={chatStreaming}
                     autoComplete="off"
+                    aria-label="Type your message"
                     style={{ flex: 1, background: "#1e293b", border: "1.5px solid #334155", borderRadius: 12, padding: "11px 14px", fontSize: 13, color: "#f1f5f9", outline: "none", fontFamily: "inherit", resize: "none", transition: "border-color .15s" }}
                     onFocus={e => e.target.style.borderColor = "#1a6ed8"}
                     onBlur={e => e.target.style.borderColor = "#334155"}
@@ -4940,6 +4944,7 @@ export default function App() {
                   <button
                     onClick={() => sendMessage(chatInput)}
                     disabled={chatStreaming || !chatInput.trim()}
+                    aria-label="Send message"
                     style={{ background: chatStreaming || !chatInput.trim() ? "#1e293b" : "linear-gradient(135deg,#1a6ed8,#2563eb)", border: "none", borderRadius: 12, width: 42, height: 42, cursor: chatStreaming ? "wait" : "pointer", color: "#fff", fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all .2s" }}>
                     {chatStreaming ? (
                       <span style={{ display: "flex", gap: 2 }}>{[0,1,2].map(d => <span key={d} style={{ width: 3, height: 3, borderRadius: "50%", background: "#64748b", animation: `ai-typing .8s ease-in-out ${d * 0.15}s infinite` }} />)}</span>
@@ -5050,7 +5055,7 @@ export default function App() {
             ) : (
               <>
                 <div style={{ display:"flex",gap:8,marginBottom:10 }}>
-                  <input type="email" placeholder="your@email.com" value={abandonEmail}
+                  <input type="email" placeholder="your@email.com" value={abandonEmail} aria-label="Email address"
                     onChange={e=>setAbandonEmail(e.target.value)}
                     style={{ flex:1,background:"#1e293b",border:"1.5px solid #334155",borderRadius:10,padding:"12px 14px",fontSize:14,color:"#f8fafc",outline:"none",fontFamily:"inherit" }}
                   />

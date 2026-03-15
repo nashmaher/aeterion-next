@@ -1,19 +1,6 @@
-// pages/robots.txt.js
-// Serves a valid plain-text robots.txt to crawlers
-
-export default function RobotsTxt() {
-  return null;
-}
-
-export async function getServerSideProps({ res }) {
-  res.setHeader("Content-Type", "text/plain");
-  res.write(`User-agent: *
+User-agent: *
 Allow: /
 Disallow: /admin
 Disallow: /api/
 
 Sitemap: https://www.aeterionpeptides.com/sitemap.xml
-`);
-  res.end();
-  return { props: {} };
-}
