@@ -4097,7 +4097,10 @@ export default function App() {
             <div style={{ display: "flex", gap: 10, justifyContent: "center", marginBottom: 28, flexWrap: "wrap" }}>
               <button onClick={() => document.getElementById("mob-cat")?.scrollIntoView({ behavior: "smooth" })} style={{ background: "#fff", color: T.blue, border: "none", borderRadius: 24, padding: "12px 26px", fontSize: 14, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", boxShadow: "0 4px 14px rgba(0,0,0,0.18)" }}>Shop Now</button>
               <button onClick={() => setCat("metabolic")} style={{ background: "rgba(255,255,255,0.15)", color: "#fff", border: "1.5px solid rgba(255,255,255,0.4)", borderRadius: 24, padding: "12px 22px", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>GLP-1 →</button>
-              <button onClick={() => setShowQuiz(true)} style={{ background: "rgba(255,255,255,0.12)", color: "#fff", border: "1.5px solid rgba(255,255,255,0.35)", borderRadius: 24, padding: "12px 22px", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", backdropFilter: "blur(8px)" }}>Build My Stack</button>
+              <button onClick={() => setShowQuiz(true)} style={{ background: "linear-gradient(135deg,#10b981,#059669)", color: "#fff", border: "1.5px solid rgba(255,255,255,0.2)", borderRadius: 24, padding: "12px 22px", fontSize: 13, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", boxShadow: "0 4px 16px rgba(16,185,129,0.4)", display: "inline-flex", alignItems: "center", gap: 6 }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                Build My Stack
+              </button>
             </div>
             <div style={{ display: "flex", gap: 0, justifyContent: "center", background: "rgba(255,255,255,0.1)", borderRadius: 16, padding: "12px 0", border: "1px solid rgba(255,255,255,0.12)" }}>
               {[["72","Products"],["≥99%","Purity"],["1-2d","Processing"],["COA","Included"],["USA","Ships"]].map(([v,l], idx, arr) => (
@@ -4583,8 +4586,15 @@ export default function App() {
             <div style={{ display: "flex", gap: 14, justifyContent: "center", marginBottom: 44 }}>
               <button onClick={() => document.getElementById("catalog")?.scrollIntoView({ behavior: "smooth" })} style={{ background: "#fff", color: T.blue, border: "none", borderRadius: 12, padding: "14px 32px", fontSize: 15, fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 18px rgba(0,0,0,0.15)", fontFamily: "inherit" }}>Shop All Products</button>
               <a href="#cat-metabolic" onClick={e => { e.preventDefault(); setCat("metabolic"); window.scrollTo({top:0,behavior:"smooth"}); }} style={{ background: "transparent", color: "#fff", border: "2px solid rgba(255,255,255,0.45)", borderRadius: 12, padding: "14px 32px", fontSize: 15, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", textDecoration: "none", display: "inline-flex", alignItems: "center" }}>GLP-1 / Metabolic →</a>
-              <button onClick={() => setShowQuiz(true)} style={{ background: "rgba(255,255,255,0.12)", color: "#fff", border: "2px solid rgba(255,255,255,0.3)", borderRadius: 12, padding: "14px 32px", fontSize: 15, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", backdropFilter: "blur(8px)" }}>Build My Stack</button>
+              <button onClick={() => setShowQuiz(true)} style={{ background: "linear-gradient(135deg,#10b981,#059669)", color: "#fff", border: "2px solid rgba(255,255,255,0.2)", borderRadius: 12, padding: "14px 32px", fontSize: 15, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", boxShadow: "0 4px 20px rgba(16,185,129,0.4), 0 0 0 1px rgba(255,255,255,0.1) inset", display: "inline-flex", alignItems: "center", gap: 8, transition: "transform .2s, box-shadow .2s", animation: "stack-hero-glow 3s ease-in-out infinite" }}
+                onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px) scale(1.04)"; e.currentTarget.style.boxShadow = "0 8px 28px rgba(16,185,129,0.5), 0 0 0 1px rgba(255,255,255,0.15) inset"; }}
+                onMouseLeave={e => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = "0 4px 20px rgba(16,185,129,0.4), 0 0 0 1px rgba(255,255,255,0.1) inset"; }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                Build My Stack
+              </button>
             </div>
+            <style>{`@keyframes stack-hero-glow { 0%,100%{box-shadow:0 4px 20px rgba(16,185,129,0.4),0 0 0 1px rgba(255,255,255,0.1) inset} 50%{box-shadow:0 6px 28px rgba(16,185,129,0.55),0 0 12px rgba(52,211,153,0.2),0 0 0 1px rgba(255,255,255,0.15) inset} }`}</style>
             <div style={{ display: "flex", gap: 48, justifyContent: "center", flexWrap: "wrap" }}>
               {[["72","Compounds"],["≥99%","Avg Purity"],["1-2d","Processing"],["COA","Every Order"],["8–18%","Bulk Savings"]].map(([v,l]) => (
                 <div key={l} style={{ textAlign: "center" }}>
@@ -4787,33 +4797,6 @@ export default function App() {
         </div>
       </footer>
 
-
-      {/* ══════════ FLOATING BUILD MY STACK CTA (desktop) ══════════ */}
-      <button
-        onClick={() => setShowQuiz(true)}
-        style={{
-          position: "fixed", bottom: 96, right: 24, zIndex: 7500,
-          display: "flex", alignItems: "center", gap: 10,
-          background: "linear-gradient(135deg,#1a6ed8 0%,#2563eb 50%,#3b82f6 100%)",
-          color: "#fff", border: "none", borderRadius: 16,
-          padding: "14px 24px", fontSize: 14, fontWeight: 800,
-          cursor: "pointer", fontFamily: "inherit",
-          boxShadow: "0 8px 32px rgba(26,110,216,0.4), 0 0 0 1px rgba(255,255,255,0.1) inset",
-          letterSpacing: "-0.2px",
-          transition: "transform .2s, box-shadow .2s",
-        }}
-        onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px) scale(1.03)"; e.currentTarget.style.boxShadow = "0 12px 40px rgba(26,110,216,0.5), 0 0 0 1px rgba(255,255,255,0.15) inset"; }}
-        onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0) scale(1)"; e.currentTarget.style.boxShadow = "0 8px 32px rgba(26,110,216,0.4), 0 0 0 1px rgba(255,255,255,0.1) inset"; }}
-        title="Build a personalized research stack"
-      >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
-        </svg>
-        Build My Stack
-      </button>
-      <style>{`
-        @keyframes stack-glow { 0%,100%{box-shadow:0 8px 32px rgba(26,110,216,0.4)} 50%{box-shadow:0 8px 40px rgba(26,110,216,0.6),0 0 20px rgba(59,130,246,0.2)} }
-      `}</style>
 
       {/* ══════════ AI RESEARCH ASSISTANT (desktop) ══════════ */}
       {(() => {
