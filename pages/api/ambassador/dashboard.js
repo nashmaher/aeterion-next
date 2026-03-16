@@ -1,7 +1,8 @@
 // pages/api/ambassador/dashboard.js
-// Returns commission data for a logged-in ambassador
+// Returns commission data for a logged-in ambassador (requires session token)
 
 import { createClient } from '@supabase/supabase-js';
+import { verifyAmbassadorToken } from '../../../lib/security';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -11,8 +12,12 @@ const supabase = createClient(
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { ambassador_id } = req.body;
-  if (!ambassador_id) return res.status(400).json({ error: 'Missing ambassador_id' });
+  // Verify session token (signed during login)
+  const { session_token } = req.body;
+  const ambassador_id = verifyAmbassadorToken(session_token);
+  if (!ambassador_id) {
+    return res.status(401).json({ error: 'Invalid or expired session. Please log in again.' });
+  }
 
   // Get ambassador info
   const { data: ambassador, error: ambError } = await supabase

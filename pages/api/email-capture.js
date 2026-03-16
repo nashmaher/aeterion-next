@@ -3,11 +3,14 @@
 // Generates unique one-time-use discount codes per customer — never reuses static codes.
 
 import { createClient } from '@supabase/supabase-js';
+import { rateLimiter, validateEmail } from '../../lib/security';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_KEY
 );
+
+const emailLimiter = rateLimiter('email-capture', 3, 60 * 60 * 1000); // 3 per hour per email
 
 function generateCode(prefix) {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no confusable chars (0/O, 1/I)
@@ -113,7 +116,13 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const { email, source, cartItems } = req.body;
-  if (!email || !email.includes('@')) return res.status(400).json({ error: 'Valid email required' });
+  if (!validateEmail(email)) return res.status(400).json({ error: 'Valid email required' });
+
+  // Rate limit by email
+  const { allowed, retryAfter } = emailLimiter(email.toLowerCase().trim());
+  if (!allowed) {
+    return res.status(200).json({ success: true }); // Silent rate limit — don't reveal to bots
+  }
 
   const cleanEmail = email.toLowerCase().trim();
   const isAbandon = source === 'abandon';

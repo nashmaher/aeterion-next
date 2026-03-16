@@ -3,9 +3,12 @@
 // The raw password is NEVER sent to or stored in the browser
 
 import crypto from 'crypto';
+import { rateLimiter, requireEnv } from '../../../lib/security';
+
+const loginLimiter = rateLimiter('admin-login', 5, 15 * 60 * 1000); // 5 attempts per 15 min
 
 function generateToken() {
-  const secret = process.env.ADMIN_PASSWORD || 'aeterion2026';
+  const secret = requireEnv('ADMIN_PASSWORD');
   const timestamp = Date.now().toString();
   const sig = crypto.createHmac('sha256', secret).update(timestamp).digest('hex');
   return Buffer.from(`${timestamp}.${sig}`).toString('base64');
@@ -13,7 +16,7 @@ function generateToken() {
 
 export function verifyAdminToken(token) {
   try {
-    const secret = process.env.ADMIN_PASSWORD || 'aeterion2026';
+    const secret = requireEnv('ADMIN_PASSWORD');
     const decoded = Buffer.from(token, 'base64').toString('utf8');
     const [timestamp, sig] = decoded.split('.');
     const expectedSig = crypto.createHmac('sha256', secret).update(timestamp).digest('hex');
@@ -29,12 +32,20 @@ export function verifyAdminToken(token) {
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
+  // Rate limit by IP
+  const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket?.remoteAddress || 'unknown';
+  const { allowed, retryAfter } = loginLimiter(ip);
+  if (!allowed) {
+    res.setHeader('Retry-After', String(retryAfter));
+    return res.status(429).json({ error: 'Too many login attempts. Please try again later.' });
+  }
+
   const { password } = req.body;
-  const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'aeterion2026';
+  const ADMIN_PASSWORD = requireEnv('ADMIN_PASSWORD');
 
   if (!password || password !== ADMIN_PASSWORD) {
-    // Small delay to slow brute force
-    await new Promise(r => setTimeout(r, 500));
+    // Delay to slow brute force
+    await new Promise(r => setTimeout(r, 1000));
     return res.status(401).json({ error: 'Invalid password' });
   }
 

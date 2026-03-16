@@ -1,11 +1,12 @@
 import Stripe from "stripe";
+import { getSupabaseConfig, setCorsHeaders, sanitizeError } from "../../lib/security";
+const { PRODUCTS } = require('../../lib/products');
 
-const SB_URL = "https://kafwkhbzdtpsxkufmkmm.supabase.co";
+const { url: SB_URL } = getSupabaseConfig();
+const DISC_RATE = qty => qty >= 10 ? 0.82 : qty >= 5 ? 0.92 : 1;
 
 export default async function handler(req, res) {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  setCorsHeaders(req, res);
 
   if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
@@ -63,7 +64,7 @@ export default async function handler(req, res) {
 
       // ── Ambassador codes ──
       else {
-        const sbKey = process.env.SUPABASE_SERVICE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+        const sbKey = process.env.SUPABASE_SERVICE_KEY;
         const promoRes = await fetch(`${SB_URL}/rest/v1/ambassadors?promo_code=eq.${encodeURIComponent(normalized)}&status=eq.approved&select=id,promo_code,commission_rate,free_shipping`, {
           headers: { "apikey": sbKey, "Authorization": `Bearer ${sbKey}` }
         });
@@ -88,40 +89,116 @@ export default async function handler(req, res) {
       }
     }
 
+    // ── Atomically claim single-use promo codes to prevent race conditions ──
+    let claimedCode = null;
+    if (promoCode && stripeCouponId) {
+      const normalized = promoCode.toUpperCase().trim();
+      const sbKey = process.env.SUPABASE_SERVICE_KEY;
+
+      // WELCOME-* and SAVE-* codes (from email_subscribers table)
+      if (normalized.startsWith('WELCOME-') || normalized.startsWith('SAVE-')) {
+        const claimRes = await fetch(
+          `${SB_URL}/rest/v1/email_subscribers?discount_code=eq.${encodeURIComponent(normalized)}&code_used=eq.false`,
+          {
+            method: 'PATCH',
+            headers: {
+              apikey: sbKey,
+              Authorization: `Bearer ${sbKey}`,
+              'Content-Type': 'application/json',
+              Prefer: 'return=representation',
+            },
+            body: JSON.stringify({ code_used: true }),
+          }
+        );
+        const claimed = await claimRes.json();
+        if (!claimed?.length) {
+          return res.status(400).json({ error: 'This promo code has already been used.' });
+        }
+        claimedCode = { table: 'email_subscribers', column: 'discount_code', value: normalized };
+      }
+
+      // REVIEW-* codes (from review_codes table)
+      if (normalized.startsWith('REVIEW-')) {
+        const claimRes = await fetch(
+          `${SB_URL}/rest/v1/review_codes?code=eq.${encodeURIComponent(normalized)}&code_used=eq.false`,
+          {
+            method: 'PATCH',
+            headers: {
+              apikey: sbKey,
+              Authorization: `Bearer ${sbKey}`,
+              'Content-Type': 'application/json',
+              Prefer: 'return=representation',
+            },
+            body: JSON.stringify({ code_used: true }),
+          }
+        );
+        const claimed = await claimRes.json();
+        if (!claimed?.length) {
+          return res.status(400).json({ error: 'This promo code has already been used.' });
+        }
+        claimedCode = { table: 'review_codes', column: 'code', value: normalized };
+      }
+    }
+
     if (!items || !items.length) {
       return res.status(400).json({ error: "No items in cart" });
     }
 
+    // ── Server-side price validation ──
     const line_items = items.map(item => {
-      // NO STACKING: if promo code applied, use original unit price (no bulk discount)
-      // if no promo code, use the already bulk-discounted lt from frontend
-      const unitAmountCents = promoCode
-        ? Math.round(item.p * 100)                        // original price, no bulk
-        : Math.round((item.lt / item.qty) * 100);         // bulk-discounted price
+      // Look up canonical price from product catalog
+      const product = PRODUCTS.find(p => p.id === item.id);
+      if (!product) {
+        throw new Error(`Unknown product ID: ${item.id}`);
+      }
+      const variant = product.variants?.find(v => v.s === item.size);
+      if (!variant) {
+        throw new Error(`Unknown variant ${item.size} for product ${product.name}`);
+      }
+
+      const canonicalPrice = variant.p; // authoritative price from server
+      const qty = Math.max(1, Math.min(99, Math.floor(item.qty || 1)));
+
+      // Calculate unit price server-side
+      let unitAmountCents;
+      if (promoCode) {
+        // Promo code applied: use original unit price (no bulk discount)
+        unitAmountCents = Math.round(canonicalPrice * 100);
+      } else {
+        // No promo: apply bulk discount server-side
+        const rate = DISC_RATE(qty);
+        unitAmountCents = Math.round(canonicalPrice * rate * 100);
+      }
 
       return {
         price_data: {
           currency: "usd",
           product_data: {
-            name: `${item.name} (${item.size})`,
+            name: `${product.name} (${item.size})`,
             description: promoCode
-              ? `${item.qty} vial${item.qty > 1 ? "s" : ""} — ${promoCode} discount applied`
-              : item.qty >= 10 ? `${item.qty} vials — 18% bulk discount applied`
-              : item.qty >= 5  ? `${item.qty} vials — 8% bulk discount applied`
+              ? `${qty} vial${qty > 1 ? "s" : ""} — ${promoCode} discount applied`
+              : qty >= 10 ? `${qty} vials — 18% bulk discount applied`
+              : qty >= 5  ? `${qty} vials — 8% bulk discount applied`
               : "1 vial — Research use only",
             metadata: {
               product_id: String(item.id),
-              qty_ordered: String(item.qty),
+              qty_ordered: String(qty),
             },
           },
           unit_amount: unitAmountCents,
         },
-        quantity: item.qty,
+        quantity: qty,
       };
     });
 
-    // Subtotal for shipping threshold (use original prices)
-    const subtotalCents = items.reduce((sum, item) => sum + Math.round(item.p * 100) * item.qty, 0);
+    // Subtotal for shipping threshold (use canonical prices from catalog)
+    const subtotalCents = items.reduce((sum, item) => {
+      const product = PRODUCTS.find(p => p.id === item.id);
+      const variant = product?.variants?.find(v => v.s === item.size);
+      const price = variant?.p || 0;
+      const qty = Math.max(1, Math.min(99, Math.floor(item.qty || 1)));
+      return sum + Math.round(price * 100) * qty;
+    }, 0);
     const ambassadorFreeShipping = validatedAmbassador?.free_shipping === true;
     const freeShipping = subtotalCents >= 25000 || ambassadorFreeShipping;
 
@@ -183,6 +260,6 @@ export default async function handler(req, res) {
 
   } catch (err) {
     console.error("Stripe error:", err.message);
-    return res.status(500).json({ error: err.message });
+    return res.status(500).json({ error: sanitizeError(err) });
   }
 };
