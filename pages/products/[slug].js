@@ -11,6 +11,7 @@ import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { PRODUCTS_WITH_SLUGS, CATS } from '../../lib/products';
 import { useCart } from '../../lib/CartContext';
+import CartDrawer from '../../components/CartDrawer';
 
 const CAT_MAP = Object.fromEntries(CATS.map(c => [c.id, c]));
 const DISC = { 1: 1, 5: 0.92, 10: 0.82 };
@@ -20,101 +21,34 @@ function calcPrice(unitPrice, qty) {
   return +(unitPrice * qty * rate).toFixed(2);
 }
 
-// ─── Cart Drawer ──────────────────────────────────────────────────────────────
-function CartDrawer() {
-  const { cart, cartOpen, setCartOpen, removeFromCart, updateItemQty, total, count } = useCart();
+// ─── Product Page ─────────────────────────────────────────────────────────────
+export default function ProductPage({ product }) {
+  const router = useRouter();
+  const { cart, total, addCartAndOpen, count, setCartOpen } = useCart();
+  const [selectedVariant, setSelectedVariant] = useState(0);
+  const [qty, setQty] = useState(1);
+  const [added, setAdded] = useState(false);
 
-  const finalTotal = +total.toFixed(2);
-
-  async function checkout() {
+  const productCheckout = async () => {
+    if (!cart.length) return;
     try {
       const res = await fetch('/api/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           items: cart.map(i => ({
-            key: i.key, name: `${i.name} (${i.size})`,
-            price: i.lt / i.qty, qty: i.qty,
+            id: i.id, name: i.name, size: i.size,
+            qty: i.qty, lt: i.lt,
+            p: i.unitPrice || (i.lt / (i.qty >= 10 ? 0.82 : i.qty >= 5 ? 0.92 : 1) / i.qty),
           })),
-          total: finalTotal,
+          total: +total.toFixed(2),
         }),
       });
-      const { url } = await res.json();
-      if (url) window.location.href = url;
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+      else alert(data.error || 'Checkout error — please try again.');
     } catch { alert('Checkout error — please try again.'); }
-  }
-
-  return (
-    <>
-      {cartOpen && (
-        <div onClick={() => setCartOpen(false)}
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 500 }} />
-      )}
-      <div style={{
-        position: 'fixed', top: 0, right: cartOpen ? 0 : -440,
-        width: 420, maxWidth: '100vw', height: '100%',
-        background: '#fff', zIndex: 510,
-        display: 'flex', flexDirection: 'column',
-        boxShadow: '-4px 0 32px rgba(0,0,0,0.18)',
-        transition: 'right .3s ease',
-        fontFamily: "'DM Sans', system-ui, sans-serif",
-      }}>
-        <div style={{ padding: '20px 24px', borderBottom: '1px solid #e8ecf0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ fontWeight: 800, fontSize: 17, color: '#111827' }}>
-            Your Cart {count > 0 && <span style={{ color: '#1a6ed8' }}>({count})</span>}
-          </div>
-          <button onClick={() => setCartOpen(false)} aria-label="Close cart"
-            style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: '#6b7280' }}>✕</button>
-        </div>
-
-        <div style={{ flex: 1, overflowY: 'auto', padding: '16px 24px' }}>
-          {cart.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '48px 0', color: '#6b7280' }}>
-              <div style={{ fontSize: 32, marginBottom: 12 }}>🛒</div>
-              <div style={{ fontWeight: 600, fontSize: 15 }}>Your cart is empty</div>
-            </div>
-          ) : cart.map(item => (
-            <div key={item.key} style={{ display: 'flex', gap: 14, marginBottom: 14, padding: 14, background: '#f8fafc', borderRadius: 12 }}>
-              <img src={item.img} alt={item.name} style={{ width: 56, height: 70, objectFit: 'cover', borderRadius: 8, flexShrink: 0 }} />
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 700, fontSize: 13, color: '#111827', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</div>
-                <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 4 }}>{item.size}</div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 2, marginBottom: 6 }}>
-                  <button onClick={() => updateItemQty(item.key, item.qty - 1)} aria-label="Decrease quantity" style={{ width: 26, height: 26, borderRadius: '50%', border: '1.5px solid #e8ecf0', background: 'transparent', color: '#111827', fontWeight: 700, fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background .15s, border-color .15s', lineHeight: 1, padding: 0 }} onMouseEnter={e => { e.currentTarget.style.background = '#eff5ff'; e.currentTarget.style.borderColor = '#1a6ed8'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = '#e8ecf0'; }}>−</button>
-                  <span style={{ minWidth: 28, textAlign: 'center', fontWeight: 700, fontSize: 13, color: '#111827', userSelect: 'none' }}>{item.qty}</span>
-                  <button onClick={() => updateItemQty(item.key, item.qty + 1)} aria-label="Increase quantity" style={{ width: 26, height: 26, borderRadius: '50%', border: '1.5px solid #e8ecf0', background: 'transparent', color: '#111827', fontWeight: 700, fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background .15s, border-color .15s', lineHeight: 1, padding: 0 }} onMouseEnter={e => { e.currentTarget.style.background = '#eff5ff'; e.currentTarget.style.borderColor = '#1a6ed8'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = '#e8ecf0'; }}>+</button>
-                </div>
-                <div style={{ fontWeight: 800, fontSize: 14, color: '#16a34a' }}>${item.lt.toFixed(2)}</div>
-              </div>
-              <button onClick={() => removeFromCart(item.key)} aria-label="Remove item from cart"
-                style={{ background: 'none', border: 'none', color: '#6b7280', fontSize: 20, cursor: 'pointer', alignSelf: 'flex-start', lineHeight: 1 }}>×</button>
-            </div>
-          ))}
-        </div>
-
-        {cart.length > 0 && (
-          <div style={{ padding: '20px 24px', borderTop: '1px solid #e8ecf0' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: 16, marginBottom: 16 }}>
-              <span>Total</span><span style={{ color: '#1a6ed8' }}>${finalTotal.toFixed(2)}</span>
-            </div>
-            <button onClick={checkout}
-              style={{ width: '100%', background: 'linear-gradient(135deg,#1a6ed8,#2563eb)', border: 'none', color: '#fff', fontWeight: 800, fontSize: 15, padding: 16, borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit' }}>
-              Checkout →
-            </button>
-          </div>
-        )}
-      </div>
-    </>
-  );
-}
-
-// ─── Product Page ─────────────────────────────────────────────────────────────
-export default function ProductPage({ product }) {
-  const router = useRouter();
-  const { addCartAndOpen, count, setCartOpen } = useCart();
-  const [selectedVariant, setSelectedVariant] = useState(0);
-  const [qty, setQty] = useState(1);
-  const [added, setAdded] = useState(false);
+  };
 
   if (!product) return null;
 
@@ -169,7 +103,7 @@ export default function ProductPage({ product }) {
         })}} />
       </Head>
 
-      <CartDrawer />
+      <CartDrawer onCheckout={productCheckout} />
 
       <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", background: '#020817', minHeight: '100vh', color: '#f8fafc' }}>
 
