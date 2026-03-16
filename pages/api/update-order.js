@@ -1,12 +1,17 @@
+import { verifyAdminToken } from './admin/auth';
+import { getSupabaseConfig, sanitizeError } from '../../lib/security';
+
+const { url: SB_URL, key: SB_SERVICE_KEY } = getSupabaseConfig();
+
 export default async function handler(req, res) {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "POST") return res.status(405).end();
 
-  const SB_URL = "https://kafwkhbzdtpsxkufmkmm.supabase.co";
-  const SB_ANON = process.env.SUPABASE_SERVICE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  // ── Require admin authentication ──
+  const token = req.headers['x-admin-token'] || req.body?.admin_token;
+  if (!token || !verifyAdminToken(token)) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
 
   try {
     const { orderId, status, tracking, notes } = req.body;
@@ -21,8 +26,8 @@ export default async function handler(req, res) {
     const sbRes = await fetch(`${SB_URL}/rest/v1/orders?id=eq.${orderId}`, {
       method: "PATCH",
       headers: {
-        "apikey": SB_ANON,
-        "Authorization": `Bearer ${SB_ANON}`,
+        "apikey": SB_SERVICE_KEY,
+        "Authorization": `Bearer ${SB_SERVICE_KEY}`,
         "Content-Type": "application/json",
         "Prefer": "return=representation",
       },
@@ -57,7 +62,7 @@ export default async function handler(req, res) {
     return res.status(200).json({ success: true, order });
   } catch (err) {
     console.error("update-order error:", err.message);
-    return res.status(500).json({ error: "Internal server error." });
+    return res.status(500).json({ error: sanitizeError(err) });
   }
 };
 

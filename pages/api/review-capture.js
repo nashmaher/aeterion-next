@@ -3,11 +3,14 @@
 // Generates a unique one-time 10% discount code and emails it to them.
 
 import { createClient } from '@supabase/supabase-js';
+import { rateLimiter, validateEmail } from '../../lib/security';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_KEY
 );
+
+const reviewLimiter = rateLimiter('review-capture', 3, 60 * 60 * 1000); // 3 per hour per email
 
 function generateCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no confusable chars (0/O, 1/I)
@@ -59,7 +62,13 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const { email, productId, productName } = req.body;
-  if (!email || !email.includes('@')) return res.status(400).json({ error: 'Valid email required' });
+  if (!validateEmail(email)) return res.status(400).json({ error: 'Valid email required' });
+
+  // Rate limit by email
+  const { allowed } = reviewLimiter(email.toLowerCase().trim());
+  if (!allowed) {
+    return res.status(200).json({ success: true, message: 'Check your email for the discount code.' });
+  }
 
   const cleanEmail = email.toLowerCase().trim();
 
@@ -72,12 +81,8 @@ export default async function handler(req, res) {
       .single();
 
     if (existing) {
-      // Already issued — return existing code if unused, block if used
-      if (!existing.code_used) {
-        return res.status(200).json({ code: existing.code });
-      } else {
-        return res.status(200).json({ success: true, message: 'Code already used' });
-      }
+      // Already issued — don't reveal code in API response (only via email)
+      return res.status(200).json({ success: true, message: 'Check your email for the discount code.' });
     }
   } catch {
     // No existing row — proceed to generate
@@ -104,5 +109,5 @@ export default async function handler(req, res) {
     console.error('Review discount email failed:', e.message);
   }
 
-  return res.status(200).json({ success: true, code });
+  return res.status(200).json({ success: true, message: 'Check your email for the discount code.' });
 }

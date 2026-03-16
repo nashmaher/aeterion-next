@@ -108,7 +108,7 @@ function LoginForm({ onLogin }) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      onLogin(data.ambassador);
+      onLogin(data.ambassador, data.session_token);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -238,7 +238,7 @@ function LoginForm({ onLogin }) {
 }
 
 // ── Dashboard ──────────────────────────────────────────────
-function Dashboard({ ambassador, onLogout }) {
+function Dashboard({ ambassador, sessionToken, onLogout }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
@@ -247,12 +247,15 @@ function Dashboard({ ambassador, onLogout }) {
     fetch('/api/ambassador/dashboard', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ambassador_id: ambassador.id }),
+      body: JSON.stringify({ session_token: sessionToken }),
     })
-      .then(r => r.json())
-      .then(d => { setData(d); setLoading(false); })
+      .then(r => {
+        if (r.status === 401) { onLogout(); return null; }
+        return r.json();
+      })
+      .then(d => { if (d) setData(d); setLoading(false); })
       .catch(() => setLoading(false));
-  }, [ambassador.id]);
+  }, [sessionToken, onLogout]);
 
   const copyCode = () => {
     navigator.clipboard.writeText(ambassador.promo_code);
@@ -456,24 +459,37 @@ function Dashboard({ ambassador, onLogout }) {
 // ── Main Export ────────────────────────────────────────────
 export default function AmbassadorPortal() {
   const [ambassador, setAmbassador] = useState(null);
+  const [sessionToken, setSessionToken] = useState(null);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
     try {
       const saved = sessionStorage.getItem('aeterion_ambassador');
-      if (saved) setAmbassador(JSON.parse(saved));
+      const savedToken = sessionStorage.getItem('aeterion_ambassador_token');
+      if (saved && savedToken) {
+        setAmbassador(JSON.parse(saved));
+        setSessionToken(savedToken);
+      }
     } catch {}
   }, []);
 
-  const handleLogin = (amb) => {
+  const handleLogin = (amb, token) => {
     setAmbassador(amb);
-    try { sessionStorage.setItem('aeterion_ambassador', JSON.stringify(amb)); } catch {}
+    setSessionToken(token);
+    try {
+      sessionStorage.setItem('aeterion_ambassador', JSON.stringify(amb));
+      sessionStorage.setItem('aeterion_ambassador_token', token);
+    } catch {}
   };
 
   const handleLogout = () => {
     setAmbassador(null);
-    try { sessionStorage.removeItem('aeterion_ambassador'); } catch {}
+    setSessionToken(null);
+    try {
+      sessionStorage.removeItem('aeterion_ambassador');
+      sessionStorage.removeItem('aeterion_ambassador_token');
+    } catch {}
   };
 
   if (!mounted) return null;
@@ -486,7 +502,7 @@ export default function AmbassadorPortal() {
         <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
       </Head>
       {ambassador
-        ? <Dashboard ambassador={ambassador} onLogout={handleLogout} />
+        ? <Dashboard ambassador={ambassador} sessionToken={sessionToken} onLogout={handleLogout} />
         : <LoginForm onLogin={handleLogin} />
       }
     </>

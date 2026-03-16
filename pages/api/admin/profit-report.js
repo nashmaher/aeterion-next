@@ -4,10 +4,10 @@
 // Returns: store_summary, products[], orders[], ambassadors[], generated_at
 
 import { verifyAdminToken } from './auth';
+import { getSupabaseConfig, sanitizeError } from '../../../lib/security';
 const { PRODUCTS } = require('../../../lib/products');
 
-const SB_URL = 'https://kafwkhbzdtpsxkufmkmm.supabase.co';
-const SB_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const { url: SB_URL, key: SB_KEY } = getSupabaseConfig();
 
 async function sb(path) {
   const res = await fetch(`${SB_URL}/rest/v1/${path}`, {
@@ -267,6 +267,6 @@ export default async function handler(req, res) {
 
   } catch (e) {
     console.error('profit-report error:', e.message);
-    return res.status(500).json({ error: e.message });
+    return res.status(500).json({ error: sanitizeError(e) });
   }
 }

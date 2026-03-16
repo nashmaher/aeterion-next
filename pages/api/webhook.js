@@ -1,10 +1,10 @@
 import Stripe from "stripe";
+import { getSupabaseConfig, sanitizeError } from "../../lib/security";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: "2025-01-27.acacia" });
 const isDev = process.env.NODE_ENV !== "production";
 const log = (...args) => { if (isDev) console.log(...args); };
-const SB_URL = "https://kafwkhbzdtpsxkufmkmm.supabase.co";
-const SB_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImthZndraGJ6ZHRwc3hrdWZta21tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MDEyODAsImV4cCI6MjA4ODQ3NzI4MH0.sa4_CFHQpBkWVc02et_pSsu35wqPLQpD8g4WIxYRCIA";
+const { url: SB_URL, key: SB_KEY } = getSupabaseConfig();
 
 function generateOrderNumber(sessionId) {
   const num = parseInt(sessionId.replace(/\D/g, "").slice(-5)) % 99999;
@@ -168,11 +168,32 @@ function buildAmbassadorEmail({ ambassadorName, ambassadorEmail, customerEmail, 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
 
-  log("=== WEBHOOK RECEIVED ===", req.body?.type);
+  // ── Read raw body for signature verification ──
+  const chunks = [];
+  for await (const chunk of req) chunks.push(chunk);
+  const rawBody = Buffer.concat(chunks);
+
+  // ── Verify Stripe webhook signature ──
+  const sig = req.headers["stripe-signature"];
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  if (!webhookSecret) {
+    console.error("STRIPE_WEBHOOK_SECRET not configured");
+    return res.status(500).json({ error: "Webhook not configured" });
+  }
+
+  let event;
+  try {
+    event = stripe.webhooks.constructEvent(rawBody, sig, webhookSecret);
+  } catch (err) {
+    console.error("Webhook signature verification failed:", err.message);
+    return res.status(400).json({ error: "Invalid signature" });
+  }
+
+  log("=== WEBHOOK RECEIVED ===", event.type);
 
   // Log full session data immediately so we can debug
   try {
-    const preview = req.body?.data?.object;
+    const preview = event.data?.object;
     log("Session preview:", JSON.stringify({
       id: preview?.id,
       amount_total: preview?.amount_total,
@@ -182,7 +203,6 @@ export default async function handler(req, res) {
   } catch {}
 
   try {
-    const event = req.body;
     if (!event?.type) return res.status(400).json({ error: "Invalid event" });
 
     if (event.type === "checkout.session.completed") {
@@ -347,8 +367,8 @@ export default async function handler(req, res) {
     return res.status(200).json({ received: true });
   } catch (err) {
     console.error("✗ Webhook top-level error:", err.message);
-    return res.status(500).json({ error: err.message });
+    return res.status(500).json({ error: sanitizeError(err) });
   }
 }
 
-export const config = { api: { bodyParser: { sizeLimit: "1mb" } } };
+export const config = { api: { bodyParser: false } };

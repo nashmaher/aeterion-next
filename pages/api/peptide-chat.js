@@ -1,6 +1,8 @@
 // pages/api/peptide-chat.js
 // Streaming AI research assistant — powered by Google Gemini (free tier)
 
+import { setCorsHeaders } from '../../lib/security';
+
 const CATALOG = `
 AETERION LABS — FULL PRODUCT CATALOG (for research guidance only)
 
@@ -135,9 +137,7 @@ TONE: Direct, expert, helpful. Like a knowledgeable colleague who gives straight
 
 export default async function handler(req, res) {
   if (req.method === "OPTIONS") {
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+    setCorsHeaders(req, res);
     return res.status(200).end();
   }
 
@@ -153,7 +153,7 @@ export default async function handler(req, res) {
     res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache");
     res.setHeader("Connection", "keep-alive");
-    res.setHeader("Access-Control-Allow-Origin", "*");
+    setCorsHeaders(req, res);
 
     // Convert messages to Gemini format (uses "model" instead of "assistant")
     const geminiContents = messages.slice(-10).map(m => ({

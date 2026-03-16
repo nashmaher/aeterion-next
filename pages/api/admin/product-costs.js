@@ -6,10 +6,10 @@
 // POST action="seed": one-time import of confirmed supplier cost data
 
 import { verifyAdminToken } from './auth';
+import { getSupabaseConfig } from '../../../lib/security';
 const { PRODUCTS } = require('../../../lib/products');
 
-const SB_URL = 'https://kafwkhbzdtpsxkufmkmm.supabase.co';
-const SB_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const { url: SB_URL, key: SB_KEY } = getSupabaseConfig();
 
 async function sb(path, method = 'GET', body = null, extraHeaders = {}) {
   const res = await fetch(`${SB_URL}/rest/v1/${path}`, {
