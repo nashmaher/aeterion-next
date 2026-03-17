@@ -1,6 +1,7 @@
 // components/CartDrawer.js
 // Shared cart drawer used by store page and product pages
 
+import { useState } from 'react';
 import { useCart, MAX_QTY } from '../lib/CartContext';
 import { T, fmt, btnPrimary } from '../lib/theme';
 
@@ -17,6 +18,7 @@ export default function CartDrawer({
   paymentMsg,
 }) {
   const { cart, cartOpen, setCartOpen, removeFromCart, updateItemQty, count, total } = useCart();
+  const [ackChecked, setAckChecked] = useState(false);
 
   const hasPromo = typeof onPromoApply === 'function';
 
@@ -147,7 +149,12 @@ export default function CartDrawer({
                 </div>
               )}
 
-              <button onClick={onCheckout} style={{ ...btnPrimary({ width: "100%", padding: "14px", fontSize: 14, borderRadius: 12, boxShadow: "0 4px 14px rgba(26,110,216,0.28)" }) }}>Checkout</button>
+              {/* Research Use Acknowledgment Gate */}
+              <label style={{ display: "flex", gap: 10, alignItems: "flex-start", marginBottom: 14, cursor: "pointer", fontSize: 11, color: T.sub, lineHeight: 1.6, padding: "10px 12px", background: "#f8fafc", borderRadius: 10, border: `1.5px solid ${ackChecked ? T.blue : T.border}`, transition: "border-color .2s" }}>
+                <input type="checkbox" checked={ackChecked} onChange={e => setAckChecked(e.target.checked)} style={{ marginTop: 2, width: 16, height: 16, accentColor: T.blue, flexShrink: 0 }} />
+                <span>I confirm that I am a licensed researcher, scientist, or qualified professional purchasing these compounds solely for in vitro laboratory research purposes. I acknowledge these products are not for human or animal consumption, are not FDA-approved, and are not intended for diagnostic or therapeutic use. I have read and agree to the <a href="/terms" target="_blank" rel="noopener noreferrer" style={{ color: T.blue, fontWeight: 700, textDecoration: "underline" }}>Terms of Service</a>.</span>
+              </label>
+              <button onClick={onCheckout} disabled={!ackChecked} style={{ ...btnPrimary({ width: "100%", padding: "14px", fontSize: 14, borderRadius: 12, boxShadow: ackChecked ? "0 4px 14px rgba(26,110,216,0.28)" : "none", ...(ackChecked ? {} : { background: "#cbd5e1", cursor: "not-allowed" }) }) }}>Checkout</button>
             </div>
           </>
         )}
