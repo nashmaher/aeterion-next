@@ -625,7 +625,7 @@ export default function StackBuilder({ onClose, addCart, setCartOpen }) {
             borderRadius: 10, border: "1.5px solid #fbbf24",
             display: "flex", gap: 10, alignItems: "flex-start",
           }}>
-            <span style={{ fontSize: 14, flexShrink: 0 }}>⚠️</span>
+            <span style={{ fontSize: 11, flexShrink: 0, fontWeight: 800, color: "#92400e", width: 18, height: 18, borderRadius: "50%", border: "2px solid #92400e", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>!</span>
             <span><strong>Research Use Only:</strong> This tool provides educational guidance based on published research and is not medical advice, a clinical recommendation, or guidance for human use. All compounds listed are for in vitro laboratory research only. Not for human or animal consumption. Not FDA-approved.</span>
           </div>
 
@@ -709,7 +709,7 @@ export default function StackBuilder({ onClose, addCart, setCartOpen }) {
         {/* Research Tool Disclaimer */}
         {step === 0 && (
           <div style={{ background: "#fffbeb", border: "1.5px solid #fbbf24", borderRadius: 12, padding: "12px 16px", marginBottom: 20, display: "flex", gap: 10, alignItems: "flex-start" }}>
-            <span style={{ fontSize: 16, flexShrink: 0 }}>⚠️</span>
+            <span style={{ fontSize: 13, flexShrink: 0, fontWeight: 800, color: "#92400e", width: 20, height: 20, borderRadius: "50%", border: "2px solid #92400e", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>!</span>
             <div style={{ fontSize: 11, color: "#92400e", lineHeight: 1.7, fontWeight: 500 }}>
               <strong>Research Tool Only:</strong> This tool is designed to assist qualified researchers in identifying compounds relevant to their research parameters. It does not constitute medical advice, a clinical recommendation, or guidance for human use. All compounds are for in vitro laboratory research only.
             </div>

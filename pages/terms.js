@@ -41,7 +41,7 @@ export default function Terms() {
 
           {S("1. Research Use Only", <>
             <div style={{ background: "#fffbeb", border: "1.5px solid #fbbf24", borderRadius: 12, padding: "14px 18px", marginBottom: 14, display: "flex", gap: 10, alignItems: "flex-start" }}>
-              <span style={{ fontSize: 16, flexShrink: 0 }}>⚠️</span>
+              <span style={{ fontSize: 13, flexShrink: 0, fontWeight: 800, color: "#92400e", width: 20, height: 20, borderRadius: "50%", border: "2px solid #92400e", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>!</span>
               <div style={{ fontWeight: 600, color: "#92400e", fontSize: 13, lineHeight: 1.7 }}>
                 All products sold by Aeterion Labs are intended exclusively for in vitro laboratory research purposes conducted by qualified professionals. They are NOT for human consumption, veterinary use, therapeutic application, or any diagnostic purpose.
               </div>
