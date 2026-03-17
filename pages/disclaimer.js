@@ -37,7 +37,7 @@ export default function Disclaimer() {
         <div style={{ background: T.white, borderRadius: 16, border: `1px solid ${T.border}`, padding: "36px 32px" }}>
 
           <div style={{ background: "#fffbeb", border: "2px solid #fbbf24", borderRadius: 14, padding: "20px 24px", marginBottom: 32, display: "flex", gap: 14, alignItems: "flex-start" }}>
-            <span style={{ fontSize: 24, flexShrink: 0 }}>⚠️</span>
+            <span style={{ fontSize: 16, flexShrink: 0, fontWeight: 800, color: "#92400e", width: 24, height: 24, borderRadius: "50%", border: "2px solid #92400e", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>!</span>
             <div>
               <div style={{ fontWeight: 800, fontSize: 15, color: "#92400e", marginBottom: 6 }}>FOR IN VITRO RESEARCH USE ONLY</div>
               <div style={{ fontSize: 13, color: "#a16207", lineHeight: 1.7 }}>

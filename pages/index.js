@@ -3365,7 +3365,7 @@ export default function App() {
   /* ════════════════════ LEGAL / DISCLAIMER PAGE ════════════════════ */
   const LegalPage = () => {
     const sections = [
-      { id: "disclaimer", title: "Research Use Disclaimer", icon: "⚠️", content: [
+      { id: "disclaimer", title: "Research Use Disclaimer", icon: "!", content: [
         "All products sold by Aeterion Peptides are strictly intended for laboratory and in vitro research purposes only. These compounds are not approved by the U.S. Food and Drug Administration (FDA) or any other regulatory authority for human or veterinary use, consumption, or therapeutic application.",
         "By purchasing any product from aeterionpeptides.com, you affirm that you are a qualified researcher, scientist, or laboratory professional purchasing these compounds solely for scientific research purposes. You must be at least 18 years of age to purchase.",
         "Aeterion Peptides makes no claims that any of its products are safe, effective, or appropriate for use in humans or animals. We expressly disclaim any responsibility for any harm, injury, or adverse outcome resulting from misuse of our products.",
@@ -3380,7 +3380,7 @@ export default function App() {
         "Aeterion Peptides is not responsible for delays caused by carrier issues, weather events, or customs processing. Tracking information will be provided via email once your order ships. We do not ship to PO boxes.",
         "All peptide compounds are shipped with appropriate cold-packing to preserve integrity during transit. Lyophilized (freeze-dried) compounds are stable at room temperature for short transit periods but should be stored at -20°C upon receipt.",
       ]},
-      { id: "returns", title: "Return Policy", icon: "↩️", content: [
+      { id: "returns", title: "Return Policy", icon: "←", content: [
         "Due to the nature of research chemicals and the importance of maintaining chain of custody, all sales are considered final. We do not accept returns or exchanges on any products once shipped.",
         "If you receive a product that is damaged, incorrect, or does not match the Certificate of Analysis, please contact info@aeterionpeptides.com within 48 hours of delivery with photographic evidence and your order number.",
         "Aeterion Peptides will investigate all legitimate claims and may, at its sole discretion, offer replacement product or store credit. We reserve the right to request the return of allegedly defective product before issuing any remedy.",
@@ -3433,7 +3433,7 @@ export default function App() {
           {/* Big disclaimer banner */}
           <div style={{ background: "#fffbeb", border: "2px solid #fbbf24", borderRadius: 14, padding: "18px 22px", marginBottom: 32 }}>
             <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-              <span style={{ fontSize: 22, flexShrink: 0 }}>⚠️</span>
+              <span style={{ fontSize: 16, flexShrink: 0, fontWeight: 800, color: "#92400e", width: 22, height: 22, borderRadius: "50%", border: "2px solid #92400e", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>!</span>
               <div>
                 <div style={{ fontWeight: 800, fontSize: 14, color: "#92400e", marginBottom: 5 }}>FOR RESEARCH USE ONLY — NOT FOR HUMAN CONSUMPTION</div>
                 <div style={{ fontSize: 13, color: "#a16207", lineHeight: 1.7 }}>All compounds sold by Aeterion Peptides are intended solely for in vitro research and laboratory use. They are not drugs, supplements, or food products. They have not been approved by the FDA. You must be 18 or older to purchase.</div>
@@ -4860,7 +4860,9 @@ export default function App() {
       {!ageVerified && (
         <div style={{ position: "fixed", inset: 0, zIndex: 99999, background: "rgba(0,0,0,0.85)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20, fontFamily: "'DM Sans', system-ui, sans-serif" }}>
           <div style={{ background: "#111827", borderRadius: 20, padding: mob ? "36px 24px" : "48px 40px", maxWidth: 440, width: "100%", textAlign: "center", border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 24px 80px rgba(0,0,0,0.6)" }}>
-            <div style={{ width: 56, height: 56, borderRadius: "50%", background: "rgba(26,110,216,0.15)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px", fontSize: 24 }}>🔬</div>
+            <div style={{ width: 56, height: 56, borderRadius: "50%", background: "rgba(26,110,216,0.15)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(26,110,216,0.9)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a5 5 0 0 0-5 5v3a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V7a5 5 0 0 0-5-5z"/><rect x="4" y="11" width="16" height="11" rx="2"/><line x1="12" y1="15" x2="12" y2="18"/></svg>
+            </div>
             <h2 style={{ color: "#fff", fontSize: 20, fontWeight: 800, margin: "0 0 12px", letterSpacing: -0.3 }}>Age Verification Required</h2>
             <p style={{ color: "rgba(255,255,255,0.7)", fontSize: 14, lineHeight: 1.7, margin: "0 0 28px" }}>This website is intended for qualified research professionals only. Are you 18 years of age or older?</p>
             <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
