@@ -6,6 +6,29 @@ import { T, fmt, btnPrimary, btnOutline } from "../lib/theme";
 import { useCart } from "../lib/CartContext";
 import CartDrawer from "../components/CartDrawer";
 
+/* ─── Sanitize product descriptions for research compliance ─── */
+function sanitizeResearchDescription(text) {
+  if (!text) return text;
+  const MAP = [
+    [/achieve weight loss/gi, "studied in preclinical models for metabolic research"],
+    [/promote healing/gi, "examined in research contexts for tissue repair mechanisms"],
+    [/improve cognition/gi, "investigated in preclinical neurological research"],
+    [/support cardiovascular health/gi, "studied in cardiovascular research models"],
+    [/weight reduction/gi, "metabolic research applications"],
+    [/fat loss/gi, "adipose tissue research"],
+    [/muscle building/gi, "myotropic research"],
+    [/anti-aging/gi, "longevity research"],
+    [/\btreat\b/gi, "studied in models of"],
+    [/\bcure\b/gi, "investigated in relation to"],
+    [/prevent disease/gi, "examined in disease prevention research"],
+  ];
+  let result = text;
+  for (const [pattern, replacement] of MAP) {
+    result = result.replace(pattern, replacement);
+  }
+  return result;
+}
+
 /* ─── Supabase live inventory ─── */
 const SB_URL = "https://kafwkhbzdtpsxkufmkmm.supabase.co";
 const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImthZndraGJ6ZHRwc3hrdWZta21tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MDEyODAsImV4cCI6MjA4ODQ3NzI4MH0.sa4_CFHQpBkWVc02et_pSsu35wqPLQpD8g4WIxYRCIA";
@@ -221,7 +244,6 @@ function AeterionLogo({ size = 44, showText = true, textColor = "#1B3A6B", dark 
 /* ─── PRODUCT IMAGES — swap these URLs once you generate in ChatGPT ─── */
 const VIAL = "https://res.cloudinary.com/djxfmxrfx/image/upload/w_400,h_500,c_fill,f_auto,q_auto/image_Mar_5_2026_12_57_37_AM_wsipaw";
 const IMGS = {
-  metabolic:   VIAL,
   growth:      VIAL,
   recovery:    VIAL,
   longevity:   VIAL,
@@ -232,11 +254,9 @@ const IMGS = {
   ancillaries: VIAL,
 };
 
-
 const DISC = { 1: 1, 5: 0.92, 10: 0.82 };
 
 const CATS = [
-  { id:"metabolic",   label:"GLP-1 / Metabolic",     icon:"" },
   { id:"growth",      label:"Growth Hormone",         icon:"" },
   { id:"recovery",    label:"Recovery & Healing",     icon:"" },
   { id:"longevity",   label:"Longevity & Anti-Aging", icon:"" },
@@ -253,69 +273,6 @@ const P = (id, cat, name, variants, desc, badge = null, isNew = false, form = "i
 
 // Long-form research content for all products (shown in modal)
 const RESEARCH = {
-  1: {
-    mechanism: `Semaglutide is a 94% homologous analogue of endogenous GLP-1, engineered with a C18 fatty diacid chain at lysine 26 enabling reversible albumin binding. This extends plasma half-life to approximately 165–184 hours, making once-weekly dosing feasible in research models.`,
-    pharmacology: `GLP-1 receptors are expressed in pancreatic beta cells, hypothalamus, brainstem, heart, kidneys, and gut. Activation produces glucose-dependent insulin secretion, glucagon suppression, slowed gastric emptying, and centrally-mediated appetite reduction.`,
-    research: `STEP 1 showed 14.9% mean body weight reduction over 68 weeks at 2.4mg weekly vs 2.4% placebo. SUSTAIN-6 cardiovascular outcomes trial demonstrated a 26% reduction in major adverse cardiovascular events.`,
-    storage: `Store lyophilized at -20°C. Once reconstituted, stable 28 days at 2–8°C protected from light. Avoid freeze-thaw cycles. Reconstitute with bacteriostatic water.`,
-    specs: [["Molecular Formula", "C₁₈₇H₂₉₁N₄₅O₅₉"], ["Molecular Weight", "4113.6 Da"], ["Half-life", "~165–184 hours"], ["Storage", "-20°C lyophilized"], ["Purity", "≥99% (HPLC)"], ["Form", "Lyophilized powder"]],
-  },
-  2: {
-    mechanism: `Tirzepatide is a 39-amino acid dual agonist at GIP and GLP-1 receptors. Simultaneous activation of both incretin pathways produces synergistic effects on insulin secretion, glucagon suppression, and energy balance that exceed single-agonist compounds.`,
-    pharmacology: `GIP receptor activation enhances insulin secretion, promotes adiponectin from adipose tissue, and improves peripheral insulin sensitivity. Combined with GLP-1's appetite and gastric emptying effects, the dual mechanism produces uniquely potent metabolic outcomes.`,
-    research: `SURPASS-2 showed tirzepatide 15mg achieved 2.37% HbA1c reduction and 11.2kg weight loss vs semaglutide 1mg's 1.86% and 6.2kg. SURMOUNT-1 demonstrated 20.9% mean weight reduction at 15mg — the largest pharmacological weight reduction observed at that time.`,
-    storage: `Store lyophilized at -20°C. Stable 28 days at 2–8°C once reconstituted. Protect from light. Use bacteriostatic water.`,
-    specs: [["Molecular Formula", "C₂₂₅H₃₄₈N₄₈O₆₈"], ["Molecular Weight", "4813.5 Da"], ["Half-life", "~5 days"], ["Storage", "-20°C lyophilized"], ["Purity", "≥99% (HPLC)"], ["Receptor Targets", "GIP-R + GLP-1R"]],
-  },
-  3: {
-    mechanism: `Retatrutide is a triple agonist at GLP-1, GIP, and glucagon receptors simultaneously. The glucagon component adds thermogenic and energy expenditure effects to incretin-mediated appetite suppression, creating a three-pathway metabolic intervention.`,
-    pharmacology: `Glucagon receptor activation increases hepatic glucose output, promotes lipolysis, and raises basal metabolic rate — effects complementing the insulin-sensitizing and appetite-suppressing properties of its GLP-1 and GIP components. This positions retatrutide for severe metabolic dysfunction research.`,
-    research: `Phase 2 trials showed 24.2% body weight reduction at the highest dose over 48 weeks — surpassing all prior pharmacological records. Subjects showed reductions in liver fat, triglycerides, and visceral adiposity beyond what dual agonists achieved.`,
-    storage: `Store lyophilized at -20°C. Reconstitute with bacteriostatic water; stable 28 days at 2–8°C. Protect from light and avoid freeze-thaw cycling.`,
-    specs: [["Receptor Targets", "GLP-1R + GIP-R + GcgR"], ["Half-life", "~6 days (estimated)"], ["Storage", "-20°C lyophilized"], ["Purity", "≥99% (HPLC)"], ["Generation", "Next-gen triple agonist"], ["Status", "Phase 2/3 clinical research"]],
-  },
-  4: {
-    mechanism: `Liraglutide is a long-acting GLP-1 analogue with 97% sequence homology to native human GLP-1, modified with a C16 fatty acid at lysine 26 via a glutamic acid spacer. This enables albumin binding and extends half-life to ~13 hours, allowing once-daily dosing.`,
-    pharmacology: `As a GLP-1 receptor agonist, liraglutide increases glucose-dependent insulin secretion, suppresses glucagon, delays gastric emptying, and reduces hypothalamic appetite signaling. Its cardiovascular benefits are well-documented through multiple large outcome trials.`,
-    research: `The LEADER cardiovascular outcomes trial demonstrated 13% reduction in major adverse cardiovascular events. SCALE trials documented 5–8% body weight reduction over 56 weeks. Liraglutide has over a decade of clinical data as one of the most extensively studied GLP-1 analogues.`,
-    storage: `Store lyophilized at -20°C. Reconstituted solution stable 28 days at 2–8°C. Use bacteriostatic water.`,
-    specs: [["Molecular Formula", "C₁₇₂H₂₆₅N₄₃O₅₁"], ["Molecular Weight", "3751.2 Da"], ["Half-life", "~13 hours"], ["Homology", "97% to native GLP-1"], ["Storage", "-20°C lyophilized"], ["Purity", "≥99% (HPLC)"]],
-  },
-  5: {
-    mechanism: `Dulaglutide is a GLP-1 receptor agonist fused to a human IgG4 Fc fragment via two short peptide linkers. This architecture creates a large molecule resistant to DPP-4 degradation and renal clearance, extending half-life to approximately 5 days for once-weekly dosing.`,
-    pharmacology: `The Fc fusion stabilizes the GLP-1 analogue and reduces immunogenicity while maintaining receptor agonism. Effects include glucose-dependent insulin secretion, glucagon suppression, gastric emptying delay, and satiety signaling.`,
-    research: `The AWARD trial series across 8 trials demonstrated consistent HbA1c reductions of 1.1–1.6% and body weight reductions of 2–4kg. REWIND cardiovascular outcomes trial showed 12% reduction in major adverse cardiovascular events.`,
-    storage: `Store lyophilized at -20°C. Reconstituted solution stable 14 days at 2–8°C. Handle gently — the large Fc-fusion structure is sensitive to vigorous agitation.`,
-    specs: [["Molecular Weight", "~59,700 Da"], ["Structure", "GLP-1 analogue + IgG4-Fc fusion"], ["Half-life", "~5 days"], ["Dosing", "Once weekly"], ["Storage", "-20°C lyophilized"], ["Purity", "≥98% (HPLC)"]],
-  },
-  6: {
-    mechanism: `Mazdutide (IBI362) is a dual GLP-1 and glucagon receptor co-agonist. The glucagon component raises basal energy expenditure and promotes hepatic fat oxidation while the GLP-1 component suppresses appetite and improves insulin sensitivity.`,
-    pharmacology: `Glucagon receptor agonism produces hepatic effects including increased glycogenolysis, lipolysis, and fatty acid oxidation. These thermogenic effects add a distinct dimension to GLP-1-only approaches, potentially addressing metabolic adaptation to caloric restriction.`,
-    research: `Chinese Phase 2 trials showed weight reductions of 10–14% over 24 weeks. Liver fat reduction was notable, making it a subject of active NASH research. The compound is advancing through Phase 3 trials in China with international data emerging.`,
-    storage: `Store lyophilized at -20°C. Reconstitute with bacteriostatic water; stable 28 days at 2–8°C. Handle with standard peptide storage precautions.`,
-    specs: [["Also Known As", "IBI362"], ["Receptor Targets", "GLP-1R + GcgR"], ["Storage", "-20°C lyophilized"], ["Purity", "≥99% (HPLC)"], ["Research Stage", "Phase 3 (China)"], ["Key Indication", "Obesity + NASH research"]],
-  },
-  7: {
-    mechanism: `Survodutide (BI 456906) is a potent GLP-1 and glucagon receptor co-agonist with a bias toward glucagon receptor agonism. This glucagon-heavy profile produces stronger thermogenic and hepatic fat-reducing effects compared to more balanced dual agonists.`,
-    pharmacology: `The glucagon-biased mechanism makes survodutide particularly relevant for NAFLD and NASH research. Glucagon receptor activation promotes hepatic beta-oxidation of fatty acids and reduces hepatic lipogenesis, while GLP-1 simultaneously suppresses appetite.`,
-    research: `Phase 2 NASH trials showed liver fat reduction of up to 60% and body weight reductions of 12–15% over 24 weeks. Boehringer Ingelheim's Phase 2b NASH trial results positioned survodutide as a leading candidate in NASH pharmacotherapy research.`,
-    storage: `Store lyophilized at -20°C. Reconstitute with bacteriostatic water. Stable 28 days at 2–8°C refrigerated. Standard peptide cold-chain shipping.`,
-    specs: [["Also Known As", "BI 456906"], ["Receptor Bias", "Glucagon-biased dual agonist"], ["Storage", "-20°C lyophilized"], ["Purity", "≥99% (HPLC)"], ["Key Research", "NAFLD/NASH models"], ["Status", "Phase 2b/3 trials"]],
-  },
-  8: {
-    mechanism: `Cagrilintide is a long-acting amylin analogue engineered with a fatty acid modification enabling once-weekly dosing. It acts through amylin receptors (AMY1–3, calcitonin receptor complexes) to suppress glucagon secretion, slow gastric emptying, and reduce food intake via central mechanisms.`,
-    pharmacology: `Amylin and GLP-1 act through distinct but complementary receptors — amylin receptors are highly expressed in the area postrema of the brainstem, while GLP-1 receptors predominate in the hypothalamus and vagus nerve. This anatomical separation means combined stimulation targets appetite through multiple non-redundant neural circuits.`,
-    research: `Phase 2 trials of cagrilintide monotherapy showed dose-dependent weight loss of 6–11% over 26 weeks. Combined with semaglutide (CagriSema), additive effects exceeding 15% weight loss were observed — consistent with the complementary receptor mechanisms. Published data in NEJM validated the dual approach.`,
-    storage: `Store lyophilized at -20°C. Reconstitute with bacteriostatic water; stable 28 days at 2–8°C. Handle identically to other long-acting peptide analogues.`,
-    specs: [["Target", "Amylin receptors (AMY1–3)"], ["Half-life", "~7 days"], ["Dosing", "Once weekly"], ["Storage", "-20°C lyophilized"], ["Purity", "≥99% (HPLC)"], ["Combination", "Synergistic with semaglutide"]],
-  },
-  9: {
-    mechanism: `Cagrisema combines cagrilintide (amylin analogue) and semaglutide (GLP-1 analogue) in a single co-formulation. The two peptides act on anatomically and pharmacologically distinct receptor systems, producing additive rather than redundant appetite-suppressing and metabolic effects.`,
-    pharmacology: `Semaglutide's hypothalamic GLP-1 signaling and cagrilintide's area postrema amylin signaling represent parallel neural pathways to the same outcome: reduced food intake and improved energy homeostasis. Co-administration amplifies both pathways simultaneously, explaining superior outcomes vs either compound alone.`,
-    research: `The REDEFINE Phase 3 program demonstrated 22.7% mean weight reduction at 52 weeks in subjects with obesity — one of the highest pharmacologically-achieved weight reductions in clinical research history. The combination is being evaluated across multiple metabolic indications.`,
-    storage: `Store lyophilized at -20°C. Stable 28 days at 2–8°C. Both peptides are compatible in solution.`,
-    specs: [["Components", "Cagrilintide + Semaglutide"], ["Mechanism", "Dual amylin + GLP-1 agonism"], ["Clinical Result", "~22.7% weight reduction"], ["Storage", "-20°C lyophilized"], ["Purity", "≥98% (HPLC)"], ["Dosing", "Once weekly co-formulation"]],
-  },
   11: {
     mechanism: `Ipamorelin is a selective pentapeptide GHRP and ghrelin receptor agonist. Its selectivity for GHS-R1a distinguishes it from earlier GHRPs — it stimulates GH release without meaningfully activating ACTH, cortisol, or prolactin pathways.`,
     pharmacology: `Binding to GHS-R1a in the hypothalamus and anterior pituitary triggers GH release through phospholipase C and PKC signaling. The pulsatile GH release ipamorelin produces mirrors physiological GH secretion patterns. IGF-1 levels rise downstream, promoting anabolic and regenerative signaling.`,
@@ -386,33 +343,12 @@ const RESEARCH = {
     storage: `Store lyophilized at -20°C. Reconstitute with bacteriostatic water. Stable 14 days at 2–8°C. Follistatin is a glycoprotein — handle gently and avoid vigorous agitation.`,
     specs: [["Type", "Glycoprotein / TGF-β antagonist"], ["Molecular Weight", "~35,000 Da"], ["Primary Target", "Myostatin (GDF-8)"], ["Also Inhibits", "Activin A, Activin B"], ["Storage", "-20°C lyophilized"], ["Purity", "≥95% (HPLC)"]],
   },
-  22: {
-    mechanism: `BPC-157 is a synthetic pentadecapeptide (Gly-Glu-Pro-Pro-Pro-Gly-Lys-Pro-Ala-Asp-Asp-Ala-Gly-Leu-Val) derived from a gastric juice protein. It activates FAK-paxillin signaling, upregulates growth factors (EGF, VEGF, TGF-β), and modulates the NO system — promoting cell migration and angiogenesis.`,
-    pharmacology: `Tissue repair mechanisms include accelerated fibroblast migration via focal adhesion kinase activation, upregulation of VEGF for neovascularization, modulation of dopaminergic and serotonergic systems, and interaction with the NO synthase pathway. Its oral bioavailability is remarkable among peptides, suggesting multiple absorption mechanisms.`,
-    research: `Over 200 published preclinical studies document healing of tendon, ligament, muscle, GI tract, bone, and neural tissue. Key findings: complete Achilles tendon healing in 14 days vs 28+ days control, protection against NSAID-induced GI damage, acceleration of bowel anastomosis healing, and neuroprotection in TBI models. No LD50 established.`,
-    storage: `Store lyophilized at -20°C. Reconstituted solution stable 30 days at 2–8°C. BPC-157 is relatively stable. Bacteriostatic water recommended.`,
-    specs: [["Molecular Formula", "C₆₂H₉₈N₁₆O₂₂"], ["Molecular Weight", "1419.5 Da"], ["Sequence", "Gly-Glu-Pro-Pro-Pro-Gly-Lys-Pro-Ala-Asp-Asp-Ala-Gly-Leu-Val"], ["Studies Published", "200+"], ["Storage", "-20°C lyophilized"], ["Purity", "≥99% (HPLC)"]],
-  },
   23: {
     mechanism: `TB-500 is the synthetic analogue of Thymosin Beta-4's central actin-binding domain. Its core mechanism involves G-actin sequestration — binding monomeric actin to regulate actin filament dynamics. This controls cell motility, shape, and cytoskeletal changes required for migration and tissue repair.`,
     pharmacology: `TB-500 activates endothelial progenitor cells and stem cells, reduces NF-κB-mediated inflammation, improves keratinocyte migration for wound closure, and promotes stem cell recruitment to injury sites. Its systemic distribution enables whole-body recovery research vs locally-acting growth factors.`,
     research: `Key research areas: cardiac regeneration post-MI (cardiomyocyte recruitment and vascular regrowth), skeletal muscle repair (accelerated recovery from crush injury), tendon healing (improved collagen organization and tensile strength), corneal wound healing, and spinal cord repair. TB-500 appears to activate dormant stem cells and recruit them to injury sites.`,
     storage: `Store lyophilized at -20°C. Reconstituted solution stable 28 days at 2–8°C. Dissolve slowly with gentle agitation — vigorous shaking can degrade the peptide. Bacteriostatic water recommended.`,
     specs: [["Molecular Formula", "C₂₁₂H₃₅₀N₅₆O₇₈S"], ["Molecular Weight", "4963.5 Da"], ["Active Region", "Central Thymosin β4 fragment"], ["Primary Target", "G-actin (actin sequestration)"], ["Storage", "-20°C lyophilized"], ["Purity", "≥99% (HPLC)"]],
-  },
-  24: {
-    mechanism: `The BPC-157 + TB-500 blend combines two complementary tissue repair peptides. BPC-157 provides local angiogenic, tendon, and GI repair via FAK-paxillin and VEGF pathways, while TB-500 provides systemic stem cell mobilization and anti-inflammatory effects via actin regulation and NF-κB modulation.`,
-    pharmacology: `The combination addresses tissue repair from two directions: BPC-157 recruits growth factors and promotes neovascularization at the injury site, while TB-500 mobilizes circulating progenitor cells and reduces systemic inflammatory burden. Their receptor systems and downstream pathways are distinct, producing additive effects.`,
-    research: `Individual published research for both components is extensive. Combined use research is primarily practitioner-reported, with the rationale supported by their mechanistic complementarity. Animal models suggest the combination produces faster and more complete recovery than either compound alone.`,
-    storage: `Store lyophilized blend at -20°C. Reconstitute with bacteriostatic water. Stable 21 days at 2–8°C. Both peptides are compatible in solution.`,
-    specs: [["Components", "BPC-157 + TB-500"], ["Mechanism A", "FAK-paxillin / VEGF (BPC-157)"], ["Mechanism B", "Actin regulation / stem cell mobilization (TB-500)"], ["Storage", "-20°C lyophilized"], ["Purity", "≥98% (HPLC)"], ["Application", "Multi-tissue repair research"]],
-  },
-  25: {
-    mechanism: `GLOW blends BPC-157, GHK-Cu, and TB-500 into a single recovery formulation. BPC-157 drives angiogenesis and local tissue repair; GHK-Cu promotes collagen synthesis and antioxidant activity via copper-mediated enzyme activation; TB-500 mobilizes stem cells and reduces inflammation.`,
-    pharmacology: `GHK-Cu (glycine-histidine-lysine-copper) activates over 4,000 human genes related to tissue repair, increases collagen and elastin synthesis, and reduces inflammatory cytokines. Combined with BPC-157's angiogenic effects and TB-500's stem cell signaling, GLOW addresses wound healing, collagen remodeling, angiogenesis, anti-inflammation, and stem cell recruitment in parallel.`,
-    research: `Each component has extensive independent published research. The triple combination is relevant for complex tissue repair research where single-pathway interventions have shown limitations.`,
-    storage: `Store lyophilized blend at -20°C. Reconstitute with bacteriostatic water. Stable 21 days at 2–8°C. The three peptides are stable together in solution.`,
-    specs: [["BPC-157", "10mg per vial"], ["GHK-Cu", "50mg per vial"], ["TB-500", "10mg per vial"], ["Mechanisms", "3 distinct repair pathways"], ["Storage", "-20°C lyophilized"], ["Purity", "≥98% (HPLC)"]],
   },
   26: {
     mechanism: `KPV (Lys-Pro-Val) is a C-terminal tripeptide of alpha-melanocyte-stimulating hormone (α-MSH). It retains the anti-inflammatory properties of full α-MSH but lacks melanocortin receptor-mediated pigmentation effects, making it highly selective for inflammatory pathway modulation.`,
@@ -554,13 +490,6 @@ const RESEARCH = {
     storage: `Store lyophilized at -20°C. Reconstituted solution stable 28 days at 2–8°C. Bacteriostatic water standard diluent.`,
     specs: [["Origin", "hGH fragment 176-191"], ["Molecular Weight", "~1817 Da"], ["Lipolytic Activity", "Preserved from GH"], ["IGF-1 Stimulation", "None"], ["Storage", "-20°C lyophilized"], ["Purity", "≥99% (HPLC)"]],
   },
-  55: {
-    mechanism: `Adipotide (FTPP) is a chimeric peptide linking a targeting moiety (CKGGRAKDC, which homes to vasculature of white adipose tissue) to a proapoptotic domain (KLAKLAKKLAKLAK). It selectively destroys blood vessels supplying white fat.`,
-    pharmacology: `The homing domain binds prohibitin on endothelial cells of white adipose tissue vasculature. Once bound, the proapoptotic domain inserts into mitochondria and triggers BAX-mediated apoptosis of these endothelial cells, selectively eliminating the blood supply to white fat and causing adipocyte death through ischemia.`,
-    research: `Rhesus macaque studies demonstrated 39% reduction in body weight over 4 weeks — the most dramatic pharmacological weight loss ever observed in primates. Visceral and subcutaneous fat were both targeted. The targeted apoptosis mechanism is mechanistically unlike all other weight loss approaches.`,
-    storage: `Store lyophilized at -20°C. Reconstituted solution stable 14 days at 2–8°C. Adipotide's proapoptotic domain requires careful handling. Bacteriostatic water for reconstitution.`,
-    specs: [["Type", "Chimeric targeting + proapoptotic peptide"], ["Mechanism", "Adipose vascular targeted apoptosis"], ["Primate Data", "39% body weight reduction"], ["Selectivity", "White adipose tissue vasculature"], ["Storage", "-20°C lyophilized"], ["Purity", "≥95% (HPLC)"]],
-  },
   56: {
     mechanism: `5-Amino-1MQ is a small molecule inhibitor of NNMT (Nicotinamide N-Methyltransferase), an enzyme that methylates nicotinamide using SAM as the methyl donor. NNMT is highly expressed in white adipose tissue and inhibiting it raises intracellular NAD+ and SAM levels.`,
     pharmacology: `NNMT inhibition in adipocytes reduces fat cell size, promotes adipose tissue browning (conversion of white fat to metabolically active beige fat), raises NAD+ for sirtuin activation, and improves insulin sensitivity. 5-Amino-1MQ is structurally optimized for NNMT selectivity and cellular penetration.`,
@@ -574,13 +503,6 @@ const RESEARCH = {
     research: `Published animal studies demonstrate: 70% increase in treadmill running time in sedentary treated mice vs controls, increased mitochondrial number and size in muscle tissue, reduced fat mass with preserved lean mass, and improved cardiac efficiency. Actively investigated as an 'exercise mimetic' for metabolic disease, sarcopenia, and cardiac failure research.`,
     storage: `Store oral capsules at room temperature (15–25°C). Small molecule with good thermal stability. Protect from moisture and light. Shelf life 18–24 months.`,
     specs: [["Type", "ERR agonist (small molecule)"], ["Targets", "ERRα, ERRβ, ERRγ"], ["Described As", "Exercise mimetic"], ["Key Effect", "Mitochondrial biogenesis + endurance"], ["Form", "Oral capsule"], ["Purity", "≥99% (HPLC)"]],
-  },
-  58: {
-    mechanism: `ACE-031 is a fusion protein of the extracellular domain of activin receptor type IIB (ActRIIB) and a human IgG1-Fc domain. Acting as a 'myostatin trap,' ACE-031 binds and sequesters myostatin, activin A, activin B, GDF-11, and other TGF-β family ligands that inhibit muscle growth.`,
-    pharmacology: `By sequestering multiple TGF-β family inhibitory ligands, ACE-031 provides broader inhibition of muscle growth suppression than myostatin-specific antibodies. The Fc fusion enables weekly or bi-weekly dosing. Downstream effects include enhanced satellite cell activation and increased muscle protein synthesis.`,
-    research: `Phase 2 clinical trials in healthy postmenopausal women showed significant increases in total lean mass (3%), thigh muscle volume (6%), and bone mineral density (4%) over 3 months. Trials in Duchenne Muscular Dystrophy are ongoing. The multi-ligand trap design makes it more potent than single-target myostatin inhibitors.`,
-    storage: `Store lyophilized at -20°C. The Fc fusion is sensitive to aggregation — reconstitute gently. Reconstituted solution stable 14 days at 2–8°C.`,
-    specs: [["Type", "ActRIIB-Fc fusion protein"], ["Molecular Weight", "~120,000 Da"], ["Ligands Trapped", "Myostatin, activin A/B, GDF-11"], ["Clinical Muscle Gain", "~3% lean mass (Phase 2)"], ["Storage", "-20°C lyophilized"], ["Purity", "≥95% (HPLC)"]],
   },
   59: {
     mechanism: `L-Carnitine (β-hydroxy-β-methylaminobutyric acid) is an endogenously synthesized quaternary ammonium compound essential for mitochondrial fatty acid oxidation. It facilitates transport of long-chain fatty acids across the inner mitochondrial membrane as acylcarnitine esters via the carnitine shuttle system.`,
@@ -732,16 +654,6 @@ const RESEARCH = {
 };
 
 const PRODUCTS = [
-  // ── METABOLIC / GLP-1 ── (market rate −7.5%)
-  P(1,"metabolic","Semaglutide",[{s:"2mg",p:64},{s:"5mg",p:105},{s:"10mg",p:148},{s:"15mg",p:191},{s:"20mg",p:234}],"Semaglutide is a GLP-1 receptor agonist originally developed for type 2 diabetes management and weight reduction research. It mimics the glucagon-like peptide-1 hormone, suppressing appetite signaling and slowing gastric emptying. Research has demonstrated significant reductions in body weight and improvements in metabolic markers.","Popular",false,"injectable",["GLP-1 receptor agonist","Appetite regulation","Metabolic research","~7 day half-life"]),
-  P(2,"metabolic","Tirzepatide",[{s:"5mg",p:73},{s:"10mg",p:124},{s:"15mg",p:159},{s:"20mg",p:199},{s:"40mg",p:306}],"Tirzepatide is a novel dual GIP and GLP-1 receptor agonist that has shown remarkable results in metabolic research. By activating both incretin receptors simultaneously, it demonstrates superior effects on insulin sensitivity and body composition compared to single-agonist compounds in clinical studies.","Best Seller",false,"injectable",["Dual GIP/GLP-1 agonist","Insulin sensitivity","Superior metabolic response","Weekly dosing"]),
-  P(3,"metabolic","Retatrutide",[{s:"5mg",p:99},{s:"10mg",p:129},{s:"15mg",p:174},{s:"20mg",p:220}],"Retatrutide is a next-generation triple agonist targeting GLP-1, GIP, and glucagon receptors simultaneously. Early research has shown extraordinary potential for weight reduction and metabolic health, with trials demonstrating the highest weight loss percentages observed in peptide research to date.",null,true,"injectable",["Triple receptor agonist","GLP-1 + GIP + Glucagon","Next-gen metabolic","Highest efficacy observed"]),
-  P(4,"metabolic","Liraglutide",[{s:"5mg",p:73},{s:"10mg",p:116}],"Liraglutide is a long-acting GLP-1 analogue with approximately 97% sequence homology to native human GLP-1. Research applications include metabolic health, cardiovascular risk markers, and appetite regulation studies. Its daily dosing profile makes it a well-characterized research tool.",null,false,"injectable",["97% hGLP-1 homology","Daily dosing","Cardiovascular research","Appetite regulation"]),
-  P(5,"metabolic","Dulaglutide",[{s:"5mg",p:73},{s:"10mg",p:116}],"Dulaglutide is a once-weekly GLP-1 receptor agonist fused to an immunoglobulin Fc fragment, extending its half-life significantly. Research focuses on its metabolic effects, insulin secretion modulation, and sustained appetite suppression over extended periods.",null,false,"injectable",["Once-weekly dosing","Fc-fused stability","Sustained action","Metabolic research"]),
-  P(6,"metabolic","Mazdutide",[{s:"5mg",p:127},{s:"10mg",p:202}],"Mazdutide (IBI362) is a dual GLP-1 and glucagon receptor agonist under active research. The glucagon component adds thermogenic and energy expenditure properties to the GLP-1-mediated appetite suppression, making it a potent metabolic research compound with a distinct mechanism.",null,true,"injectable",["Dual GLP-1/Glucagon","Thermogenic effects","Energy expenditure","Emerging compound"]),
-  P(7,"metabolic","Survodutide",[{s:"10mg",p:142}],"Survodutide (BI 456906) is a potent GLP-1 and glucagon receptor co-agonist designed for metabolic and liver health research. Studies have demonstrated strong effects on weight reduction and liver fat content, with ongoing research into non-alcoholic fatty liver disease.",null,true,"injectable",["GLP-1/Glucagon co-agonist","Liver health research","NAFLD studies","Strong metabolic effects"]),
-  P(8,"metabolic","Cagrilintide",[{s:"5mg",p:84},{s:"10mg",p:140}],"Cagrilintide is a long-acting amylin analogue that works through a complementary mechanism to GLP-1 agonists. Amylin regulates food intake and glucagon secretion. Research has shown that combining cagrilintide with semaglutide produces additive effects on body weight reduction.",null,true,"injectable",["Amylin receptor agonist","Complementary to GLP-1","Glucagon regulation","Combination research"]),
-  P(9,"metabolic","Cagrisema (2.5+2.5mg)",[{s:"combo",p:99}],"Cagrisema is the investigational combination of cagrilintide and semaglutide in a single formulation. Phase 3 trials have demonstrated superior weight reduction compared to either compound alone, representing a convergence of two complementary metabolic pathways.",null,true,"injectable",["Dual mechanism combo","Amylin + GLP-1","Superior combo data","Phase 3 research"]),
 
   // ── GROWTH HORMONE ──
   P(11,"growth","Ipamorelin",[{s:"2mg",p:41},{s:"5mg",p:67},{s:"10mg",p:105}],"Ipamorelin is a selective growth hormone secretagogue and ghrelin receptor agonist. It stimulates pulsatile GH release without significantly affecting cortisol, prolactin, or ACTH. Research highlights its clean GH-stimulating profile, making it one of the most studied GHRP compounds available.",null,false,"injectable",["Selective GH secretagogue","No cortisol spike","Pulsatile GH release","Clean safety profile"]),
@@ -756,10 +668,7 @@ const PRODUCTS = [
   P(21,"growth","Follistatin 344",[{s:"1mg",p:113}],"Follistatin 344 (FST-344) is a glycoprotein that acts as a potent antagonist of myostatin and activin, thereby removing key inhibitors of muscle growth. Research in animal models has demonstrated significant increases in muscle mass. It is one of the most studied proteins in muscle biology research.",null,true,"injectable",["Myostatin antagonist","Activin inhibitor","Muscle mass research","Animal model data"]),
 
   // ── RECOVERY & HEALING ──
-  P(22,"recovery","BPC-157",[{s:"5mg",p:45},{s:"10mg",p:77}],"BPC-157 (Body Protection Compound 157) is a synthetic pentadecapeptide derived from a protein found in gastric juice. It is among the most studied healing peptides, with research documenting remarkable effects on tendon, ligament, muscle, and GI tract repair. It modulates growth factor signaling and promotes angiogenesis.","Best Seller",false,"injectable",["Tendon & ligament repair","GI tract protection","Angiogenesis promotion","Most studied healing peptide"]),
   P(23,"recovery","TB-500 (Thymosin Beta-4)",[{s:"2mg",p:39},{s:"5mg",p:58},{s:"10mg",p:95}],"TB-500 is a synthetic version of a naturally occurring 43-amino acid peptide found in virtually all human cells. Research demonstrates potent anti-inflammatory properties and tissue repair capabilities, particularly for muscle, tendons, and cardiac tissue. It promotes cell migration and differentiation.",null,false,"injectable",["Thymosin Beta-4 analogue","Anti-inflammatory","Cardiac tissue research","Cell migration"]),
-  P(24,"recovery","BPC-157 + TB-500 Blend",[{s:"BPC5mg+TB5mg",p:88},{s:"BPC10mg+TB10mg",p:148}],"This combination blends BPC-157 and TB-500 for synergistic recovery research. BPC-157 accelerates local tissue repair and GI protection while TB-500 provides systemic anti-inflammatory and cell migration effects. Research suggests complementary mechanisms that may enhance overall healing outcomes.",null,true,"injectable",["Synergistic blend","Local + systemic effects","Complementary mechanisms","Enhanced recovery"]),
-  P(25,"recovery","GLOW Blend",[{s:"70mg",p:124}],"GLOW is a precision recovery blend combining BPC-157 (10mg), GHK-Cu (50mg), and TB-500 (10mg) in a single vial. Research across each component demonstrates wound healing, collagen synthesis, anti-inflammatory, and tissue repair properties, making this a comprehensive multi-pathway recovery compound.",null,true,"injectable",["BPC-157 + GHK-Cu + TB-500","Multi-pathway recovery","Collagen synthesis","Tissue repair research"]),
   P(26,"recovery","KPV",[{s:"5mg",p:52},{s:"10mg",p:88}],"KPV is a tripeptide derived from the C-terminus of alpha-MSH. Research demonstrates potent anti-inflammatory properties, particularly in gut inflammation models. Studies have examined its effects on intestinal permeability and inflammatory bowel conditions.",null,false,"injectable",["α-MSH derived tripeptide","Gut inflammation research","Anti-inflammatory","Intestinal permeability"]),
   P(27,"recovery","LL-37",[{s:"5mg",p:70}],"LL-37 is a human cathelicidin antimicrobial peptide. Research examines its broad-spectrum antimicrobial activity, immune modulation, wound healing promotion, and angiogenic properties. It has shown promise in infection resistance and skin repair studies.",null,false,"injectable",["Human cathelicidin","Antimicrobial research","Immune modulation","Wound healing"]),
   P(28,"recovery","GHK-Cu",[{s:"50mg",p:45},{s:"100mg",p:77}],"GHK-Cu is a naturally occurring tripeptide with high affinity for copper ions. Research has documented effects on collagen synthesis, wound healing, hair follicle stimulation, and antioxidant activity. It is one of the most extensively studied peptides in regenerative research.",null,false,"injectable",["Copper-binding tripeptide","Collagen synthesis","Hair follicle research","Antioxidant activity"]),
@@ -786,10 +695,8 @@ const PRODUCTS = [
   // ── BODY COMPOSITION ──
   P(53,"body","AOD9604",[{s:"2mg",p:32},{s:"5mg",p:52},{s:"10mg",p:82}],"AOD9604 is a modified fragment of human growth hormone (hGH 176-191) with lipolytic and anti-lipogenic properties without the insulin-like effects of full GH. Studies specifically examine fat cell metabolism and body composition changes.",null,false,"injectable",["hGH fragment 176-191","Lipolytic properties","No insulin-like effects","Fat metabolism"]),
   P(54,"body","HGH Fragment 176-191",[{s:"1mg",p:32},{s:"2mg",p:45},{s:"5mg",p:69},{s:"10mg",p:105}],"HGH Fragment 176-191 is the C-terminal fragment of human growth hormone. Research shows it retains the fat-burning properties of HGH without stimulating IGF-1 or affecting blood glucose. It is one of the most selective lipolytic research peptides available.",null,false,"injectable",["C-terminal hGH fragment","Selective lipolysis","No IGF-1 stimulation","Blood glucose neutral"]),
-  P(55,"body","Adipotide (FTPP)",[{s:"2mg",p:45},{s:"5mg",p:75},{s:"10mg",p:124}],"Adipotide is a proapoptotic peptide that selectively targets the vasculature of white adipose tissue. Research in primate models demonstrated significant reduction in body weight by inducing apoptosis specifically in blood vessels supplying fat tissue.",null,false,"injectable",["Adipose-targeting peptide","Proapoptotic mechanism","Selective fat targeting","Primate model research"]),
   P(56,"body","5-AMINO-1MQ",[{s:"5mg",p:56},{s:"10mg",p:92}],"5-Amino-1MQ is a small molecule NNMT (nicotinamide N-methyltransferase) inhibitor. Research demonstrates its role in reversing metabolic dysfunction, reducing fat cell size, and improving insulin sensitivity by restoring NAD+ levels in adipose tissue.",null,true,"capsule",["NNMT inhibitor","Metabolic research","Fat cell reduction","NAD+ restoration"]),
   P(57,"body","SLU-PP-332",[{s:"5mg",p:69},{s:"10mg",p:105}],"SLU-PP-332 is a synthetic ERR (estrogen-related receptor) agonist that mimics the molecular effects of endurance exercise. Research has demonstrated improvements in aerobic capacity, mitochondrial biogenesis, and metabolic efficiency in animal models, earning it the label of an 'exercise mimetic.'",null,true,"capsule",["ERR agonist","Exercise mimetic","Mitochondrial biogenesis","Endurance research"]),
-  P(58,"body","ACE-031",[{s:"1mg",p:82}],"ACE-031 is a fusion protein of activin receptor type IIB (ActRIIB) and human IgG1-Fc that acts as a myostatin trap, binding and neutralizing myostatin and related ligands. Research has demonstrated significant increases in muscle mass and bone density in clinical studies.",null,true,"injectable",["Myostatin inhibitor","ActRIIB fusion protein","Muscle mass research","Bone density studies"]),
   P(59,"body","L-Carnitine",[{s:"5000mg",p:34}],"L-Carnitine is a naturally occurring compound essential for fatty acid transport into mitochondria for energy production. Research examines its role in fat oxidation, exercise performance, and metabolic efficiency. It is one of the most studied compounds in sports and metabolic research.",null,false,"liquid",["Fatty acid transport","Mitochondrial energy","Fat oxidation research","Exercise performance"]),
   P(60,"body","Lipo-C",[{s:"10ml",p:37}],"Lipo-C is a lipotropic compound blend formulated to support fat metabolism research. It combines methionine, inositol, choline, and L-carnitine — compounds that facilitate the breakdown and transport of fat in the body. Research examines synergistic effects on hepatic fat processing.",null,false,"liquid",["Lipotropic blend","Fat metabolism","Hepatic research","Synergistic formula"]),
   P(61,"body","MIC (Lipo-C + B12)",[{s:"10ml",p:43}],"MIC combines methionine, inositol, and choline with vitamin B12 for comprehensive lipotropic research. B12 adds neurological and energy metabolism support to the lipotropic core. This combination is widely studied for its synergistic effects on fat metabolism and energy production.",null,false,"liquid",["Methionine-Inositol-Choline","Vitamin B12 added","Lipotropic research","Energy metabolism"]),
@@ -819,10 +726,7 @@ const PRODUCTS = [
   P(79,"ancillaries","Acetic Acid 1%",[{s:"10ml",p:13}],"1% Acetic Acid solution is used as an alternative reconstitution medium for peptides with poor solubility in bacteriostatic water, including IGF-1 LR3 and some growth factors. It provides an acidic environment that improves solubility for certain peptide classes.",null,false,"liquid",["IGF-1 LR3 compatible","Improves solubility","Alternative reconstitution","Growth factor standard"]),
 
   // ── Added from supplier list ──
-  P(80,"growth","HGH (Somatropin)",[{s:"10iu",p:129},{s:"12iu",p:149},{s:"15iu",p:175},{s:"24iu",p:245}],"Human Growth Hormone (Somatropin) is the full 191-amino acid sequence recombinant hGH used extensively in growth and metabolic research. Studies examine its effects on lean mass accretion, lipolysis, IGF-1 signaling, bone density, and recovery. Each vial is supplied as lyophilized powder requiring reconstitution with bacteriostatic water.",null,false,"injectable",["191aa sequence","IGF-1 stimulation","Lean mass research","Lipolysis & recovery"]),
   P(81,"recovery","CJC-1295 + Ipamorelin Blend",[{s:"10mg (5+5)",p:69}],"A pre-combined blend of CJC-1295 (without DAC) and Ipamorelin in equal 5mg portions per vial. Research documents synergistic GHRH + GHRP action: CJC-1295 extends the GH pulse window while Ipamorelin triggers a clean, selective GH release without significant cortisol or prolactin elevation. One of the most studied GH-axis stacks.",null,false,"injectable",["Synergistic GHRH+GHRP","Clean GH pulse","No cortisol spike","Most studied GH stack"]),
-  P(82,"recovery","BPC+GHK-Cu+TB500+KPV Quad Blend",[{s:"80mg",p:145}],"A comprehensive recovery blend combining BPC-157 (10mg), GHK-Cu (50mg), TB-500 (10mg), and KPV (10mg) in a single vial. Research on each component documents complementary mechanisms: BPC-157 for gut and tendon repair, GHK-Cu for collagen and wound healing, TB-500 for systemic tissue regeneration, and KPV for anti-inflammatory signalling.",null,true,"injectable",["Quad-peptide recovery","BPC+GHK+TB500+KPV","Anti-inflammatory","Comprehensive healing"]),
-  P(83,"metabolic","FTPP Adipotide",[{s:"5mg",p:59}],"FTPP Adipotide (also listed as Adipotide or FTPP) is a pro-apoptotic peptide that selectively targets the vasculature of white adipose tissue. Research has demonstrated significant reductions in visceral fat in primate models. It acts by inducing apoptosis specifically in blood vessels supplying fat deposits, representing a mechanistically novel fat-reduction approach.",null,false,"injectable",["Pro-apoptotic","Adipose vasculature targeting","Visceral fat research","Primate model data"]),
 ];
 
 const calcP = (u, v) => u * v * DISC[v];
@@ -843,32 +747,23 @@ function Badge({ badge, isNew }) {
 
 /* ─── Frequently Bought Together pairs ─── */
 const FBT = {
-  // GLP-1
-  1:  [2, 3],      // Semaglutide → Tirzepatide, Retatrutide
-  2:  [1, 4],      // Tirzepatide → Semaglutide, Liraglutide
-  3:  [1, 2],      // Retatrutide → Sema, Tirze
   // Recovery
-  23: [24, 41],    // BPC-157 → TB-500, GHK-Cu
-  24: [23, 41],    // TB-500 → BPC-157, GHK-Cu
-  41: [23, 24],    // GHK-Cu → BPC-157, TB-500
-  82: [23, 24],    // BPC+GHK+TB+KPV Quad → BPC-157, TB-500
+  23: [28, 29],    // TB-500 → GHK-Cu, Thymosin Alpha-1
   // Growth / GH axis
   12: [81, 13],    // Ipamorelin → CJC+IPA Blend, CJC-1295
   13: [81, 12],    // CJC-1295 → CJC+IPA Blend, Ipamorelin
   81: [12, 13],    // CJC+IPA Blend → Ipamorelin, CJC-1295
-  80: [12, 13],    // HGH → Ipamorelin, CJC-1295
-  14: [80, 12],    // Tesamorelin → HGH, Ipamorelin
+  14: [17, 12],    // GHRP-2 → Sermorelin, Ipamorelin
   // Neuro
   50: [51, 53],    // Semax → Selank, Dihexa
   51: [50, 53],    // Selank → Semax, Dihexa
   53: [50, 51],    // Dihexa → Semax, Selank
   // Longevity
-  60: [62, 58],    // NAD+ → Epitalon, MOTS-c
-  62: [60, 58],    // Epitalon → NAD+, MOTS-c
-  58: [60, 62],    // MOTS-c → NAD+, Epitalon
-  // Metabolic / fat loss
-  83: [7, 8],      // FTPP Adipotide → AOD9604, L-Carnitine
-  7:  [83, 8],     // AOD9604 → FTPP Adipotide, L-Carnitine
+  34: [33, 38],    // NAD+ → Epitalon, MOTS-c
+  33: [34, 38],    // Epitalon → NAD+, MOTS-c
+  38: [34, 33],    // MOTS-c → NAD+, Epitalon
+  // Body composition
+  53: [59, 56],    // AOD9604 → L-Carnitine, 5-AMINO-1MQ
 };
 
 function StarRow({ avg, count, small }) {
@@ -919,7 +814,7 @@ function Card({ p, onOpen, onAdd, mob, inv, productReviews }) {
       <div style={{ flex: 1, padding: "12px 13px 12px", display: "flex", flexDirection: "column", gap: 6, minWidth: 0 }}>
         <div onClick={() => onOpen(p, si, qty)} style={{ fontSize: 13, fontWeight: 700, color: T.text, lineHeight: 1.3, cursor: "pointer" }}>{p.name}</div>
         <div style={{ fontSize: 11, color: T.sub, lineHeight: 1.55 }}>
-          {p.desc.slice(0, 80).trim()}… <span onClick={() => onOpen(p, si, qty)} style={{ color: T.blue, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>Read more</span>
+          {sanitizeResearchDescription(p.desc).slice(0, 80).trim()}… <span onClick={() => onOpen(p, si, qty)} style={{ color: T.blue, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>Read more</span>
         </div>
         <div style={{ display: "flex", gap: 4, overflowX: "auto", WebkitOverflowScrolling: "touch", paddingBottom: 2, flexShrink: 0 }}>
           {p.variants.map((vv, i) => (
@@ -948,6 +843,7 @@ function Card({ p, onOpen, onAdd, mob, inv, productReviews }) {
             ? <div style={{ fontSize: 11, fontWeight: 700, color: "#dc3545", padding: "7px 10px", borderRadius: 8, background: "#fff0f2", border: "1.5px solid #f5c6cb" }}>Sold Out</div>
             : <button onClick={() => onAdd(p, v, qty, total)} style={{ ...btnPrimary({ padding: "9px 14px", fontSize: 12, borderRadius: 8, boxShadow: "0 2px 6px rgba(26,110,216,0.22)" }) }}>+ Cart</button>
           }
+          <div style={{ fontSize: 8, color: T.muted, textAlign: "center", marginTop: 4, lineHeight: 1.4 }}>For laboratory research use only. Not for human consumption. Not FDA-approved.</div>
         </div>
       </div>
     </div>
@@ -983,7 +879,7 @@ function Card({ p, onOpen, onAdd, mob, inv, productReviews }) {
         <div onClick={() => onOpen(p, si, qty)} style={{ fontSize: 13, fontWeight: 700, color: T.text, lineHeight: 1.35, cursor: "pointer" }}>{p.name}</div>
         <StarRow avg={revAvg} count={revCount} small={true} />
         <div style={{ fontSize: 11, color: T.sub, lineHeight: 1.6 }}>
-          {p.desc.slice(0, 90).trim()}… <span onClick={() => onOpen(p, si, qty)} style={{ color: T.blue, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>Read more</span>
+          {sanitizeResearchDescription(p.desc).slice(0, 90).trim()}… <span onClick={() => onOpen(p, si, qty)} style={{ color: T.blue, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>Read more</span>
         </div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 3 }}>
           {p.variants.map((vv, i) => (
@@ -1012,12 +908,12 @@ function Card({ p, onOpen, onAdd, mob, inv, productReviews }) {
             ? <div style={{ fontSize: 11, fontWeight: 700, color: "#dc3545", padding: "7px 12px", borderRadius: 8, background: "#fff0f2", border: "1.5px solid #f5c6cb" }}>Sold Out</div>
             : <button onClick={() => onAdd(p, v, qty, total)} style={{ ...btnPrimary({ padding: "7px 13px", fontSize: 11, borderRadius: 8, boxShadow: "0 2px 6px rgba(26,110,216,0.22)" }) }}>Add to Cart</button>
           }
+          <div style={{ fontSize: 8, color: T.muted, textAlign: "center", marginTop: 4, lineHeight: 1.4 }}>For laboratory research use only. Not for human consumption. Not FDA-approved.</div>
         </div>
       </div>
     </div>
   );
 }
-
 
 /* ─── MAIN APP ─── */
 /* ══ HOMEPAGE STRUCTURED DATA (module-level so SSR always has access) ══ */
@@ -1029,7 +925,7 @@ const HOMEPAGE_SCHEMA = [
     "url": "https://aeterionpeptides.com",
     "logo": "https://aeterionpeptides.com/apple-touch-icon.png",
     "contactPoint": { "@type": "ContactPoint", "email": "info@aeterionpeptides.com", "contactType": "customer service" },
-    "description": "US-based supplier of research-grade peptides, GLP-1 compounds, SARMs, nootropics, and analytical compounds."
+    "description": "US-based supplier of research-grade peptides, SARMs, nootropics, and analytical compounds."
   },
   {
     "@context": "https://schema.org",
@@ -1042,13 +938,10 @@ const HOMEPAGE_SCHEMA = [
     "@context": "https://schema.org",
     "@type": "ItemList",
     "name": "Research Peptides Catalog",
-    "description": "Research-grade peptides, GLP-1 agonists, SARMs, and analytical compounds",
+    "description": "Research-grade peptides, SARMs, and analytical compounds",
     "url": "https://aeterionpeptides.com",
-    "numberOfItems": 72,
+    "numberOfItems": 55,
     "itemListElement": [
-      { "@type": "ListItem", "position": 1, "name": "Semaglutide", "url": "https://aeterionpeptides.com/products/semaglutide" },
-      { "@type": "ListItem", "position": 2, "name": "Tirzepatide", "url": "https://aeterionpeptides.com/products/tirzepatide" },
-      { "@type": "ListItem", "position": 3, "name": "BPC-157", "url": "https://aeterionpeptides.com/products/bpc-157" },
       { "@type": "ListItem", "position": 4, "name": "TB-500", "url": "https://aeterionpeptides.com/products/tb-500" },
       { "@type": "ListItem", "position": 5, "name": "Retatrutide", "url": "https://aeterionpeptides.com/products/retatrutide" },
       { "@type": "ListItem", "position": 7, "name": "CJC-1295", "url": "https://aeterionpeptides.com/products/cjc-1295-with-dac" },
@@ -1159,6 +1052,21 @@ export default function App() {
   const [emailPopupVal, setEmailPopupVal] = useState("");
   const [emailPopupStatus, setEmailPopupStatus] = useState(""); // "sending"|"done"|"error"
   const [showQuiz, setShowQuiz] = useState(false);
+
+  // ── Age Verification ──
+  const [ageVerified, setAgeVerified] = useState(true); // default true to avoid flash on SSR
+  useEffect(() => {
+    try {
+      const verified = localStorage.getItem("aet_age_verified") === "true" || sessionStorage.getItem("aet_age_verified") === "true";
+      if (!verified) setAgeVerified(false);
+    } catch (e) { setAgeVerified(false); }
+  }, []);
+  const handleAgeYes = () => {
+    try { localStorage.setItem("aet_age_verified", "true"); } catch (e) {}
+    try { sessionStorage.setItem("aet_age_verified", "true"); } catch (e) {}
+    setAgeVerified(true);
+  };
+  const handleAgeNo = () => { window.location.href = "https://www.google.com"; };
 
   // ── AI Research Assistant ──
   const [chatOpen, setChatOpen] = useState(false);
@@ -1340,8 +1248,8 @@ export default function App() {
       document.title = "Terms, Privacy & Disclaimer | Aeterion Peptides";
       setMeta("description", "Aeterion Peptides terms of service, privacy policy, return policy, and research-use-only disclaimer.");
     } else {
-      document.title = "Buy Research Peptides Online | Aeterion Peptides — GLP-1, BPC-157, TB-500 & More";
-      setMeta("description", "Shop 72+ research-grade peptides and analytical compounds at Aeterion Peptides. GLP-1 agonists, BPC-157, TB-500, NAD+, cognitive peptides and more. COA with every order. Fast USA dispatch.");
+      document.title = "Buy Research Peptides Online | Aeterion Peptides — TB-500, NAD+ & More";
+      setMeta("description", "Shop 55+ research-grade peptides and analytical compounds at Aeterion Peptides. TB-500, NAD+, cognitive peptides and more. COA with every order. Fast USA dispatch.");
     }
   }, [page]);
 
@@ -1424,7 +1332,7 @@ export default function App() {
             <div style={{ padding: isFullscreen ? "20px 18px 24px" : "26px 28px 24px", overflow: "auto" }}>
               {!isFullscreen && <div style={{ fontSize: 10, color: T.blue, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 4 }}>{CATS.find(c => c.id === modal.cat)?.label}</div>}
               <h2 style={{ margin: "0 0 8px", fontSize: isFullscreen ? 22 : 22, fontWeight: 800, color: T.text }}>{modal.name}</h2>
-              <p style={{ color: T.sub, fontSize: 13, lineHeight: 1.8, margin: "0 0 14px" }}>{modal.desc}</p>
+              <p style={{ color: T.sub, fontSize: 13, lineHeight: 1.8, margin: "0 0 14px" }}>{sanitizeResearchDescription(modal.desc)}</p>
 
               <div style={{ marginBottom: 16 }}>
                 <div style={{ fontSize: 10, color: T.muted, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>Key Research Highlights</div>
@@ -1478,6 +1386,7 @@ export default function App() {
                 {inventory[modal?.id] && (!inventory[modal.id].inStock || inventory[modal.id].stock === 0)
                   ? "Out of Stock" : "Add to Cart"}
               </button>
+              <div style={{ fontSize: 9, color: T.muted, textAlign: "center", marginTop: 6, lineHeight: 1.4 }}>For laboratory research use only. Not for human consumption. Not FDA-approved.</div>
             </div>
           </div>
 
@@ -2559,7 +2468,7 @@ export default function App() {
                   <div>
                     <div style={{ fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>Title *</div>
                     <input value={blogForm.title} onChange={e => setBlogForm(f => ({...f, title: e.target.value}))}
-                      placeholder="e.g. BPC-157: The Complete Research Guide"
+                      placeholder="e.g. TB-500: The Complete Research Guide"
                       style={{ width: "100%", background: "#0f172a", border: "1px solid #334155", borderRadius: 8, padding: "11px 14px", fontSize: 16, color: "#f8fafc", outline: "none", fontFamily: "inherit", boxSizing: "border-box" }} />
                   </div>
                   <div>
@@ -2572,7 +2481,7 @@ export default function App() {
                     <div style={{ fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>Body *</div>
                     <div style={{ fontSize: 11, color: "#475569", marginBottom: 8 }}>Supports: # H1, ## H2, ### H3, - bullet lists, {">"} blockquote, blank line = new paragraph</div>
                     <textarea value={blogForm.body} onChange={e => setBlogForm(f => ({...f, body: e.target.value}))}
-                      placeholder={"## Introduction\n\nBPC-157 is one of the most researched peptides...\n\n## Mechanism of Action\n\n- Upregulates growth factor receptors\n- Promotes angiogenesis\n- Modulates nitric oxide production"}
+                      placeholder={"## Introduction\n\nTB-500 is one of the most researched peptides...\n\n## Mechanism of Action\n\n- Upregulates growth factor receptors\n- Promotes angiogenesis\n- Modulates nitric oxide production"}
                       rows={14}
                       style={{ width: "100%", background: "#0f172a", border: "1px solid #334155", borderRadius: 8, padding: "11px 14px", fontSize: 13, color: "#f8fafc", outline: "none", fontFamily: "monospace", boxSizing: "border-box", resize: "vertical", lineHeight: 1.7 }} />
                   </div>
@@ -2586,7 +2495,7 @@ export default function App() {
                     <div>
                       <div style={{ fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>Tags <span style={{ color: "#475569", fontWeight: 400, textTransform: "none" }}>(comma separated)</span></div>
                       <input value={blogForm.tags} onChange={e => setBlogForm(f => ({...f, tags: e.target.value}))}
-                        placeholder="BPC-157, Recovery, Healing"
+                        placeholder="TB-500, Recovery, Healing"
                         style={{ width: "100%", background: "#0f172a", border: "1px solid #334155", borderRadius: 8, padding: "11px 14px", fontSize: 16, color: "#f8fafc", outline: "none", fontFamily: "inherit", boxSizing: "border-box" }} />
                     </div>
                   </div>
@@ -3067,7 +2976,7 @@ export default function App() {
             <div style={{ fontSize: 14, color: "rgba(255,255,255,0.7)", lineHeight: 1.7 }}>Create an account to track your orders, save your shipping address, and view your purchase history.</div>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            {[["COA with every order"],["Cold-packed shipping"],["79 research compounds"],["Free shipping over $250"]].map(([text]) => (
+            {[["COA with every order"],["Cold-packed shipping"],["55 research compounds"],["Free shipping over $250"]].map(([text]) => (
               <div key={text} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: "rgba(255,255,255,0.8)", fontWeight: 500 }}>
                 <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#60a5fa", flexShrink: 0, display: "inline-block" }} /><span>{text}</span>
               </div>
@@ -3552,7 +3461,6 @@ export default function App() {
     );
   };
 
-
   /* ════════════════════ ABOUT PAGE ════════════════════ */
   const AboutPage = ({ goTo }) => (
     <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", background: T.bg, minHeight: "100vh", color: T.text }}>
@@ -3570,7 +3478,7 @@ export default function App() {
         </div>
 
         {[
-          { icon: "", title: "Who We Are", body: "Aeterion Labs is a US-based supplier of research-grade peptides, GLP-1 compounds, SARMs, nootropics, and analytical compounds. We serve independent researchers, university laboratory teams, and life science professionals who require consistent, verified-purity compounds for their work. Every product in our catalog has been independently tested by a third-party laboratory before being offered for sale." },
+          { icon: "", title: "Who We Are", body: "Aeterion Labs is a US-based supplier of research-grade peptides, SARMs, nootropics, and analytical compounds. We serve independent researchers, university laboratory teams, and life science professionals who require consistent, verified-purity compounds for their work. Every product in our catalog has been independently tested by a third-party laboratory before being offered for sale." },
           { icon: "", title: "Our Quality Standard", body: "Every batch undergoes HPLC purity testing to ≥98–99% and mass spectrometry identity confirmation before it reaches our inventory. We provide a batch-specific Certificate of Analysis (COA) with every order — not a generic product COA, but documentation tied to the exact lot you receive. We don't ship compounds that don't meet our purity threshold. Full stop." },
           { icon: "", title: "Cold-Chain Fulfillment", body: "Lyophilized peptides are temperature-sensitive. Our fulfillment process uses cold-pack shipping for all peptide orders to preserve compound integrity from our facility to your lab. Orders are processed within 1–2 business days of confirmed payment, with tracking provided automatically via email. Delivery typically takes 1–2 weeks." },
           { icon: "", title: "Research Use Only", body: "All Aeterion Labs products are sold strictly for laboratory research purposes only. They are not intended for human consumption, medical treatment, or diagnostic use, and have not been evaluated by the FDA for these purposes. Our customers are researchers and scientists using these compounds to advance scientific understanding — not for personal use." },
@@ -3587,13 +3495,18 @@ export default function App() {
 
         <div style={{ background: "linear-gradient(135deg, #1B3A6B 0%, #2563eb 100%)", borderRadius: 20, padding: "36px 32px", textAlign: "center", marginTop: 16 }}>
           <h3 style={{ margin: "0 0 10px", fontSize: 22, fontWeight: 900, color: "#fff" }}>Ready to Order?</h3>
-          <p style={{ margin: "0 0 22px", fontSize: 14, color: "rgba(255,255,255,0.75)", lineHeight: 1.7 }}>Browse 79 research compounds with fast dispatch and COA included.</p>
+          <p style={{ margin: "0 0 22px", fontSize: 14, color: "rgba(255,255,255,0.75)", lineHeight: 1.7 }}>Browse 55 research compounds with fast dispatch and COA included.</p>
           <button onClick={() => goTo("store")} style={{ ...btnPrimary({ padding: "13px 32px", fontSize: 15, borderRadius: 12, background: "#fff", color: "#1B3A6B" }) }}>Browse All Products →</button>
         </div>
       </div>
       <footer style={{ background: "#111827", color: "rgba(255,255,255,0.5)", padding: "24px", textAlign: "center", fontSize: 12 }}>
         <p style={{ margin: "0 0 6px" }}>© 2025 Aeterion Peptides. All Rights Reserved.</p>
-        <p style={{ margin: 0 }}>All products for laboratory research purposes only. Not for human consumption. Must be 18+.</p>
+        <p style={{ margin: "0 0 8px" }}>All products for laboratory research purposes only. Not for human consumption. Must be 18+.</p>
+        <div style={{ display: "flex", gap: 16, justifyContent: "center" }}>
+          <a href="/privacy-policy" style={{ color: "rgba(255,255,255,0.7)", textDecoration: "none", fontSize: 11 }}>Privacy Policy</a>
+          <a href="/terms" style={{ color: "rgba(255,255,255,0.7)", textDecoration: "none", fontSize: 11 }}>Terms of Service</a>
+          <a href="/disclaimer" style={{ color: "rgba(255,255,255,0.7)", textDecoration: "none", fontSize: 11 }}>Disclaimer</a>
+        </div>
       </footer>
     </div>
   );
@@ -3602,7 +3515,7 @@ export default function App() {
   const FAQPage = ({ goTo }) => {
     const [open, setOpen] = useState(null);
     const faqs = [
-      { q: "Are these products legal to purchase?", a: "Yes. Research peptides are legal to purchase in the United States for laboratory research purposes. They are sold strictly as research chemicals — not for human consumption or therapeutic use. FDA-approved compounds (like semaglutide and tirzepatide) are provided for research use only, consistent with the research chemical market. Always ensure your use complies with local regulations." },
+      { q: "Are these products legal to purchase?", a: "Yes. Research peptides are legal to purchase in the United States for laboratory research purposes. They are sold strictly as research chemicals — not for human consumption or therapeutic use. Always ensure your use complies with local regulations." },
       { q: "What purity level are your peptides?", a: "All Aeterion Labs compounds are independently HPLC-tested to ≥98–99% purity with mass spectrometry identity confirmation. A batch-specific Certificate of Analysis (COA) is included with every order, tied to the exact lot number you receive — not a generic product-level COA." },
       { q: "How are peptides shipped?", a: "Lyophilized peptides are shipped cold-packed using insulated packaging to protect compound integrity during transit. All orders include full tracking. Orders are processed within 1–2 business days. We ship domestically from within the USA." },
       { q: "What is your shipping cost?", a: "Standard shipping is $15 per order. Orders over $250 qualify for free shipping, applied automatically at checkout. We do not currently offer international shipping." },
@@ -3799,7 +3712,7 @@ export default function App() {
                         <option>$15,000+</option>
                       </select>
                     </div>
-                    {inp("Compounds of Interest","compounds","text","BPC-157, Semaglutide...")}
+                    {inp("Compounds of Interest","compounds","text","TB-500, Ipamorelin...")}
                   </div>
                   <div style={{ marginBottom:16 }}>
                     <div style={{ fontSize:12, fontWeight:700, color:T.text, marginBottom:6 }}>Additional Notes</div>
@@ -3882,19 +3795,19 @@ export default function App() {
   if (mob) return (
     <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", background: T.bg, minHeight: "100vh", color: T.text, paddingBottom: 70 }}>
       <Head>
-        <title>Buy Research Peptides Online | GLP-1, BPC-157, TB-500 & More | Aeterion Labs</title>
-        <meta name="description" content="Shop 72+ research-grade peptides, GLP-1 agonists (semaglutide, tirzepatide), BPC-157, TB-500, NAD+, SARMs & nootropics. HPLC tested, COA included. Free shipping $250+. USA peptide research supplier." />
-        <meta name="keywords" content="research peptides, buy peptides online, peptide research supplier, GLP-1 research peptides, semaglutide research peptide, tirzepatide research peptide, peptide research compounds, BPC-157, TB-500" />
+        <title>Buy Research Peptides Online | TB-500, NAD+ & More | Aeterion Labs</title>
+        <meta name="description" content="Shop 55+ research-grade peptides, TB-500, NAD+, SARMs & nootropics. HPLC tested, COA included. Free shipping $250+. USA peptide research supplier." />
+        <meta name="keywords" content="research peptides, buy peptides online, peptide research supplier, peptide research compounds, TB-500, NAD+, cognitive peptides" />
         <link rel="canonical" href="https://aeterionpeptides.com" />
         <meta property="og:title" content="Buy Research Peptides Online — Aeterion Labs" />
-        <meta property="og:description" content="72+ research-grade peptides. GLP-1 agonists, BPC-157, TB-500, NAD+, SARMs & more. HPLC tested. COA included. Free shipping $250+." />
+        <meta property="og:description" content="55+ research-grade peptides. TB-500, NAD+, SARMs & more. HPLC tested. COA included. Free shipping $250+." />
         <meta property="og:image" content="https://aeterionpeptides.com/og-image.png" />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://aeterionpeptides.com" />
         <meta property="og:site_name" content="Aeterion Labs" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Buy Research Peptides Online — Aeterion Labs" />
-        <meta name="twitter:description" content="72+ research-grade peptides. HPLC tested. COA included. Free shipping $250+." />
+        <meta name="twitter:description" content="55+ research-grade peptides. HPLC tested. COA included. Free shipping $250+." />
         <meta name="twitter:image" content="https://aeterionpeptides.com/og-image.png" />
         {HOMEPAGE_SCHEMA.map((s, i) => <script key={i} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(s) }} />)}
         <style>{`
@@ -3924,10 +3837,15 @@ export default function App() {
           {count > 0 && <span style={{ position:"absolute", top:0, right:2, background:T.blue, color:"#fff", borderRadius:"50%", width:17, height:17, fontSize:9, display:"flex", alignItems:"center", justifyContent:"center", fontWeight:900, lineHeight:1 }}>{count}</span>}
         </button>
       </header>
+      <div style={{ background: "#f8fafc", borderBottom: `1px solid ${T.border}`, padding: "5px 16px", display: "flex", gap: 14, justifyContent: "center" }}>
+        <a href="/privacy-policy" style={{ fontSize: 10, color: T.muted, textDecoration: "none" }}>Privacy Policy</a>
+        <a href="/terms" style={{ fontSize: 10, color: T.muted, textDecoration: "none" }}>Terms</a>
+        <a href="/disclaimer" style={{ fontSize: 10, color: T.muted, textDecoration: "none" }}>Disclaimer</a>
+      </div>
 
       {searchOpen && (
         <div style={{ background: T.white, padding: "10px 14px", borderBottom: `1px solid ${T.border}` }}>
-          <input autoFocus value={q} onChange={e => { setQ(e.target.value); setCat("all"); }} placeholder="Search 72 compounds…" aria-label="Search products"
+          <input autoFocus value={q} onChange={e => { setQ(e.target.value); setCat("all"); }} placeholder="Search 55 compounds…" aria-label="Search products"
             style={{ width: "100%", background: T.bg, border: `1.5px solid ${T.border}`, borderRadius: 24, padding: "10px 16px", fontSize: 16, outline: "none", fontFamily: "inherit", color: T.text, boxSizing: "border-box" }} />
         </div>
       )}
@@ -3938,19 +3856,18 @@ export default function App() {
           <div style={{ position: "absolute", top: -40, right: -30, width: 180, height: 180, borderRadius: "50%", background: "rgba(255,255,255,0.06)", pointerEvents: "none" }} />
           <div style={{ position: "absolute", bottom: -20, left: -20, width: 120, height: 120, borderRadius: "50%", background: "rgba(255,255,255,0.05)", pointerEvents: "none" }} />
           <div style={{ position: "relative" }}>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.16)", borderRadius: 24, padding: "5px 16px", fontSize: 10, color: "rgba(255,255,255,0.95)", fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 16, border: "1px solid rgba(255,255,255,0.2)" }}>72 Research Compounds · COA Included</div>
-            <h1 style={{ color: "#fff", fontSize: 30, fontWeight: 900, margin: "0 0 10px", lineHeight: 1.15, letterSpacing: -0.5 }}>Buy Research Peptides Online<br />GLP-1, BPC-157, TB-500 & More</h1>
-            <p style={{ color: "rgba(255,255,255,0.82)", fontSize: 13, lineHeight: 1.75, margin: "0 0 22px" }}>GLP-1s · SARMs · Nootropics · Longevity<br />Every order ships with a Certificate of Analysis.</p>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.16)", borderRadius: 24, padding: "5px 16px", fontSize: 10, color: "rgba(255,255,255,0.95)", fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 16, border: "1px solid rgba(255,255,255,0.2)" }}>55 Research Compounds · COA Included</div>
+            <h1 style={{ color: "#fff", fontSize: 30, fontWeight: 900, margin: "0 0 10px", lineHeight: 1.15, letterSpacing: -0.5 }}>Buy Research Peptides Online<br />TB-500, NAD+ & More</h1>
+            <p style={{ color: "rgba(255,255,255,0.82)", fontSize: 13, lineHeight: 1.75, margin: "0 0 22px" }}>SARMs · Nootropics · Longevity · Recovery<br />Every order ships with a Certificate of Analysis.</p>
             <div style={{ display: "flex", gap: 10, justifyContent: "center", marginBottom: 28, flexWrap: "wrap" }}>
               <button onClick={() => document.getElementById("mob-cat")?.scrollIntoView({ behavior: "smooth" })} style={{ background: "#fff", color: T.blue, border: "none", borderRadius: 24, padding: "12px 26px", fontSize: 14, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", boxShadow: "0 4px 14px rgba(0,0,0,0.18)" }}>Shop Now</button>
-              <button onClick={() => setCat("metabolic")} style={{ background: "rgba(255,255,255,0.15)", color: "#fff", border: "1.5px solid rgba(255,255,255,0.4)", borderRadius: 24, padding: "12px 22px", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>GLP-1 →</button>
               <button onClick={() => setShowQuiz(true)} style={{ background: "linear-gradient(135deg,#10b981,#059669)", color: "#fff", border: "1.5px solid rgba(255,255,255,0.2)", borderRadius: 24, padding: "12px 22px", fontSize: 13, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", boxShadow: "0 4px 16px rgba(16,185,129,0.4)", display: "inline-flex", alignItems: "center", gap: 6 }}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
                 Build My Stack
               </button>
             </div>
             <div style={{ display: "flex", gap: 0, justifyContent: "center", background: "rgba(255,255,255,0.1)", borderRadius: 16, padding: "12px 0", border: "1px solid rgba(255,255,255,0.12)" }}>
-              {[["72","Products"],["≥99%","Purity"],["1-2d","Processing"],["COA","Included"],["USA","Ships"]].map(([v,l], idx, arr) => (
+              {[["55","Products"],["≥99%","Purity"],["1-2d","Processing"],["COA","Included"],["USA","Ships"]].map(([v,l], idx, arr) => (
                 <div key={l} style={{ flex: 1, textAlign: "center", borderRight: idx < arr.length-1 ? "1px solid rgba(255,255,255,0.15)" : "none" }}>
                   <div style={{ fontSize: 17, fontWeight: 900, color: "#fff" }}>{v}</div>
                   <div style={{ fontSize: 9, color: "rgba(255,255,255,0.85)", letterSpacing: 1, textTransform: "uppercase", marginTop: 2 }}>{l}</div>
@@ -4092,16 +4009,15 @@ export default function App() {
 
       <MobileMenu /><ProductModal /><CartDrawer mob={mob} promoInput={promoInput} setPromoInput={v => { setPromoInput(v); if (promoStatus) { setPromoStatus(""); setPromoCode(null); setPromoDiscount(0); } }} promoCode={promoCode} promoDiscount={promoDiscount} promoStatus={promoStatus} onPromoApply={handlePromoApply} onPromoRemove={handlePromoRemove} onCheckout={checkout} stripeMsg={stripeMsg} paymentMsg={paymentMsg} />
 
-
       {/* ══════════ AI RESEARCH ASSISTANT (mobile) ══════════ */}
       {(() => {
         const SUGGESTIONS = [
           "Best stack for fat loss?",
-          "GLP-1 comparison — Sema vs Tirze vs Retatra?",
+          "Best growth hormone peptide stack?",
           "Recovery stack for joint repair?",
           "Best nootropic peptides for focus?",
           "GH axis stack for beginners?",
-          "What's the difference between BPC-157 and TB-500?",
+          "Best recovery peptides for tissue repair?",
         ];
 
         return (
@@ -4353,19 +4269,19 @@ export default function App() {
   return (
     <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", background: T.bg, minHeight: "100vh", color: T.text, width: "100%" }}>
       <Head>
-        <title>Buy Research Peptides Online | GLP-1, BPC-157, TB-500 & More | Aeterion Labs</title>
-        <meta name="description" content="Shop 72+ research-grade peptides, GLP-1 agonists (semaglutide, tirzepatide), BPC-157, TB-500, NAD+, SARMs & nootropics. HPLC tested, COA included. Free shipping $250+. USA peptide research supplier." />
-        <meta name="keywords" content="research peptides, buy peptides online, peptide research supplier, GLP-1 research peptides, semaglutide research peptide, tirzepatide research peptide, peptide research compounds, BPC-157, TB-500" />
+        <title>Buy Research Peptides Online | TB-500, NAD+ & More | Aeterion Labs</title>
+        <meta name="description" content="Shop 55+ research-grade peptides, TB-500, NAD+, SARMs & nootropics. HPLC tested, COA included. Free shipping $250+. USA peptide research supplier." />
+        <meta name="keywords" content="research peptides, buy peptides online, peptide research supplier, peptide research compounds, TB-500, NAD+, cognitive peptides" />
         <link rel="canonical" href="https://aeterionpeptides.com" />
         <meta property="og:title" content="Buy Research Peptides Online — Aeterion Labs" />
-        <meta property="og:description" content="72+ research-grade peptides. GLP-1 agonists, BPC-157, TB-500, NAD+, SARMs & more. HPLC tested. COA included. Free shipping $250+." />
+        <meta property="og:description" content="55+ research-grade peptides. TB-500, NAD+, SARMs & more. HPLC tested. COA included. Free shipping $250+." />
         <meta property="og:image" content="https://aeterionpeptides.com/og-image.png" />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://aeterionpeptides.com" />
         <meta property="og:site_name" content="Aeterion Labs" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Buy Research Peptides Online — Aeterion Labs" />
-        <meta name="twitter:description" content="72+ research-grade peptides. HPLC tested. COA included. Free shipping $250+." />
+        <meta name="twitter:description" content="55+ research-grade peptides. HPLC tested. COA included. Free shipping $250+." />
         <meta name="twitter:image" content="https://aeterionpeptides.com/og-image.png" />
         {HOMEPAGE_SCHEMA.map((s, i) => <script key={i} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(s) }} />)}
         <style>{`
@@ -4424,17 +4340,22 @@ export default function App() {
         </div>
       </header>
 
+      <div style={{ background: "#f8fafc", borderBottom: `1px solid ${T.border}`, padding: "5px 24px", display: "flex", gap: 18, justifyContent: "center" }}>
+        <a href="/privacy-policy" style={{ fontSize: 10, color: T.muted, textDecoration: "none" }}>Privacy Policy</a>
+        <a href="/terms" style={{ fontSize: 10, color: T.muted, textDecoration: "none" }}>Terms</a>
+        <a href="/disclaimer" style={{ fontSize: 10, color: T.muted, textDecoration: "none" }}>Disclaimer</a>
+      </div>
+
       <main>
       {cat === "all" && !q && (
         <div style={{ background: "linear-gradient(135deg,#1a6ed8 0%,#2563eb 60%,#3b82f6 100%)", padding: "68px 24px 56px", position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", top: -100, right: -80, width: 400, height: 400, borderRadius: "50%", background: "rgba(255,255,255,0.05)" }} />
           <div style={{ maxWidth: 800, margin: "0 auto", textAlign: "center", position: "relative" }}>
-            <div style={{ display: "inline-block", background: "rgba(255,255,255,0.18)", borderRadius: 24, padding: "6px 22px", fontSize: 11, color: "rgba(255,255,255,0.95)", fontWeight: 600, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 22 }}>72 Research Compounds · Third-Party Tested · COA Included</div>
-            <h1 style={{ fontSize: 52, fontWeight: 900, margin: "0 0 16px", lineHeight: 1.04, color: "#fff", letterSpacing: -1.5 }}>Buy Research Peptides Online<br /><span style={{ opacity: 0.85 }}>GLP-1, BPC-157, TB-500 & More</span></h1>
-            <p style={{ fontSize: 16, color: "rgba(255,255,255,0.82)", lineHeight: 1.75, margin: "0 0 32px", maxWidth: 560, marginLeft: "auto", marginRight: "auto" }}>Aeterion supplies <strong style={{ color: "#fff" }}>research-grade peptides, GLP-1 agonists, SARMs, and analytical compounds</strong>. Every order ships with a Certificate of Analysis.</p>
+            <div style={{ display: "inline-block", background: "rgba(255,255,255,0.18)", borderRadius: 24, padding: "6px 22px", fontSize: 11, color: "rgba(255,255,255,0.95)", fontWeight: 600, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 22 }}>55 Research Compounds · Third-Party Tested · COA Included</div>
+            <h1 style={{ fontSize: 52, fontWeight: 900, margin: "0 0 16px", lineHeight: 1.04, color: "#fff", letterSpacing: -1.5 }}>Buy Research Peptides Online<br /><span style={{ opacity: 0.85 }}>TB-500, NAD+ & More</span></h1>
+            <p style={{ fontSize: 16, color: "rgba(255,255,255,0.82)", lineHeight: 1.75, margin: "0 0 32px", maxWidth: 560, marginLeft: "auto", marginRight: "auto" }}>Aeterion supplies <strong style={{ color: "#fff" }}>research-grade peptides, SARMs, and analytical compounds</strong>. Every order ships with a Certificate of Analysis.</p>
             <div style={{ display: "flex", gap: 14, justifyContent: "center", marginBottom: 44 }}>
               <button onClick={() => document.getElementById("catalog")?.scrollIntoView({ behavior: "smooth" })} style={{ background: "#fff", color: T.blue, border: "none", borderRadius: 12, padding: "14px 32px", fontSize: 15, fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 18px rgba(0,0,0,0.15)", fontFamily: "inherit" }}>Shop All Products</button>
-              <a href="#cat-metabolic" onClick={e => { e.preventDefault(); setCat("metabolic"); window.scrollTo({top:0,behavior:"smooth"}); }} style={{ background: "transparent", color: "#fff", border: "2px solid rgba(255,255,255,0.45)", borderRadius: 12, padding: "14px 32px", fontSize: 15, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", textDecoration: "none", display: "inline-flex", alignItems: "center" }}>GLP-1 / Metabolic →</a>
               <button onClick={() => setShowQuiz(true)} style={{ background: "linear-gradient(135deg,#10b981,#059669)", color: "#fff", border: "2px solid rgba(255,255,255,0.2)", borderRadius: 12, padding: "14px 32px", fontSize: 15, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", boxShadow: "0 4px 20px rgba(16,185,129,0.4), 0 0 0 1px rgba(255,255,255,0.1) inset", display: "inline-flex", alignItems: "center", gap: 8, transition: "transform .2s, box-shadow .2s", animation: "stack-hero-glow 3s ease-in-out infinite" }}
                 onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px) scale(1.04)"; e.currentTarget.style.boxShadow = "0 8px 28px rgba(16,185,129,0.5), 0 0 0 1px rgba(255,255,255,0.15) inset"; }}
                 onMouseLeave={e => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = "0 4px 20px rgba(16,185,129,0.4), 0 0 0 1px rgba(255,255,255,0.1) inset"; }}
@@ -4445,7 +4366,7 @@ export default function App() {
             </div>
             <style>{`@keyframes stack-hero-glow { 0%,100%{box-shadow:0 4px 20px rgba(16,185,129,0.4),0 0 0 1px rgba(255,255,255,0.1) inset} 50%{box-shadow:0 6px 28px rgba(16,185,129,0.55),0 0 12px rgba(52,211,153,0.2),0 0 0 1px rgba(255,255,255,0.15) inset} }`}</style>
             <div style={{ display: "flex", gap: 48, justifyContent: "center", flexWrap: "wrap" }}>
-              {[["72","Compounds"],["≥99%","Avg Purity"],["1-2d","Processing"],["COA","Every Order"],["8–18%","Bulk Savings"]].map(([v,l]) => (
+              {[["55","Compounds"],["≥99%","Avg Purity"],["1-2d","Processing"],["COA","Every Order"],["8–18%","Bulk Savings"]].map(([v,l]) => (
                 <div key={l} style={{ textAlign: "center" }}>
                   <div style={{ fontSize: 26, fontWeight: 900, color: "#fff" }}>{v}</div>
                   <div style={{ fontSize: 10, color: "rgba(255,255,255,0.85)", letterSpacing: 1.5, textTransform: "uppercase", marginTop: 3 }}>{l}</div>
@@ -4628,10 +4549,16 @@ export default function App() {
               <div key={t}>
                 <div style={{ fontWeight: 700, fontSize: 10, letterSpacing: 2, textTransform: "uppercase", color: "rgba(255,255,255,0.6)", marginBottom: 14 }}>{t}</div>
               {links.map(l => {
-                  const dest = l === "Contact" ? "contact" : l === "About" ? "about" : l === "FAQ" ? "faq" : l === "Wholesale" ? "wholesale" : (l === "Terms of Service" || l === "Privacy Policy" || l === "Return Policy" || l === "Disclaimer") ? "legal" : null;
+                  const legalLinks = { "Terms of Service": "/terms", "Privacy Policy": "/privacy-policy", "Return Policy": null, "Disclaimer": "/disclaimer" };
+                  const dest = l === "Contact" ? "contact" : l === "About" ? "about" : l === "FAQ" ? "faq" : l === "Wholesale" ? "wholesale" : null;
                   if (l === "Become an Ambassador") return (
                     <a key={l} href="/ambassador/apply" style={{ display: "block", color: "#60a5fa", fontSize: 12, marginBottom: 9, textDecoration: "none", fontWeight: 600 }}>✦ Become an Ambassador</a>
                   );
+                  if (legalLinks[l] !== undefined) {
+                    return legalLinks[l]
+                      ? <a key={l} href={legalLinks[l]} style={{ display: "block", color: "rgba(255,255,255,0.7)", fontSize: 12, marginBottom: 9, textDecoration: "none" }} onMouseEnter={e=>e.currentTarget.style.color="#fff"} onMouseLeave={e=>e.currentTarget.style.color="rgba(255,255,255,0.7)"}>{l}</a>
+                      : <a key={l} href="#legal" onClick={e => { e.preventDefault(); goTo("legal"); }} style={{ display: "block", color: "rgba(255,255,255,0.7)", fontSize: 12, marginBottom: 9, textDecoration: "none" }} onMouseEnter={e=>e.currentTarget.style.color="#fff"} onMouseLeave={e=>e.currentTarget.style.color="rgba(255,255,255,0.7)"}>{l}</a>;
+                  }
                   return dest
                     ? <a key={l} href={`#${dest}`} onClick={e => { e.preventDefault(); goTo(dest); }} style={{ display: "block", color: "rgba(255,255,255,0.7)", fontSize: 12, marginBottom: 9, textDecoration: "none" }} onMouseEnter={e=>e.currentTarget.style.color="#fff"} onMouseLeave={e=>e.currentTarget.style.color="rgba(255,255,255,0.7)"}>{l}</a>
                     : <div key={l} style={{ color: "rgba(255,255,255,0.7)", fontSize: 12, marginBottom: 9, cursor: "default" }}>{l}</div>;
@@ -4645,7 +4572,6 @@ export default function App() {
           </div>
         </div>
       </footer>
-
 
       {/* ══════════ AI RESEARCH ASSISTANT (desktop) ══════════ */}
       {(() => {
@@ -4929,6 +4855,21 @@ export default function App() {
 
       {/* ══════════ BUILD YOUR STACK ══════════ */}
       {showQuiz && <StackBuilder onClose={() => setShowQuiz(false)} addCart={addCart} setCartOpen={setCartOpen} />}
+
+      {/* ══════════ AGE VERIFICATION MODAL ══════════ */}
+      {!ageVerified && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 99999, background: "rgba(0,0,0,0.85)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20, fontFamily: "'DM Sans', system-ui, sans-serif" }}>
+          <div style={{ background: "#111827", borderRadius: 20, padding: mob ? "36px 24px" : "48px 40px", maxWidth: 440, width: "100%", textAlign: "center", border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 24px 80px rgba(0,0,0,0.6)" }}>
+            <div style={{ width: 56, height: 56, borderRadius: "50%", background: "rgba(26,110,216,0.15)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px", fontSize: 24 }}>🔬</div>
+            <h2 style={{ color: "#fff", fontSize: 20, fontWeight: 800, margin: "0 0 12px", letterSpacing: -0.3 }}>Age Verification Required</h2>
+            <p style={{ color: "rgba(255,255,255,0.7)", fontSize: 14, lineHeight: 1.7, margin: "0 0 28px" }}>This website is intended for qualified research professionals only. Are you 18 years of age or older?</p>
+            <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
+              <button onClick={handleAgeYes} style={{ ...btnPrimary({ padding: "13px 32px", fontSize: 14, borderRadius: 12 }) }}>Yes, I am 18 or older</button>
+              <button onClick={handleAgeNo} style={{ background: "transparent", color: "rgba(255,255,255,0.6)", border: "1.5px solid rgba(255,255,255,0.2)", borderRadius: 12, padding: "13px 24px", fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>No, exit</button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

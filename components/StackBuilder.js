@@ -421,6 +421,7 @@ export default function StackBuilder({ onClose, addCart, setCartOpen }) {
           </div>
 
           {/* Compounds list */}
+          <div style={{ fontSize: 13, fontWeight: 600, color: TEXT_DIM, marginBottom: 12, lineHeight: 1.6 }}>Compounds commonly studied in this research area include:</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 20 }}>
             {activeCompounds.map((c, i) => {
               const roleStyle = ROLE_COLORS[c.role] || ROLE_COLORS.Support;
@@ -619,11 +620,13 @@ export default function StackBuilder({ onClose, addCart, setCartOpen }) {
 
           {/* Disclaimer */}
           <div style={{
-            fontSize: 11, color: TEXT_DARK, marginBottom: 20, lineHeight: 1.6,
-            padding: "10px 14px", background: "rgba(71,85,105,0.08)",
-            borderRadius: 8, border: `1px solid rgba(71,85,105,0.15)`,
+            fontSize: 11, color: "#92400e", marginBottom: 20, lineHeight: 1.7,
+            padding: "12px 16px", background: "#fffbeb",
+            borderRadius: 10, border: "1.5px solid #fbbf24",
+            display: "flex", gap: 10, alignItems: "flex-start",
           }}>
-            For research purposes only. This tool provides educational guidance based on published research and is not medical advice. Consult a qualified professional before beginning any research protocol.
+            <span style={{ fontSize: 14, flexShrink: 0 }}>⚠️</span>
+            <span><strong>Research Use Only:</strong> This tool provides educational guidance based on published research and is not medical advice, a clinical recommendation, or guidance for human use. All compounds listed are for in vitro laboratory research only. Not for human or animal consumption. Not FDA-approved.</span>
           </div>
 
           {/* CTAs */}
@@ -702,6 +705,16 @@ export default function StackBuilder({ onClose, addCart, setCartOpen }) {
             ))}
           </div>
         </div>
+
+        {/* Research Tool Disclaimer */}
+        {step === 0 && (
+          <div style={{ background: "#fffbeb", border: "1.5px solid #fbbf24", borderRadius: 12, padding: "12px 16px", marginBottom: 20, display: "flex", gap: 10, alignItems: "flex-start" }}>
+            <span style={{ fontSize: 16, flexShrink: 0 }}>⚠️</span>
+            <div style={{ fontSize: 11, color: "#92400e", lineHeight: 1.7, fontWeight: 500 }}>
+              <strong>Research Tool Only:</strong> This tool is designed to assist qualified researchers in identifying compounds relevant to their research parameters. It does not constitute medical advice, a clinical recommendation, or guidance for human use. All compounds are for in vitro laboratory research only.
+            </div>
+          </div>
+        )}
 
         {/* Question */}
         <div style={{ marginBottom: 8 }}>
