@@ -1024,6 +1024,7 @@ function ReviewForm({ pid, onSubmit, onCancel, T, btnPrimary }) {
 export default function App() {
   const mob = useIsMobile();
   const tab = useIsTablet();
+  const validCategoryIds = useMemo(() => new Set(CATS.map(({ id }) => id)), []);
 
   const [page, setPage] = useState("store"); // hash read moved to useEffect for SSR
   const [cat, setCat] = useState("all");
@@ -1174,6 +1175,10 @@ export default function App() {
       setEmailPopupDone(true);
     }
     const params = new URLSearchParams(window.location.search);
+    const requestedCat = params.get("cat");
+    if (requestedCat && validCategoryIds.has(requestedCat)) {
+      setCat(requestedCat);
+    }
     if (params.get("payment") === "success") {
       setPaymentMsg("success");
       clearCart();
@@ -1182,7 +1187,7 @@ export default function App() {
       setPaymentMsg("cancelled");
       window.history.replaceState({}, "", "/");
     }
-  }, []);
+  }, [clearCart, validCategoryIds]);
   const [contactForm, setContactForm] = useState({ name:"", email:"", subject:"", message:"" });
   const [contactSent, setContactSent] = useState(false);
 
