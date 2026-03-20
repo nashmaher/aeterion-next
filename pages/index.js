@@ -1045,7 +1045,7 @@ export default function App() {
   const [mQty, setMQty] = useState(1);
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [stripeMsg, setStripeMsg] = useState("");
+  const [checkoutMsg, setCheckoutMsg] = useState("");
   const [inventory, setInventory] = useState({});
   const [paymentMsg, setPaymentMsg] = useState("");
   const [emailPopup, setEmailPopup] = useState(false);
@@ -1179,10 +1179,32 @@ export default function App() {
     if (requestedCat && validCategoryIds.has(requestedCat)) {
       setCat(requestedCat);
     }
-    if (params.get("payment") === "success") {
-      setPaymentMsg("success");
-      clearCart();
-      window.history.replaceState({}, "", "/");
+    const paypalToken = params.get("token");
+    if (paypalToken && params.get("payment") === "success") {
+      // Capture PayPal payment on return
+      setCheckoutMsg("Completing your payment...");
+      fetch("/api/capture-paypal-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderID: paypalToken }),
+      })
+        .then(r => r.json())
+        .then(data => {
+          setCheckoutMsg("");
+          if (data.success) {
+            setPaymentMsg("success");
+            clearCart();
+          } else {
+            setPaymentMsg("cancelled");
+          }
+          window.history.replaceState({}, "", "/");
+        })
+        .catch(() => {
+          setCheckoutMsg("");
+          setPaymentMsg("success"); // Payment likely captured by webhook
+          clearCart();
+          window.history.replaceState({}, "", "/");
+        });
     } else if (params.get("payment") === "cancelled") {
       setPaymentMsg("cancelled");
       window.history.replaceState({}, "", "/");
@@ -1282,7 +1304,7 @@ export default function App() {
 
   const checkout = async () => {
     if (!cart.length) return;
-    setStripeMsg("Connecting to Stripe…");
+    setCheckoutMsg("Connecting to PayPal…");
     try {
       const res = await fetch("/api/create-checkout-session", {
         method: "POST",
@@ -1305,10 +1327,10 @@ export default function App() {
       if (data.url) {
         window.location.href = data.url;
       } else {
-        setStripeMsg("⚠️ " + (data.error || "Something went wrong. Please try again."));
+        setCheckoutMsg("⚠️ " + (data.error || "Something went wrong. Please try again."));
       }
     } catch (err) {
-      setStripeMsg("⚠️ Could not connect to payment server. Please try again.");
+      setCheckoutMsg("⚠️ Could not connect to payment server. Please try again.");
     }
   };
 
@@ -3392,7 +3414,7 @@ export default function App() {
       ]},
       { id: "privacy", title: "Privacy Policy", icon: "", content: [
         "We collect personal information (name, email, shipping address, payment data) solely for the purpose of processing and fulfilling your order. We do not sell, rent, or share your personal information with third parties, except as necessary to complete your transaction (e.g., payment processors, shipping carriers).",
-        "Payment processing is handled by Stripe, a PCI-DSS compliant payment processor. Aeterion Peptides does not store your full credit card information on our servers. All transactions are encrypted via TLS/SSL.",
+        "Payment processing is handled by PayPal, a PCI-DSS compliant payment processor. Aeterion Peptides does not store your payment information on our servers. All transactions are encrypted via TLS/SSL.",
         "We may retain your order history and contact information for customer service purposes. You may request deletion of your data by contacting info@aeterionpeptides.com. We comply with applicable U.S. privacy laws.",
       ]},
       { id: "coa", title: "Certificate of Analysis", icon: "", content: [
@@ -3530,7 +3552,7 @@ export default function App() {
       { q: "Can I return or exchange an order?", a: "Due to the nature of research chemicals and cold-chain shipping requirements, we do not accept returns on opened products. If your order arrives damaged, contains the wrong product, or has a purity issue supported by your own third-party testing, contact us within 7 days of delivery at info@aeterionpeptides.com and we will resolve it." },
       { q: "How long does delivery take?", a: "Orders are processed within 1–2 business days of payment confirmation. Delivery typically takes 1–2 weeks. You will receive a tracking number by email as soon as your order ships." },
       { q: "Do you have a Certificate of Analysis for every product?", a: "Yes — every product in our catalog has been independently tested, and a COA is included with your order. Your COA will match the batch number on your product vial. If you need a COA before ordering, email info@aeterionpeptides.com with the product name and we can provide it in advance." },
-      { q: "What payment methods do you accept?", a: "We accept all major credit and debit cards through our secure Stripe-powered checkout. Payments are encrypted and processed securely. We do not store payment information." },
+      { q: "What payment methods do you accept?", a: "We accept PayPal, Venmo, and all major credit and debit cards through our secure PayPal-powered checkout. Payments are encrypted and processed securely. We do not store payment information." },
       { q: "Do you offer military or first responder discounts?", a: "We recognize the service of military personnel, veterans, and first responders. Contact us at info@aeterionpeptides.com with verification and we will apply a discount to your order." },
     ];
     return (
@@ -4012,7 +4034,7 @@ export default function App() {
         ))}
       </nav>
 
-      <MobileMenu /><ProductModal /><CartDrawer mob={mob} promoInput={promoInput} setPromoInput={v => { setPromoInput(v); if (promoStatus) { setPromoStatus(""); setPromoCode(null); setPromoDiscount(0); } }} promoCode={promoCode} promoDiscount={promoDiscount} promoStatus={promoStatus} onPromoApply={handlePromoApply} onPromoRemove={handlePromoRemove} onCheckout={checkout} stripeMsg={stripeMsg} paymentMsg={paymentMsg} />
+      <MobileMenu /><ProductModal /><CartDrawer mob={mob} promoInput={promoInput} setPromoInput={v => { setPromoInput(v); if (promoStatus) { setPromoStatus(""); setPromoCode(null); setPromoDiscount(0); } }} promoCode={promoCode} promoDiscount={promoDiscount} promoStatus={promoStatus} onPromoApply={handlePromoApply} onPromoRemove={handlePromoRemove} onCheckout={checkout} stripeMsg={checkoutMsg} paymentMsg={paymentMsg} />
 
       {/* ══════════ AI RESEARCH ASSISTANT (mobile) ══════════ */}
       {(() => {
@@ -4538,7 +4560,7 @@ export default function App() {
 
       </main>
 
-      <ProductModal /><CartDrawer mob={mob} promoInput={promoInput} setPromoInput={v => { setPromoInput(v); if (promoStatus) { setPromoStatus(""); setPromoCode(null); setPromoDiscount(0); } }} promoCode={promoCode} promoDiscount={promoDiscount} promoStatus={promoStatus} onPromoApply={handlePromoApply} onPromoRemove={handlePromoRemove} onCheckout={checkout} stripeMsg={stripeMsg} paymentMsg={paymentMsg} />
+      <ProductModal /><CartDrawer mob={mob} promoInput={promoInput} setPromoInput={v => { setPromoInput(v); if (promoStatus) { setPromoStatus(""); setPromoCode(null); setPromoDiscount(0); } }} promoCode={promoCode} promoDiscount={promoDiscount} promoStatus={promoStatus} onPromoApply={handlePromoApply} onPromoRemove={handlePromoRemove} onCheckout={checkout} stripeMsg={checkoutMsg} paymentMsg={paymentMsg} />
 
       <footer style={{ background: "#111827", color: "rgba(255,255,255,0.75)", padding: "48px 24px 28px", marginTop: 60 }}>
         <div style={{ maxWidth: 1400, margin: "0 auto" }}>

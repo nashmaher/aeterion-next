@@ -1,9 +1,33 @@
-import Stripe from "stripe";
 import { getSupabaseConfig, setCorsHeaders, sanitizeError } from "../../lib/security";
 const { PRODUCTS } = require('../../lib/products');
 
 const { url: SB_URL } = getSupabaseConfig();
 const DISC_RATE = qty => qty >= 10 ? 0.82 : qty >= 5 ? 0.92 : 1;
+
+const PAYPAL_API = process.env.PAYPAL_API_BASE || "https://api-m.paypal.com";
+
+async function getPayPalAccessToken() {
+  const clientId = process.env.PAYPAL_CLIENT_ID;
+  const secret = process.env.PAYPAL_CLIENT_SECRET;
+  if (!clientId || !secret) throw new Error("PayPal credentials not configured");
+
+  const res = await fetch(`${PAYPAL_API}/v1/oauth2/token`, {
+    method: "POST",
+    headers: {
+      "Authorization": "Basic " + Buffer.from(`${clientId}:${secret}`).toString("base64"),
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: "grant_type=client_credentials",
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`PayPal auth failed [${res.status}]: ${text}`);
+  }
+
+  const data = await res.json();
+  return data.access_token;
+}
 
 export default async function handler(req, res) {
   setCorsHeaders(req, res);
@@ -11,54 +35,53 @@ export default async function handler(req, res) {
   if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
-  const key = process.env.STRIPE_SECRET_KEY;
-  if (!key) {
-    return res.status(500).json({ error: "STRIPE_SECRET_KEY environment variable is not set" });
-  }
-
-  const stripe = new Stripe(key, { apiVersion: "2023-10-16" });
-
   try {
     const { items, user_id, user_email, promoCode } = req.body;
 
     // ── Validate promo code if provided ──
     let validatedAmbassador = null;
-    let stripeCouponId = null;
+    let promoDiscountPct = 0;
 
     if (promoCode) {
       const normalized = promoCode.toUpperCase().trim();
 
       // ── WELCOME10 — 10% off first order ──
       if (normalized === "WELCOME10") {
-        const couponId = "WELCOME10";
-        try {
-          await stripe.coupons.retrieve(couponId);
-          stripeCouponId = couponId;
-        } catch {
-          const coupon = await stripe.coupons.create({
-            id: couponId,
-            percent_off: 10,
-            duration: "once",
-            name: "10% Off — First Order (WELCOME10)",
-          });
-          stripeCouponId = coupon.id;
-        }
+        promoDiscountPct = 10;
       }
 
       // ── SAVE5 — 5% off cart abandonment recovery ──
       else if (normalized === "SAVE5") {
-        const couponId = "SAVE5";
-        try {
-          await stripe.coupons.retrieve(couponId);
-          stripeCouponId = couponId;
-        } catch {
-          const coupon = await stripe.coupons.create({
-            id: couponId,
-            percent_off: 5,
-            duration: "once",
-            name: "5% Off — Recovery Discount (SAVE5)",
-          });
-          stripeCouponId = coupon.id;
+        promoDiscountPct = 5;
+      }
+
+      // ── WELCOME-* and SAVE-* codes (from email_subscribers table) ──
+      else if (normalized.startsWith("WELCOME-") || normalized.startsWith("SAVE-")) {
+        const sbKey = process.env.SUPABASE_SERVICE_KEY;
+        const codeRes = await fetch(
+          `${SB_URL}/rest/v1/email_subscribers?discount_code=eq.${encodeURIComponent(normalized)}&code_used=eq.false&select=discount_pct`,
+          { headers: { apikey: sbKey, Authorization: `Bearer ${sbKey}` } }
+        );
+        const codeData = await codeRes.json();
+        if (codeData?.length) {
+          promoDiscountPct = codeData[0].discount_pct || 10;
+        } else {
+          return res.status(400).json({ error: "This promo code is invalid or has already been used." });
+        }
+      }
+
+      // ── REVIEW-* codes ──
+      else if (normalized.startsWith("REVIEW-")) {
+        const sbKey = process.env.SUPABASE_SERVICE_KEY;
+        const codeRes = await fetch(
+          `${SB_URL}/rest/v1/review_codes?code=eq.${encodeURIComponent(normalized)}&code_used=eq.false&select=id`,
+          { headers: { apikey: sbKey, Authorization: `Bearer ${sbKey}` } }
+        );
+        const codeData = await codeRes.json();
+        if (codeData?.length) {
+          promoDiscountPct = 10;
+        } else {
+          return res.status(400).json({ error: "This promo code is invalid or has already been used." });
         }
       }
 
@@ -71,27 +94,13 @@ export default async function handler(req, res) {
         const promoData = await promoRes.json();
         if (promoData?.length) {
           validatedAmbassador = promoData[0];
-          const couponId = `AMB_${validatedAmbassador.promo_code}`;
-          try {
-            await stripe.coupons.retrieve(couponId);
-            stripeCouponId = couponId;
-          } catch {
-            // Coupon doesn't exist yet — create it (handles new ambassadors automatically)
-            const coupon = await stripe.coupons.create({
-              id: couponId,
-              percent_off: 10,
-              duration: "once",
-              name: `Ambassador Code: ${validatedAmbassador.promo_code}`,
-            });
-            stripeCouponId = coupon.id;
-          }
+          promoDiscountPct = 10; // Ambassador codes always give 10% off
         }
       }
     }
 
     // ── Atomically claim single-use promo codes to prevent race conditions ──
-    let claimedCode = null;
-    if (promoCode && stripeCouponId) {
+    if (promoCode && promoDiscountPct > 0) {
       const normalized = promoCode.toUpperCase().trim();
       const sbKey = process.env.SUPABASE_SERVICE_KEY;
 
@@ -114,7 +123,6 @@ export default async function handler(req, res) {
         if (!claimed?.length) {
           return res.status(400).json({ error: 'This promo code has already been used.' });
         }
-        claimedCode = { table: 'email_subscribers', column: 'discount_code', value: normalized };
       }
 
       // REVIEW-* codes (from review_codes table)
@@ -136,7 +144,6 @@ export default async function handler(req, res) {
         if (!claimed?.length) {
           return res.status(400).json({ error: 'This promo code has already been used.' });
         }
-        claimedCode = { table: 'review_codes', column: 'code', value: normalized };
       }
     }
 
@@ -144,55 +151,48 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "No items in cart" });
     }
 
-    // ── Server-side price validation ──
-    const line_items = items.map(item => {
-      // Look up canonical price from product catalog
+    // ── Server-side price validation & line item building ──
+    let itemTotalCents = 0;
+    const paypalItems = items.map(item => {
       const product = PRODUCTS.find(p => p.id === item.id);
-      if (!product) {
-        throw new Error(`Unknown product ID: ${item.id}`);
-      }
+      if (!product) throw new Error(`Unknown product ID: ${item.id}`);
       const variant = product.variants?.find(v => v.s === item.size);
-      if (!variant) {
-        throw new Error(`Unknown variant ${item.size} for product ${product.name}`);
-      }
+      if (!variant) throw new Error(`Unknown variant ${item.size} for product ${product.name}`);
 
-      const canonicalPrice = variant.p; // authoritative price from server
+      const canonicalPrice = variant.p;
       const qty = Math.max(1, Math.min(99, Math.floor(item.qty || 1)));
 
       // Calculate unit price server-side
-      let unitAmountCents;
-      if (promoCode) {
-        // Promo code applied: use original unit price (no bulk discount)
-        unitAmountCents = Math.round(canonicalPrice * 100);
+      let unitPriceCents;
+      if (promoCode && promoDiscountPct > 0) {
+        // Promo code: apply percentage discount, no bulk discount
+        unitPriceCents = Math.round(canonicalPrice * (1 - promoDiscountPct / 100) * 100);
       } else {
         // No promo: apply bulk discount server-side
         const rate = DISC_RATE(qty);
-        unitAmountCents = Math.round(canonicalPrice * rate * 100);
+        unitPriceCents = Math.round(canonicalPrice * rate * 100);
       }
 
+      itemTotalCents += unitPriceCents * qty;
+
       return {
-        price_data: {
-          currency: "usd",
-          product_data: {
-            name: `${product.name} (${item.size})`,
-            description: promoCode
-              ? `${qty} vial${qty > 1 ? "s" : ""} — ${promoCode} discount applied`
-              : qty >= 10 ? `${qty} vials — 18% bulk discount applied`
-              : qty >= 5  ? `${qty} vials — 8% bulk discount applied`
-              : "1 vial — Research use only",
-            metadata: {
-              product_id: String(item.id),
-              qty_ordered: String(qty),
-            },
-          },
-          unit_amount: unitAmountCents,
+        name: `${product.name} (${item.size})`,
+        description: promoCode && promoDiscountPct > 0
+          ? `${qty} vial${qty > 1 ? "s" : ""} — ${promoCode} ${promoDiscountPct}% discount applied`
+          : qty >= 10 ? `${qty} vials — 18% bulk discount applied`
+          : qty >= 5  ? `${qty} vials — 8% bulk discount applied`
+          : "1 vial — Research use only",
+        unit_amount: {
+          currency_code: "USD",
+          value: (unitPriceCents / 100).toFixed(2),
         },
-        quantity: qty,
+        quantity: String(qty),
+        category: "PHYSICAL_GOODS",
       };
     });
 
-    // Subtotal for shipping threshold (use canonical prices from catalog)
-    const subtotalCents = items.reduce((sum, item) => {
+    // Subtotal for shipping threshold (use canonical prices, not discounted)
+    const canonicalSubtotalCents = items.reduce((sum, item) => {
       const product = PRODUCTS.find(p => p.id === item.id);
       const variant = product?.variants?.find(v => v.s === item.size);
       const price = variant?.p || 0;
@@ -200,66 +200,87 @@ export default async function handler(req, res) {
       return sum + Math.round(price * 100) * qty;
     }, 0);
     const ambassadorFreeShipping = validatedAmbassador?.free_shipping === true;
-    const freeShipping = subtotalCents >= 25000 || ambassadorFreeShipping;
+    const freeShipping = canonicalSubtotalCents >= 25000 || ambassadorFreeShipping;
 
-    const shippingOptions = freeShipping ? [
-      {
-        shipping_rate_data: {
-          type: "fixed_amount",
-          fixed_amount: { amount: 0, currency: "usd" },
-          display_name: ambassadorFreeShipping ? "Free Shipping (Ambassador Perk)" : "Free Shipping",
-          delivery_estimate: { minimum: { unit: "week", value: 1 }, maximum: { unit: "week", value: 2 } },
-        },
-      },
-    ] : [
-      {
-        shipping_rate_data: {
-          type: "fixed_amount",
-          fixed_amount: { amount: 1500, currency: "usd" },
-          display_name: "Standard Shipping",
-          delivery_estimate: { minimum: { unit: "week", value: 1 }, maximum: { unit: "week", value: 2 } },
-        },
-      },
-      {
-        shipping_rate_data: {
-          type: "fixed_amount",
-          fixed_amount: { amount: 0, currency: "usd" },
-          display_name: `Free Shipping (orders $250+) — Add $${((25000 - subtotalCents) / 100).toFixed(2)} more to qualify`,
-          delivery_estimate: { minimum: { unit: "week", value: 1 }, maximum: { unit: "week", value: 2 } },
-        },
-      },
-    ];
+    const shippingCents = freeShipping ? 0 : 1500;
+    const orderTotalCents = itemTotalCents + shippingCents;
 
-    const sessionParams = {
-      payment_method_types: ["card"],
-      line_items,
-      mode: "payment",
-      success_url: "https://aeterionpeptides.com/?payment=success",
-      cancel_url:  "https://aeterionpeptides.com/?payment=cancelled",
-      shipping_address_collection: { allowed_countries: ["US"] },
-      shipping_options: shippingOptions,
-      billing_address_collection: "required",
-      phone_number_collection: { enabled: true },
-      metadata: {
-        user_id: user_id || "",
-        promo_code: promoCode ? promoCode.toUpperCase().trim() : "",
-        ambassador_id: validatedAmbassador?.id || "",
+    // ── Build metadata (stored in custom_id, max 127 chars) ──
+    const metadata = JSON.stringify({
+      uid: user_id || "",
+      pc: promoCode ? promoCode.toUpperCase().trim() : "",
+      aid: validatedAmbassador?.id || "",
+    });
+
+    // ── Get PayPal access token ──
+    const accessToken = await getPayPalAccessToken();
+
+    // ── Create PayPal order ──
+    const orderPayload = {
+      intent: "CAPTURE",
+      purchase_units: [{
+        custom_id: metadata,
+        description: `Aeterion Labs Order${promoCode ? ` (Promo: ${promoCode.toUpperCase().trim()})` : ""}`,
+        amount: {
+          currency_code: "USD",
+          value: (orderTotalCents / 100).toFixed(2),
+          breakdown: {
+            item_total: {
+              currency_code: "USD",
+              value: (itemTotalCents / 100).toFixed(2),
+            },
+            shipping: {
+              currency_code: "USD",
+              value: (shippingCents / 100).toFixed(2),
+            },
+          },
+        },
+        items: paypalItems,
+      }],
+      payment_source: {
+        paypal: {
+          experience_context: {
+            payment_method_preference: "IMMEDIATE_PAYMENT_REQUIRED",
+            brand_name: "Aeterion Labs",
+            locale: "en-US",
+            landing_page: "LOGIN",
+            shipping_preference: "GET_FROM_FILE",
+            user_action: "PAY_NOW",
+            return_url: "https://aeterionpeptides.com/?payment=success",
+            cancel_url: "https://aeterionpeptides.com/?payment=cancelled",
+          },
+        },
       },
     };
 
-    // Apply ambassador discount coupon if valid code was provided
-    if (stripeCouponId) {
-      sessionParams.discounts = [{ coupon: stripeCouponId }];
+    const orderRes = await fetch(`${PAYPAL_API}/v2/checkout/orders`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+        "Prefer": "return=representation",
+      },
+      body: JSON.stringify(orderPayload),
+    });
+
+    if (!orderRes.ok) {
+      const errText = await orderRes.text();
+      console.error("PayPal order creation failed:", errText);
+      throw new Error(`PayPal error [${orderRes.status}]`);
     }
 
-    // Pre-fill email if user is signed in
-    if (user_email) sessionParams.customer_email = user_email;
+    const order = await orderRes.json();
 
-    const session = await stripe.checkout.sessions.create(sessionParams);
-    return res.status(200).json({ url: session.url });
+    // Find the approval URL for redirect
+    const approveLink = order.links?.find(l => l.rel === "payer-action");
+    if (!approveLink) {
+      throw new Error("No PayPal approval URL returned");
+    }
+
+    return res.status(200).json({ url: approveLink.href });
 
   } catch (err) {
-    console.error("Stripe error:", err.message);
+    console.error("PayPal error:", err.message);
     return res.status(500).json({ error: sanitizeError(err) });
   }
-};
+}

@@ -1,13 +1,31 @@
-import Stripe from "stripe";
 import { getSupabaseConfig, sanitizeError } from "../../lib/security";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: "2025-01-27.acacia" });
+const PAYPAL_API = process.env.PAYPAL_API_BASE || "https://api-m.paypal.com";
 const isDev = process.env.NODE_ENV !== "production";
 const log = (...args) => { if (isDev) console.log(...args); };
 const { url: SB_URL, key: SB_KEY } = getSupabaseConfig();
 
-function generateOrderNumber(sessionId) {
-  const num = parseInt(sessionId.replace(/\D/g, "").slice(-5)) % 99999;
+async function getPayPalAccessToken() {
+  const clientId = process.env.PAYPAL_CLIENT_ID;
+  const secret = process.env.PAYPAL_CLIENT_SECRET;
+  if (!clientId || !secret) throw new Error("PayPal credentials not configured");
+
+  const res = await fetch(`${PAYPAL_API}/v1/oauth2/token`, {
+    method: "POST",
+    headers: {
+      "Authorization": "Basic " + Buffer.from(`${clientId}:${secret}`).toString("base64"),
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: "grant_type=client_credentials",
+  });
+
+  if (!res.ok) throw new Error(`PayPal auth failed [${res.status}]`);
+  const data = await res.json();
+  return data.access_token;
+}
+
+function generateOrderNumber(paypalOrderId) {
+  const num = parseInt(paypalOrderId.replace(/\D/g, "").slice(-5)) % 99999;
   return `AET-${new Date().getFullYear()}-${String(num).padStart(5, "0")}`;
 }
 
@@ -48,12 +66,230 @@ async function sendEmail({ to, subject, html }) {
   return res.json();
 }
 
-function buildCustomerEmail({ customerName, items, total, orderId, orderNumber }) {
+// ── Verify PayPal webhook signature ──
+async function verifyWebhookSignature(req, rawBody) {
+  const webhookId = process.env.PAYPAL_WEBHOOK_ID;
+  if (!webhookId) throw new Error("PAYPAL_WEBHOOK_ID not configured");
+
+  const accessToken = await getPayPalAccessToken();
+
+  const verifyRes = await fetch(`${PAYPAL_API}/v1/notifications/verify-webhook-signature`, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      auth_algo:         req.headers["paypal-auth-algo"],
+      cert_url:          req.headers["paypal-cert-url"],
+      transmission_id:   req.headers["paypal-transmission-id"],
+      transmission_sig:  req.headers["paypal-transmission-sig"],
+      transmission_time: req.headers["paypal-transmission-time"],
+      webhook_id:        webhookId,
+      webhook_event:     JSON.parse(rawBody.toString()),
+    }),
+  });
+
+  if (!verifyRes.ok) {
+    const errText = await verifyRes.text();
+    throw new Error(`Webhook verification request failed: ${errText}`);
+  }
+
+  const result = await verifyRes.json();
+  return result.verification_status === "SUCCESS";
+}
+
+export default async function handler(req, res) {
+  if (req.method !== "POST") return res.status(405).end();
+
+  // ── Read raw body ──
+  const chunks = [];
+  for await (const chunk of req) chunks.push(chunk);
+  const rawBody = Buffer.concat(chunks);
+
+  // ── Verify PayPal webhook signature ──
+  try {
+    const isValid = await verifyWebhookSignature(req, rawBody);
+    if (!isValid) {
+      console.error("PayPal webhook signature verification failed");
+      return res.status(400).json({ error: "Invalid signature" });
+    }
+  } catch (err) {
+    console.error("Webhook verification error:", err.message);
+    return res.status(400).json({ error: "Signature verification failed" });
+  }
+
+  let event;
+  try {
+    event = JSON.parse(rawBody.toString());
+  } catch {
+    return res.status(400).json({ error: "Invalid JSON" });
+  }
+
+  log("=== PAYPAL WEBHOOK ===", event.event_type);
+
+  try {
+    // Handle PAYMENT.CAPTURE.COMPLETED — backup for the capture-paypal-order endpoint
+    if (event.event_type === "PAYMENT.CAPTURE.COMPLETED") {
+      const capture = event.resource || {};
+      const paypalOrderId = capture.supplementary_data?.related_ids?.order_id;
+
+      if (!paypalOrderId) {
+        log("No order ID in capture webhook — skipping");
+        return res.status(200).json({ received: true });
+      }
+
+      // Check if order was already saved (by the capture endpoint)
+      const existingOrder = await sb(`orders?id=eq.${paypalOrderId}&select=id`).catch(() => []);
+      if (existingOrder?.length) {
+        log(`Order ${paypalOrderId} already exists — webhook is backup, skipping`);
+        return res.status(200).json({ received: true });
+      }
+
+      // If not already captured by the return-url flow, fetch order details and save
+      const accessToken = await getPayPalAccessToken();
+      const orderRes = await fetch(`${PAYPAL_API}/v2/checkout/orders/${paypalOrderId}`, {
+        headers: { "Authorization": `Bearer ${accessToken}` },
+      });
+
+      if (!orderRes.ok) {
+        console.error("Failed to fetch PayPal order:", await orderRes.text());
+        return res.status(200).json({ received: true });
+      }
+
+      const order = await orderRes.json();
+      const payer = order.payer || {};
+      const purchaseUnit = order.purchase_units?.[0] || {};
+      const shipping = purchaseUnit.shipping || {};
+
+      const customerName = shipping.name?.full_name || `${payer.name?.given_name || ""} ${payer.name?.surname || ""}`.trim() || "Valued Customer";
+      const customerEmail = payer.email_address || "";
+      const customerPhone = payer.phone?.phone_number?.national_number || "";
+      const shippingAddress = shipping.address || null;
+      const orderNumber = generateOrderNumber(paypalOrderId);
+
+      let metadata = {};
+      try { metadata = JSON.parse(purchaseUnit.custom_id || "{}"); } catch {}
+
+      const promoCode = metadata.pc || null;
+      const ambassadorId = metadata.aid || null;
+      const userId = metadata.uid || null;
+
+      const orderItems = (purchaseUnit.items || []).map(item => ({
+        description: item.name,
+        quantity: parseInt(item.quantity) || 1,
+        amount_total: Math.round(parseFloat(item.unit_amount?.value || 0) * (parseInt(item.quantity) || 1) * 100),
+      }));
+
+      const totalCents = Math.round(parseFloat(capture.amount?.value || 0) * 100);
+
+      // Save order
+      try {
+        const normalizedAddress = shippingAddress ? {
+          line1: shippingAddress.address_line_1 || "",
+          line2: shippingAddress.address_line_2 || "",
+          city: shippingAddress.admin_area_2 || "",
+          state: shippingAddress.admin_area_1 || "",
+          postal_code: shippingAddress.postal_code || "",
+        } : null;
+
+        await sb("orders", "POST", {
+          id:               paypalOrderId,
+          order_number:     orderNumber,
+          customer_name:    customerName,
+          customer_email:   customerEmail,
+          customer_phone:   customerPhone,
+          shipping_address: normalizedAddress,
+          items:            orderItems,
+          total:            totalCents,
+          status:           "processing",
+          user_id:          userId || null,
+          promo_code:       promoCode || null,
+          ambassador_id:    ambassadorId ? String(ambassadorId) : null,
+        });
+        log("Order saved via webhook:", orderNumber);
+      } catch (e) {
+        console.error("Webhook order save FAILED:", e.message);
+      }
+
+      // Send emails
+      const totalFormatted = (totalCents / 100).toFixed(2);
+      const emailItems = orderItems.map(i => ({
+        name: i.description,
+        quantity: i.quantity,
+        totalPrice: (i.amount_total / 100).toFixed(2),
+      }));
+
+      if (customerEmail) {
+        try {
+          await sendEmail({
+            to: customerEmail,
+            subject: `Order Confirmed ${orderNumber} — Aeterion Labs`,
+            html: buildCustomerEmailSimple({ customerName, items: emailItems, total: totalFormatted, orderNumber }),
+          });
+        } catch (e) {
+          console.error("Webhook customer email FAILED:", e.message);
+        }
+      }
+
+      try {
+        await sendEmail({
+          to: "info@aeterionpeptides.com",
+          subject: `New Order ${orderNumber} — $${totalFormatted} from ${customerName}`,
+          html: `<p>New order ${orderNumber} — $${totalFormatted} from ${customerName} (${customerEmail})</p><p>Promo: ${promoCode || "none"}</p>`,
+        });
+      } catch (e) {
+        console.error("Webhook admin email FAILED:", e.message);
+      }
+
+      // Ambassador commission (same logic as capture endpoint)
+      if (promoCode && ambassadorId) {
+        try {
+          const existing = await sb(`ambassador_commissions?stripe_session_id=eq.${paypalOrderId}&select=id`);
+          if (!existing?.length) {
+            const ambData = await sb(`ambassadors?id=eq.${ambassadorId}&select=id,name,email,commission_rate,total_commission_earned`);
+            const amb = ambData?.[0];
+            const commissionRatePct = Number(amb?.commission_rate ?? 20);
+            const productSubtotal = orderItems.reduce((sum, i) => sum + i.amount_total, 0) / 100;
+            const commissionAmount = productSubtotal * (commissionRatePct / 100);
+
+            await sb("ambassador_commissions", "POST", {
+              ambassador_id:     ambassadorId,
+              order_id:          paypalOrderId,
+              stripe_session_id: paypalOrderId,
+              customer_email:    customerEmail || "",
+              order_subtotal:    productSubtotal,
+              discount_amount:   productSubtotal * 0.10,
+              commission_amount: commissionAmount,
+              promo_code:        promoCode,
+              status:            "pending",
+            });
+
+            if (amb) {
+              const newTotal = Number(amb.total_commission_earned || 0) + commissionAmount;
+              await sb(`ambassadors?id=eq.${ambassadorId}`, "PATCH", { total_commission_earned: newTotal });
+            }
+          }
+        } catch (e) {
+          console.error("Webhook commission FAILED:", e.message);
+        }
+      }
+    }
+
+    return res.status(200).json({ received: true });
+  } catch (err) {
+    console.error("Webhook top-level error:", err.message);
+    return res.status(500).json({ error: sanitizeError(err) });
+  }
+}
+
+// Simplified customer email for webhook backup
+function buildCustomerEmailSimple({ customerName, items, total, orderNumber }) {
   const itemsHtml = items.map(item => `
     <tr>
-      <td style="padding:12px 16px;border-bottom:1px solid #e2e8f0;font-size:14px;color:#1e293b;">${item.description}</td>
-      <td style="padding:12px 16px;border-bottom:1px solid #e2e8f0;font-size:14px;color:#1e293b;text-align:center;">${item.quantity}</td>
-      <td style="padding:12px 16px;border-bottom:1px solid #e2e8f0;font-size:14px;color:#1e293b;text-align:right;">$${(item.amount_total / 100).toFixed(2)}</td>
+      <td style="padding:12px 16px;border-bottom:1px solid #e2e8f0;font-size:14px;color:#1e293b;">${item.name}</td>
+      <td style="padding:12px 16px;border-bottom:1px solid #e2e8f0;font-size:14px;text-align:center;">${item.quantity}</td>
+      <td style="padding:12px 16px;border-bottom:1px solid #e2e8f0;font-size:14px;text-align:right;">$${item.totalPrice}</td>
     </tr>`).join("");
 
   return `<!DOCTYPE html><html><head><meta charset="utf-8"></head>
@@ -62,7 +298,7 @@ function buildCustomerEmail({ customerName, items, total, orderId, orderNumber }
 <tr><td align="center"><table width="100%" cellpadding="0" cellspacing="0" style="max-width:580px;">
   <tr><td style="background:linear-gradient(135deg,#1a6ed8,#1557b0);border-radius:16px 16px 0 0;padding:36px 40px;text-align:center;">
     <div style="font-size:11px;font-weight:700;letter-spacing:3px;color:rgba(255,255,255,0.7);text-transform:uppercase;margin-bottom:8px;">AETERION LABS</div>
-    <div style="font-size:28px;font-weight:900;color:#fff;margin-bottom:4px;">Order Confirmed ✓</div>
+    <div style="font-size:28px;font-weight:900;color:#fff;margin-bottom:4px;">Order Confirmed</div>
     <div style="font-size:14px;color:rgba(255,255,255,0.8);">Thank you for your order, ${customerName}!</div>
   </td></tr>
   <tr><td style="background:#fff;padding:36px 40px;">
@@ -79,7 +315,7 @@ function buildCustomerEmail({ customerName, items, total, orderId, orderNumber }
       <tbody>${itemsHtml}</tbody>
       <tfoot><tr style="background:#f8fafc;">
         <td colspan="2" style="padding:14px 16px;font-size:15px;font-weight:800;color:#1e293b;">Total</td>
-        <td style="padding:14px 16px;font-size:15px;font-weight:800;color:#1a6ed8;text-align:right;">$${(total / 100).toFixed(2)}</td>
+        <td style="padding:14px 16px;font-size:15px;font-weight:800;color:#1a6ed8;text-align:right;">$${total}</td>
       </tr></tfoot>
     </table>
     <div style="background:#eff6ff;border-radius:10px;padding:18px 20px;border:1px solid #bfdbfe;">
@@ -92,283 +328,6 @@ function buildCustomerEmail({ customerName, items, total, orderId, orderNumber }
     <a href="https://aeterionpeptides.com" style="color:rgba(255,255,255,0.4);text-decoration:none;">aeterionpeptides.com</a></div>
   </td></tr>
 </table></td></tr></table></body></html>`;
-}
-
-function buildAdminEmail({ customerName, customerEmail, customerPhone, shippingAddress, items, total, orderNumber, promoCode, commissionAmount }) {
-  const itemsHtml = items.map(item => `
-    <tr>
-      <td style="padding:10px 14px;border-bottom:1px solid #e2e8f0;font-size:13px;color:#1e293b;">${item.description}</td>
-      <td style="padding:10px 14px;border-bottom:1px solid #e2e8f0;font-size:13px;text-align:center;">${item.quantity}</td>
-      <td style="padding:10px 14px;border-bottom:1px solid #e2e8f0;font-size:13px;font-weight:700;color:#1a6ed8;text-align:right;">$${(item.amount_total / 100).toFixed(2)}</td>
-    </tr>`).join("");
-  const addr = shippingAddress;
-  const addressStr = addr ? `${addr.line1}${addr.line2 ? ", " + addr.line2 : ""}, ${addr.city}, ${addr.state} ${addr.postal_code}` : "N/A";
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"></head>
-<body style="margin:0;padding:0;background:#f1f5f9;font-family:Arial,sans-serif;">
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:30px 20px;">
-<tr><td align="center"><table width="100%" cellpadding="0" cellspacing="0" style="max-width:580px;">
-  <tr><td style="background:#0f172a;border-radius:12px 12px 0 0;padding:24px 32px;">
-    <div style="font-size:11px;color:rgba(255,255,255,0.5);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;">AETERION LABS — ADMIN</div>
-    <div style="font-size:22px;font-weight:900;color:#fff;">🛍️ New Order — ${orderNumber}</div>
-    <div style="font-size:20px;font-weight:900;color:#60a5fa;">$${(total / 100).toFixed(2)}</div>
-    ${promoCode ? `<div style="font-size:12px;color:#fbbf24;margin-top:6px;">🎟 Promo: ${promoCode}${commissionAmount ? ` · Commission owed: $${commissionAmount.toFixed(2)}` : ""}</div>` : ""}
-  </td></tr>
-  <tr><td style="background:#fff;padding:28px 32px;">
-    <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0;margin-bottom:24px;">
-      ${[["👤 Name", customerName], ["📧 Email", customerEmail], ["📱 Phone", customerPhone || "N/A"], ["📦 Ship To", addressStr]].map(([label, value]) => `
-      <tr><td style="padding:10px 16px;font-size:12px;font-weight:700;color:#64748b;width:100px;border-bottom:1px solid #e2e8f0;">${label}</td>
-      <td style="padding:10px 16px;font-size:13px;color:#1e293b;border-bottom:1px solid #e2e8f0;">${value}</td></tr>`).join("")}
-    </table>
-    <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;margin-bottom:24px;">
-      <thead><tr style="background:#f8fafc;">
-        <th style="padding:10px 14px;font-size:11px;color:#64748b;text-align:left;">Product</th>
-        <th style="padding:10px 14px;font-size:11px;color:#64748b;text-align:center;">Qty</th>
-        <th style="padding:10px 14px;font-size:11px;color:#64748b;text-align:right;">Price</th>
-      </tr></thead>
-      <tbody>${itemsHtml}</tbody>
-      <tfoot><tr style="background:#f0fdf4;">
-        <td colspan="2" style="padding:12px 14px;font-size:15px;font-weight:800;color:#1e293b;">Total</td>
-        <td style="padding:12px 14px;font-size:15px;font-weight:800;color:#16a34a;text-align:right;">$${(total / 100).toFixed(2)}</td>
-      </tr></tfoot>
-    </table>
-    <a href="https://dashboard.stripe.com/payments" style="display:inline-block;background:#1a6ed8;color:#fff;font-size:13px;font-weight:700;padding:12px 24px;border-radius:8px;text-decoration:none;margin-right:10px;">View in Stripe</a>
-    <a href="mailto:${customerEmail}" style="display:inline-block;background:#f8fafc;color:#1e293b;font-size:13px;font-weight:700;padding:12px 24px;border-radius:8px;text-decoration:none;border:1px solid #e2e8f0;">Email Customer</a>
-  </td></tr>
-</table></td></tr></table></body></html>`;
-}
-
-function buildAmbassadorEmail({ ambassadorName, ambassadorEmail, customerEmail, commissionAmount, commissionRatePct, orderTotal, promoCode, orderNumber }) {
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"></head>
-<body style="margin:0;padding:0;background:#f1f5f9;font-family:Arial,sans-serif;">
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:40px 20px;">
-<tr><td align="center"><table width="100%" cellpadding="0" cellspacing="0" style="max-width:540px;">
-  <tr><td style="background:linear-gradient(135deg,#1a6ed8,#1557b0);border-radius:16px 16px 0 0;padding:32px 40px;text-align:center;">
-    <div style="font-size:11px;font-weight:700;letter-spacing:3px;color:rgba(255,255,255,0.7);text-transform:uppercase;margin-bottom:8px;">AETERION LABS</div>
-    <div style="font-size:26px;font-weight:900;color:#fff;">💰 You Earned a Commission!</div>
-  </td></tr>
-  <tr><td style="background:#fff;padding:36px 40px;">
-    <p style="font-size:15px;color:#1e293b;margin:0 0 24px;">Hey ${ambassadorName || "Ambassador"}, someone just placed an order using your code <strong>${promoCode}</strong>!</p>
-    <div style="background:#f0fdf4;border-radius:12px;padding:24px;border:1px solid #bbf7d0;text-align:center;margin-bottom:24px;">
-      <div style="font-size:12px;color:#16a34a;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Your Commission</div>
-      <div style="font-size:42px;font-weight:900;color:#16a34a;">$${commissionAmount.toFixed(2)}</div>
-      <div style="font-size:13px;color:#64748b;margin-top:6px;">Order total: $${(orderTotal / 100).toFixed(2)} · Commission rate: ${commissionRatePct ?? 20}%</div>
-    </div>
-    <div style="background:#f8fafc;border-radius:10px;padding:16px;border:1px solid #e2e8f0;margin-bottom:24px;">
-      <div style="font-size:12px;color:#64748b;margin-bottom:4px;">Order Number</div>
-      <div style="font-size:16px;font-weight:700;color:#1a6ed8;">${orderNumber}</div>
-    </div>
-    <p style="font-size:13px;color:#64748b;margin:0;">Commissions are reviewed and paid out monthly. Log into your <a href="https://aeterionpeptides.com/ambassador" style="color:#1a6ed8;font-weight:600;">ambassador dashboard</a> to track your earnings.</p>
-  </td></tr>
-  <tr><td style="background:#1e293b;border-radius:0 0 16px 16px;padding:20px 40px;text-align:center;">
-    <div style="font-size:11px;color:rgba(255,255,255,0.4);">Aeterion Labs Ambassador Program · aeterionpeptides.com</div>
-  </td></tr>
-</table></td></tr></table></body></html>`;
-}
-
-export default async function handler(req, res) {
-  if (req.method !== "POST") return res.status(405).end();
-
-  // ── Read raw body for signature verification ──
-  const chunks = [];
-  for await (const chunk of req) chunks.push(chunk);
-  const rawBody = Buffer.concat(chunks);
-
-  // ── Verify Stripe webhook signature ──
-  const sig = req.headers["stripe-signature"];
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-  if (!webhookSecret) {
-    console.error("STRIPE_WEBHOOK_SECRET not configured");
-    return res.status(500).json({ error: "Webhook not configured" });
-  }
-
-  let event;
-  try {
-    event = stripe.webhooks.constructEvent(rawBody, sig, webhookSecret);
-  } catch (err) {
-    console.error("Webhook signature verification failed:", err.message);
-    return res.status(400).json({ error: "Invalid signature" });
-  }
-
-  log("=== WEBHOOK RECEIVED ===", event.type);
-
-  // Log full session data immediately so we can debug
-  try {
-    const preview = event.data?.object;
-    log("Session preview:", JSON.stringify({
-      id: preview?.id,
-      amount_total: preview?.amount_total,
-      metadata: preview?.metadata,
-      customer_details: preview?.customer_details?.email,
-    }));
-  } catch {}
-
-  try {
-    if (!event?.type) return res.status(400).json({ error: "Invalid event" });
-
-    if (event.type === "checkout.session.completed") {
-      const session = event.data.object;
-      log("Session ID:", session.id);
-      log("Metadata:", JSON.stringify(session.metadata));
-      log("Amount total:", session.amount_total);
-
-      const lineItems = await stripe.checkout.sessions.listLineItems(session.id, {
-        limit: 100,
-        expand: ['data.price.product'],
-      });
-
-      const customerName    = session.customer_details?.name || "Valued Customer";
-      const customerEmail   = session.customer_details?.email;
-      const customerPhone   = session.customer_details?.phone;
-      // FIXED: correct Stripe field for shipping address
-      const shippingAddress = session.shipping_details?.address;
-      const orderNumber     = generateOrderNumber(session.id);
-      const promoCode       = session.metadata?.promo_code || null;
-      const ambassadorId    = session.metadata?.ambassador_id || null;
-
-      log("Customer:", customerName, customerEmail);
-      log("Promo code:", promoCode, "| Ambassador ID:", ambassadorId);
-      log("Shipping address:", JSON.stringify(shippingAddress));
-
-      // ── 1. SAVE ORDER TO SUPABASE (idempotent) ──
-      try {
-        const existingOrder = await sb(`orders?id=eq.${session.id}&select=id`).catch(() => []);
-        if (existingOrder?.length) {
-          log(`⚠️ Order ${session.id} already exists — skipping insert`);
-        } else {
-          await sb("orders", "POST", {
-            id:               session.id,
-            order_number:     orderNumber,
-            customer_name:    customerName,
-            customer_email:   customerEmail,
-            customer_phone:   customerPhone,
-            shipping_address: shippingAddress || null,
-            items:            lineItems.data.map(i => ({
-              description:  i.description,
-              quantity:     i.quantity,
-              amount_total: i.amount_total,
-              product_id:   i.price?.product?.metadata?.product_id
-                              ? parseInt(i.price.product.metadata.product_id)
-                              : null,
-            })),
-            total:            session.amount_total,
-            status:           "processing",
-            user_id:          session.metadata?.user_id || null,
-            promo_code:       promoCode || null,
-            ambassador_id:    ambassadorId ? String(ambassadorId) : null,
-          });
-          log("✓ Order saved to Supabase:", orderNumber);
-        }
-      } catch (e) {
-        console.error("✗ Supabase order save FAILED:", e.message);
-      }
-
-      // ── 2. CUSTOMER EMAIL ──
-      if (customerEmail) {
-        try {
-          await sendEmail({
-            to: customerEmail,
-            subject: `Order Confirmed ${orderNumber} — Aeterion Labs`,
-            html: buildCustomerEmail({ customerName, items: lineItems.data, total: session.amount_total, orderId: session.id, orderNumber }),
-          });
-          log("✓ Customer email sent to:", customerEmail);
-        } catch (e) {
-          console.error("✗ Customer email FAILED:", e.message);
-        }
-      } else {
-        console.warn("No customer email on session — skipping customer email");
-      }
-
-      // ── 3. ADMIN EMAIL ──
-      try {
-        await sendEmail({
-          to: "info@aeterionpeptides.com",
-          subject: `🛍️ New Order ${orderNumber} — $${(session.amount_total / 100).toFixed(2)} from ${customerName}`,
-          html: buildAdminEmail({ customerName, customerEmail, customerPhone, shippingAddress, items: lineItems.data, total: session.amount_total, orderNumber, promoCode, commissionAmount: null }),
-        });
-        log("✓ Admin email sent");
-      } catch (e) {
-        console.error("✗ Admin email FAILED:", e.message);
-      }
-
-      // ── 4. AMBASSADOR COMMISSION ──
-      if (promoCode && ambassadorId) {
-        try {
-          // IDEMPOTENT: check if commission already recorded for this session
-          const existing = await sb(`ambassador_commissions?stripe_session_id=eq.${session.id}&select=id`);
-          if (existing?.length) {
-            log(`⚠️ Commission already recorded for session ${session.id} — skipping duplicate`);
-          } else {
-            // Fetch ambassador details (including commission_rate) before calculating
-            const ambData = await sb(`ambassadors?id=eq.${ambassadorId}&select=id,name,email,commission_rate,total_commission_earned`);
-            const amb = ambData?.[0];
-
-            // Use ambassador's actual commission_rate (default 20 if not set)
-            const commissionRatePct = Number(amb?.commission_rate ?? 20);
-            // Customer discount is always 10% for ambassador codes
-            const customerDiscountPct = 10;
-
-            // Commission based on product subtotal only (sum of line items, no shipping)
-            const productSubtotal  = lineItems.data.reduce((sum, i) => sum + i.amount_total, 0) / 100;
-            const commissionAmount = productSubtotal * (commissionRatePct / 100);
-
-            // Insert commission record
-            await sb("ambassador_commissions", "POST", {
-              ambassador_id:     ambassadorId,
-              order_id:          session.payment_intent || session.id,
-              stripe_session_id: session.id,
-              customer_email:    customerEmail || "",
-              order_subtotal:    productSubtotal,
-              discount_amount:   productSubtotal * (customerDiscountPct / 100),
-              commission_amount: commissionAmount,
-              promo_code:        promoCode,
-              status:            "pending",
-            });
-            log(`✓ Commission logged: $${commissionAmount.toFixed(2)} (${commissionRatePct}%)`);
-
-            // Update ambassador running total
-            try {
-              if (amb) {
-                const newTotal = Number(amb.total_commission_earned || 0) + commissionAmount;
-                await sb(`ambassadors?id=eq.${ambassadorId}`, "PATCH", { total_commission_earned: newTotal });
-                log(`✓ Ambassador total updated to $${newTotal.toFixed(2)}`);
-
-                if (amb.email) {
-                  try {
-                    await sendEmail({
-                      to: amb.email,
-                      subject: `💰 You earned $${commissionAmount.toFixed(2)} — Aeterion Commission`,
-                      html: buildAmbassadorEmail({
-                        ambassadorName:   amb.name,
-                        ambassadorEmail:  amb.email,
-                        customerEmail:    customerEmail,
-                        commissionAmount: commissionAmount,
-                        commissionRatePct,
-                        orderTotal:       session.amount_total,
-                        promoCode:        promoCode,
-                        orderNumber:      orderNumber,
-                      }),
-                    });
-                    log("✓ Ambassador email sent to:", amb.email);
-                  } catch (e) {
-                    console.error("✗ Ambassador email FAILED:", e.message);
-                  }
-                }
-              }
-            } catch (e) {
-              console.error("✗ Ambassador total update FAILED:", e.message);
-            }
-          } // end else (not duplicate)
-        } catch (e) {
-          console.error("✗ Commission insert FAILED:", e.message);
-        }
-      }
-    }
-
-    return res.status(200).json({ received: true });
-  } catch (err) {
-    console.error("✗ Webhook top-level error:", err.message);
-    return res.status(500).json({ error: sanitizeError(err) });
-  }
 }
 
 export const config = { api: { bodyParser: false } };
