@@ -66,7 +66,7 @@ export default function PrivacyPolicy() {
             <ul style={{ margin: 0, paddingLeft: 20 }}>
               <li><strong>Supabase:</strong> Database hosting and user authentication. Data stored in the United States.</li>
               <li><strong>Resend:</strong> Transactional email delivery (order confirmations, shipping updates).</li>
-              <li><strong>Stripe:</strong> Payment processing. Stripe handles all payment card data directly and is PCI-DSS compliant. We do not store your full payment card information.</li>
+              <li><strong>PayPal:</strong> Payment processing. PayPal handles all payment data directly and is PCI-DSS compliant. We do not store your payment information.</li>
               <li><strong>Vercel:</strong> Website hosting and analytics.</li>
             </ul>
             <p style={{ margin: "10px 0 0" }}>We do not sell your personal data to any third party.</p>
@@ -116,7 +116,7 @@ export default function PrivacyPolicy() {
 
           {S("9. Data Security", <>
             <p style={{ margin: 0 }}>
-              We implement appropriate technical and organizational measures to protect your personal data, including encrypted connections (HTTPS/TLS), secure database access controls, and PCI-compliant payment processing through Stripe. No method of electronic storage is 100% secure, and we cannot guarantee absolute security.
+              We implement appropriate technical and organizational measures to protect your personal data, including encrypted connections (HTTPS/TLS), secure database access controls, and PCI-compliant payment processing through PayPal. No method of electronic storage is 100% secure, and we cannot guarantee absolute security.
             </p>
           </>)}
 
