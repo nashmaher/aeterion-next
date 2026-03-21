@@ -620,7 +620,7 @@ export default function BlogIndex({ posts }) {
         <title>Research Peptide News & Guides | Aeterion Labs Blog</title>
         <meta name="description" content="Latest peptide research news, FDA regulatory updates, clinical trial results, and research guides. Stay current on GLP-1, BPC-157, TB-500, growth hormone peptides and more." />
         <meta name="robots" content="index, follow" />
-        <link rel="canonical" href="https://aeterionpeptides.com/blog" />
+        <link rel="canonical" href="https://www.aeterionpeptides.com/blog" />
       </Head>
 
       <div style={{ fontFamily: "'DM Sans', Arial, sans-serif", background: '#f8f9fb', minHeight: '100vh' }}>

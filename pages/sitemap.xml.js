@@ -15,25 +15,43 @@ const PRODUCTS = [
   "bacteriostatic-water","peptide-reconstitution-kit","syringes"
 ];
 
+const BLOG_SLUGS = [
+  "retatrutide-phase-3-results-2026",
+  "fda-peptide-reclassification-2026-rfk-category-2",
+  "bpc-157-vs-tb-500-recovery-research",
+  "glp-1-research-peptides-complete-guide-2026",
+  "growth-hormone-peptides-ipamorelin-cjc1295-sermorelin-comparison",
+  "longevity-peptides-research-2026-epitalon-humanin-mots-c",
+  "cognitive-peptides-noopept-dihexa-semax-research-guide",
+  "how-to-reconstitute-peptides-bacteriostatic-water-guide",
+  "oral-glp1-orforglipron-fda-review-2026",
+  "peptide-purity-testing-hplc-coa-what-researchers-need-to-know",
+];
+
 const BASE_URL = "https://www.aeterionpeptides.com";
 
 function generateSitemap() {
   const staticRoutes = [
     { url: "/", priority: "1.0", changefreq: "daily" },
     { url: "/blog", priority: "0.8", changefreq: "weekly" },
-    { url: "/about", priority: "0.6", changefreq: "monthly" },
-    { url: "/faq", priority: "0.7", changefreq: "monthly" },
-    { url: "/contact", priority: "0.5", changefreq: "monthly" },
-    { url: "/legal", priority: "0.3", changefreq: "yearly" },
+    { url: "/privacy-policy", priority: "0.3", changefreq: "yearly" },
+    { url: "/terms", priority: "0.3", changefreq: "yearly" },
+    { url: "/disclaimer", priority: "0.3", changefreq: "yearly" },
   ];
 
   const productRoutes = PRODUCTS.map(slug => ({
-    url: `/?product=${slug}`,
+    url: `/products/${slug}`,
     priority: "0.9",
     changefreq: "weekly",
   }));
 
-  const allRoutes = [...staticRoutes, ...productRoutes];
+  const blogRoutes = BLOG_SLUGS.map(slug => ({
+    url: `/blog/${slug}`,
+    priority: "0.7",
+    changefreq: "monthly",
+  }));
+
+  const allRoutes = [...staticRoutes, ...productRoutes, ...blogRoutes];
   const today = new Date().toISOString().split("T")[0];
 
   return `<?xml version="1.0" encoding="UTF-8"?>

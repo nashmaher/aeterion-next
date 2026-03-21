@@ -922,8 +922,8 @@ const HOMEPAGE_SCHEMA = [
     "@context": "https://schema.org",
     "@type": "Organization",
     "name": "Aeterion Labs",
-    "url": "https://aeterionpeptides.com",
-    "logo": "https://aeterionpeptides.com/apple-touch-icon.png",
+    "url": "https://www.aeterionpeptides.com",
+    "logo": "https://www.aeterionpeptides.com/apple-touch-icon.png",
     "contactPoint": { "@type": "ContactPoint", "email": "info@aeterionpeptides.com", "contactType": "customer service" },
     "description": "US-based supplier of research-grade peptides, SARMs, nootropics, and analytical compounds."
   },
@@ -931,23 +931,23 @@ const HOMEPAGE_SCHEMA = [
     "@context": "https://schema.org",
     "@type": "WebSite",
     "name": "Aeterion Labs",
-    "url": "https://aeterionpeptides.com",
-    "potentialAction": { "@type": "SearchAction", "target": "https://aeterionpeptides.com/?q={search_term_string}", "query-input": "required name=search_term_string" }
+    "url": "https://www.aeterionpeptides.com",
+    "potentialAction": { "@type": "SearchAction", "target": "https://www.aeterionpeptides.com/?q={search_term_string}", "query-input": "required name=search_term_string" }
   },
   {
     "@context": "https://schema.org",
     "@type": "ItemList",
     "name": "Research Peptides Catalog",
     "description": "Research-grade peptides, SARMs, and analytical compounds",
-    "url": "https://aeterionpeptides.com",
+    "url": "https://www.aeterionpeptides.com",
     "numberOfItems": 55,
     "itemListElement": [
-      { "@type": "ListItem", "position": 4, "name": "TB-500", "url": "https://aeterionpeptides.com/products/tb-500" },
-      { "@type": "ListItem", "position": 5, "name": "Retatrutide", "url": "https://aeterionpeptides.com/products/retatrutide" },
-      { "@type": "ListItem", "position": 7, "name": "CJC-1295", "url": "https://aeterionpeptides.com/products/cjc-1295-with-dac" },
-      { "@type": "ListItem", "position": 8, "name": "Ipamorelin", "url": "https://aeterionpeptides.com/products/ipamorelin" },
-      { "@type": "ListItem", "position": 9, "name": "NAD+", "url": "https://aeterionpeptides.com/products/nad" },
-      { "@type": "ListItem", "position": 10, "name": "Epithalon", "url": "https://aeterionpeptides.com/products/epithalon" }
+      { "@type": "ListItem", "position": 4, "name": "TB-500", "url": "https://www.aeterionpeptides.com/products/tb-500" },
+      { "@type": "ListItem", "position": 5, "name": "Retatrutide", "url": "https://www.aeterionpeptides.com/products/retatrutide" },
+      { "@type": "ListItem", "position": 7, "name": "CJC-1295", "url": "https://www.aeterionpeptides.com/products/cjc-1295-with-dac" },
+      { "@type": "ListItem", "position": 8, "name": "Ipamorelin", "url": "https://www.aeterionpeptides.com/products/ipamorelin" },
+      { "@type": "ListItem", "position": 9, "name": "NAD+", "url": "https://www.aeterionpeptides.com/products/nad" },
+      { "@type": "ListItem", "position": 10, "name": "Epithalon", "url": "https://www.aeterionpeptides.com/products/epithalon" }
     ]
   }
 ];
@@ -3825,17 +3825,17 @@ export default function App() {
         <title>Buy Research Peptides Online | TB-500, NAD+ & More | Aeterion Labs</title>
         <meta name="description" content="Shop 55+ research-grade peptides, TB-500, NAD+, SARMs & nootropics. HPLC tested, COA included. Free shipping $250+. USA peptide research supplier." />
         <meta name="keywords" content="research peptides, buy peptides online, peptide research supplier, peptide research compounds, TB-500, NAD+, cognitive peptides" />
-        <link rel="canonical" href="https://aeterionpeptides.com" />
+        <link rel="canonical" href="https://www.aeterionpeptides.com" />
         <meta property="og:title" content="Buy Research Peptides Online — Aeterion Labs" />
         <meta property="og:description" content="55+ research-grade peptides. TB-500, NAD+, SARMs & more. HPLC tested. COA included. Free shipping $250+." />
-        <meta property="og:image" content="https://aeterionpeptides.com/og-image.png" />
+        <meta property="og:image" content="https://www.aeterionpeptides.com/og-image.png" />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://aeterionpeptides.com" />
+        <meta property="og:url" content="https://www.aeterionpeptides.com" />
         <meta property="og:site_name" content="Aeterion Labs" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Buy Research Peptides Online — Aeterion Labs" />
         <meta name="twitter:description" content="55+ research-grade peptides. HPLC tested. COA included. Free shipping $250+." />
-        <meta name="twitter:image" content="https://aeterionpeptides.com/og-image.png" />
+        <meta name="twitter:image" content="https://www.aeterionpeptides.com/og-image.png" />
         {HOMEPAGE_SCHEMA.map((s, i) => <script key={i} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(s) }} />)}
         <style>{`
           @keyframes ticker-scroll {
@@ -4299,17 +4299,17 @@ export default function App() {
         <title>Buy Research Peptides Online | TB-500, NAD+ & More | Aeterion Labs</title>
         <meta name="description" content="Shop 55+ research-grade peptides, TB-500, NAD+, SARMs & nootropics. HPLC tested, COA included. Free shipping $250+. USA peptide research supplier." />
         <meta name="keywords" content="research peptides, buy peptides online, peptide research supplier, peptide research compounds, TB-500, NAD+, cognitive peptides" />
-        <link rel="canonical" href="https://aeterionpeptides.com" />
+        <link rel="canonical" href="https://www.aeterionpeptides.com" />
         <meta property="og:title" content="Buy Research Peptides Online — Aeterion Labs" />
         <meta property="og:description" content="55+ research-grade peptides. TB-500, NAD+, SARMs & more. HPLC tested. COA included. Free shipping $250+." />
-        <meta property="og:image" content="https://aeterionpeptides.com/og-image.png" />
+        <meta property="og:image" content="https://www.aeterionpeptides.com/og-image.png" />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://aeterionpeptides.com" />
+        <meta property="og:url" content="https://www.aeterionpeptides.com" />
         <meta property="og:site_name" content="Aeterion Labs" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Buy Research Peptides Online — Aeterion Labs" />
         <meta name="twitter:description" content="55+ research-grade peptides. HPLC tested. COA included. Free shipping $250+." />
-        <meta name="twitter:image" content="https://aeterionpeptides.com/og-image.png" />
+        <meta name="twitter:image" content="https://www.aeterionpeptides.com/og-image.png" />
         {HOMEPAGE_SCHEMA.map((s, i) => <script key={i} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(s) }} />)}
         <style>{`
           @keyframes ticker-scroll {
