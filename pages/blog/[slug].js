@@ -684,7 +684,7 @@ function renderContent(content) {
 export default function BlogPost({ post, relatedPosts }) {
   if (!post) return <div style={{ padding: 40, fontFamily: 'sans-serif' }}>Post not found.</div>
   const cat = CATEGORY_COLORS[post.category] || { bg: '#EBF5FE', color: '#1B3A6B' }
-  const canonicalUrl = `https://aeterionpeptides.com/blog/${post.slug}`
+  const canonicalUrl = `https://www.aeterionpeptides.com/blog/${post.slug}`
   const structuredData = {
     '@context': 'https://schema.org', '@type': 'Article',
     headline: post.title, description: post.excerpt, datePublished: post.date,
